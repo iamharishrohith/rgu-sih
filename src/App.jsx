@@ -253,21 +253,24 @@ export default function App() {
     }
   };
 
-  // Exact 110 Finalized Tier counts
+  // Live Tier Counts (excludes hidden teams)
   const tierCounts = useMemo(() => {
+    const s = publicTeamsList.filter(t => t.status === 'Shortlist').length;
+    const b = publicTeamsList.filter(t => t.status === 'Bench').length;
+    const w = publicTeamsList.filter(t => t.status === 'Waitlist').length;
     return {
-      shortlist: FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Shortlist').length, // 80
-      bench: FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Bench').length, // 10
-      waitlist: FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Waitlist').length, // 20
-      totalFinalized: FINALIZED_MASTER_TEAMS.length // 110
+      shortlist: s,
+      bench: b,
+      waitlist: w,
+      totalFinalized: s + b + w
     };
-  }, []);
+  }, [publicTeamsList]);
 
-  // Submitted forms among the 110 finalized teams
+  // Submitted forms among public visible teams
   const finalizedSubmittedCount = useMemo(() => {
-    const finalizedIds = new Set(FINALIZED_MASTER_TEAMS.map(t => t.temp_team_id));
-    return Object.keys(registrationsMap).filter(id => finalizedIds.has(id)).length;
-  }, [registrationsMap]);
+    const publicIds = new Set(publicTeamsList.map(t => t.temp_team_id));
+    return Object.keys(registrationsMap).filter(id => publicIds.has(id)).length;
+  }, [registrationsMap, publicTeamsList]);
 
   // Handle Search Input with Secret Code Detection
   const handleSearchChange = (e) => {
@@ -299,19 +302,19 @@ export default function App() {
       );
     };
 
-    const s = FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Shortlist' && matchFn(t)).length;
-    const b = FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Bench' && matchFn(t)).length;
-    const w = FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Waitlist' && matchFn(t)).length;
+    const s = publicTeamsList.filter(t => t.status === 'Shortlist' && matchFn(t)).length;
+    const b = publicTeamsList.filter(t => t.status === 'Bench' && matchFn(t)).length;
+    const w = publicTeamsList.filter(t => t.status === 'Waitlist' && matchFn(t)).length;
     return { shortlist: s, bench: b, waitlist: w, total: s + b + w };
-  }, [searchTerm, registrationsMap]);
+  }, [searchTerm, registrationsMap, publicTeamsList]);
 
-  // Filtered strictly to active tier (Shortlist = 80, Bench = 10, Waitlist = 20)
+  // Filtered strictly to active tier from public visible teams
   const baseList = useMemo(() => {
-    if (activeTier === 'shortlist') return FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Shortlist');
-    if (activeTier === 'bench') return FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Bench');
-    if (activeTier === 'waitlist') return FINALIZED_MASTER_TEAMS.filter(t => t.status === 'Waitlist');
+    if (activeTier === 'shortlist') return publicTeamsList.filter(t => t.status === 'Shortlist');
+    if (activeTier === 'bench') return publicTeamsList.filter(t => t.status === 'Bench');
+    if (activeTier === 'waitlist') return publicTeamsList.filter(t => t.status === 'Waitlist');
     return [];
-  }, [activeTier]);
+  }, [activeTier, publicTeamsList]);
 
   // Search filter inside active tier
   const filteredTeams = useMemo(() => {
