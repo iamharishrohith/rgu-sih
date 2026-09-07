@@ -623,6 +623,113 @@ export default function App() {
                   )}
                 </tbody>
               </table>
+
+              {/* MOBILE CANDIDATE CARDS (Visible only on Mobile Viewports < 768px) */}
+              <div className="mobile-candidate-cards-list mobile-only-cards">
+                {sortedTeams.length === 0 ? (
+                  <div className="smart-empty-search-box mobile-empty-card">
+                    <div className="empty-search-icon-circle">
+                      <Search size={26} />
+                    </div>
+                    <h3 className="empty-title">
+                      No teams in {activeTier.toUpperCase()} matching "{searchTerm}"
+                    </h3>
+                    <div className="tier-redirect-grid">
+                      {activeTier !== 'shortlist' && (
+                        <button 
+                          className="btn-tier-redirect-action shortlist"
+                          onClick={() => setActiveTier('shortlist')}
+                        >
+                          <ShieldCheck size={16} className="text-emerald" />
+                          <span>Check Shortlist ({tierCounts.shortlist})</span>
+                        </button>
+                      )}
+                      {activeTier !== 'bench' && (
+                        <button 
+                          className="btn-tier-redirect-action bench"
+                          onClick={() => setActiveTier('bench')}
+                        >
+                          <Award size={16} className="text-amber" />
+                          <span>Check Bench ({tierCounts.bench})</span>
+                        </button>
+                      )}
+                      {activeTier !== 'waitlist' && (
+                        <button 
+                          className="btn-tier-redirect-action waitlist"
+                          onClick={() => setActiveTier('waitlist')}
+                        >
+                          <Filter size={16} className="text-indigo" />
+                          <span>Check Waitlist ({tierCounts.waitlist})</span>
+                        </button>
+                      )}
+                    </div>
+                    <button className="btn-clear-empty-search" onClick={() => setSearchTerm('')}>
+                      Clear Search
+                    </button>
+                  </div>
+                ) : (
+                  sortedTeams.map((team) => {
+                    const regRecord = registrationsMap[team.temp_team_id];
+                    const isRegistered = !!regRecord;
+
+                    return (
+                      <div 
+                        key={`mob-${activeTier}-${team.temp_team_id}-${team.rank}`} 
+                        className={`mobile-team-card ${isRegistered ? 'card-confirmed' : ''}`}
+                      >
+                        <div className="mob-card-top-bar">
+                          <div className="mob-badges-left">
+                            <span className="rank-badge">#{team.rank}</span>
+                            <span className="team-id-badge">{team.temp_team_id}</span>
+                          </div>
+                          <span className={`status-badge ${team.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                            {team.status}
+                          </span>
+                        </div>
+
+                        <div className="mob-team-name">
+                          {regRecord?.team_name || team.team_name}
+                        </div>
+
+                        <div className="mob-details-grid">
+                          <div className="mob-detail-row">
+                            <span className="mob-detail-label">Leader:</span>
+                            <strong className="mob-detail-val">{team.leader_name}</strong>
+                          </div>
+                          <div className="mob-detail-row">
+                            <span className="mob-detail-label">Reg No:</span>
+                            <span className="mob-detail-val font-mono">{team.reg_no}</span>
+                          </div>
+                          <div className="mob-detail-row">
+                            <span className="mob-detail-label">School:</span>
+                            <span className="mob-detail-val school-text">{team.school}</span>
+                          </div>
+                        </div>
+
+                        <div className="mob-card-action">
+                          {isRegistered ? (
+                            <button
+                              className="btn-status-confirmed mob-btn-full"
+                              onClick={() => setActiveRegTeam(team)}
+                            >
+                              <UserCheck size={15} />
+                              <span>Form Submitted (Edit Details)</span>
+                            </button>
+                          ) : (
+                            <button
+                              className="btn-register-vibrant mob-btn-full"
+                              onClick={() => setActiveRegTeam(team)}
+                            >
+                              <span>Register Team</span>
+                              <ArrowRight size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </section>
         </main>

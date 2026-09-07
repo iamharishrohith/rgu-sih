@@ -47,7 +47,7 @@ export default function FlowerConfettiRain() {
     ];
 
     // Particle pool
-    const particleCount = Math.min(80, Math.max(45, Math.floor(width / 22)));
+    const particleCount = Math.min(50, Math.max(22, Math.floor(width / 32)));
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
@@ -67,7 +67,7 @@ export default function FlowerConfettiRain() {
         x: Math.random() * width,
         y: initial ? Math.random() * height : -30 - Math.random() * 50,
         type: type,
-        size: type === 'flower' ? Math.random() * 8 + 10 : Math.random() * 7 + 5,
+        size: type === 'flower' ? Math.random() * 6 + 8 : Math.random() * 5 + 4,
         color: color,
         vy: Math.random() * 1.6 + 1.1, // gentle falling speed
         vx: (Math.random() - 0.5) * 0.7, // gentle horizontal breeze
