@@ -25,7 +25,24 @@ export default function App() {
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTier, setActiveTier] = useState('shortlist'); // strictly: 'shortlist' | 'bench' | 'waitlist'
+  const [activeTier, setActiveTier] = useState('shortlist');
+
+  // Custom & Dynamic Teams State (CRUD Persistence)
+  const [customTeamsMap, setCustomTeamsMap] = useState({});
+  const [deletedTeamIds, setDeletedTeamIds] = useState(new Set());
+
+  // Combined Active Finalized Master Teams
+  const masterTeamsList = useMemo(() => {
+    const baseList = FINALIZED_MASTER_TEAMS
+      .filter(t => !deletedTeamIds.has(t.temp_team_id))
+      .map(t => customTeamsMap[t.temp_team_id] || t);
+
+    const baseIds = new Set(FINALIZED_MASTER_TEAMS.map(t => t.temp_team_id));
+    const newlyCreated = Object.values(customTeamsMap)
+      .filter(t => !baseIds.has(t.temp_team_id) && !deletedTeamIds.has(t.temp_team_id) && !t.is_deleted);
+
+    return [...baseList, ...newlyCreated];
+  }, [customTeamsMap, deletedTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
   
   // Registrations Map & Team Contacts Map
   const [registrationsMap, setRegistrationsMap] = useState({});
@@ -118,6 +135,71 @@ export default function App() {
 
     loadData();
   }, []);
+
+  // 1. Create Team Handler
+  const handleCreateTeam = async (newTeam) => {
+    const localCustom = JSON.parse(localStorage.getItem('sih_custom_teams') || '{}');
+    localCustom[newTeam.temp_team_id] = newTeam;
+    localStorage.setItem('sih_custom_teams', JSON.stringify(localCustom));
+
+    setCustomTeamsMap(prev => ({ ...prev, [newTeam.temp_team_id]: newTeam }));
+
+    try {
+      await supabase
+        .from('custom_teams')
+        .upsert([{ ...newTeam, is_deleted: false, updated_at: new Date().toISOString() }]);
+    } catch (e) {
+      console.warn('Supabase custom_teams upsert error:', e);
+    }
+  };
+
+  // 2. Update Team Handler
+  const handleUpdateTeam = async (tempTeamId, updatedTeam) => {
+    const fullTeam = { ...updatedTeam, temp_team_id: tempTeamId };
+    const localCustom = JSON.parse(localStorage.getItem('sih_custom_teams') || '{}');
+    localCustom[tempTeamId] = fullTeam;
+    localStorage.setItem('sih_custom_teams', JSON.stringify(localCustom));
+
+    setCustomTeamsMap(prev => ({ ...prev, [tempTeamId]: fullTeam }));
+
+    try {
+      await supabase
+        .from('custom_teams')
+        .upsert([{ ...fullTeam, is_deleted: false, updated_at: new Date().toISOString() }]);
+    } catch (e) {
+      console.warn('Supabase custom_teams update error:', e);
+    }
+  };
+
+  // 3. Delete Team Handler
+  const handleDeleteTeam = async (tempTeamId) => {
+    const localDeleted = JSON.parse(localStorage.getItem('sih_deleted_teams') || '[]');
+    if (!localDeleted.includes(tempTeamId)) {
+      localDeleted.push(tempTeamId);
+      localStorage.setItem('sih_deleted_teams', JSON.stringify(localDeleted));
+    }
+
+    const localCustom = JSON.parse(localStorage.getItem('sih_custom_teams') || '{}');
+    if (localCustom[tempTeamId]) {
+      delete localCustom[tempTeamId];
+      localStorage.setItem('sih_custom_teams', JSON.stringify(localCustom));
+    }
+
+    setDeletedTeamIds(prev => new Set([...prev, tempTeamId]));
+    setCustomTeamsMap(prev => {
+      const next = { ...prev };
+      delete next[tempTeamId];
+      return next;
+    });
+
+    try {
+      await supabase
+        .from('custom_teams')
+        .upsert([{ temp_team_id: tempTeamId, is_deleted: true, updated_at: new Date().toISOString() }]);
+    } catch (e) {
+      console.warn('Supabase custom_teams delete error:', e);
+    }
+  };
 
   // Update contact number handler
   const handleUpdateContact = async (tempTeamId, phone, whatsapp) => {
@@ -289,13 +371,16 @@ export default function App() {
       {/* VIEW 1: ADMIN DASHBOARD */}
       {currentView === 'admin' && isAdminLoggedIn ? (
         <AdminDashboard
-          allMasterTeams={FINALIZED_MASTER_TEAMS}
+          allMasterTeams={masterTeamsList}
           registrationsMap={registrationsMap}
           teamContactsMap={teamContactsMap}
           onUpdateContact={handleUpdateContact}
           onLogout={handleAdminLogout}
           onViewTeamDetails={(team) => setActiveDetailsTeam(team)}
           onOpenTeamForm={(team) => setActiveRegTeam(team)}
+          onCreateTeam={handleCreateTeam}
+          onUpdateTeam={handleUpdateTeam}
+          onDeleteTeam={handleDeleteTeam}
         />
       ) : currentView === 'landing' ? (
         /* VIEW 2: GRAND ANNOUNCEMENT LANDING SHOWCASE */
@@ -303,7 +388,7 @@ export default function App() {
           onExploreShortlist={() => openTierDesk('shortlist')}
           onExploreBench={() => openTierDesk('bench')}
           onExploreWaitlist={() => openTierDesk('waitlist')}
-          allTeams={FINALIZED_MASTER_TEAMS}
+          allTeams={masterTeamsList}
           onOpenTeamRegistration={(team) => setActiveRegTeam(team)}
           
         />

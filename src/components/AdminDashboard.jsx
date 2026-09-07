@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Users, CheckCircle2, Clock, Phone, MessageSquare, Download, Upload, 
+  Users, CheckCircle2, Clock, Phone, MessageSquare, Download, Upload, Plus, Trash2, 
   Search, Filter, ShieldCheck, UserCheck, Eye, Edit3, Save, X, ExternalLink,
   LogOut, RefreshCw, Layers, BarChart3, PieChart, Award, FileText, Send, Check
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { sanitizeCSVField } from '../crypto_security';
+import TeamEditorModal from './TeamEditorModal.jsx';
+import DeleteConfirmationModal from './DeleteConfirmationModal.jsx';
 
 export default function AdminDashboard({ 
   allMasterTeams, 
@@ -14,7 +16,10 @@ export default function AdminDashboard({
   onUpdateContact, 
   onLogout,
   onViewTeamDetails,
-  onOpenTeamForm
+  onOpenTeamForm,
+  onCreateTeam,
+  onUpdateTeam,
+  onDeleteTeam
 }) {
   // Navigation Tabs: 'analytics' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -25,6 +30,37 @@ export default function AdminDashboard({
   const [editingContactId, setEditingContactId] = useState(null);
   const [editPhone, setEditPhone] = useState('');
   const [editWhatsapp, setEditWhatsapp] = useState('');
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
+  const [teamToEdit, setTeamToEdit] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState(null);
+
+  const handleOpenCreateModal = () => {
+    setTeamToEdit(null);
+    setIsEditorModalOpen(true);
+  };
+
+  const handleOpenEditModal = (team) => {
+    setTeamToEdit(team);
+    setIsEditorModalOpen(true);
+  };
+
+  const handleOpenDeleteModal = (team) => {
+    setTeamToDelete(team);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSaveTeamEditor = async (teamData, isEditMode) => {
+    if (isEditMode) {
+      if (onUpdateTeam) await onUpdateTeam(teamData.temp_team_id, teamData);
+    } else {
+      if (onCreateTeam) await onCreateTeam(teamData);
+    }
+  };
+
+  const handleConfirmDelete = async (tempTeamId) => {
+    if (onDeleteTeam) await onDeleteTeam(tempTeamId);
+  };
 
   // Combined Team Records for all 110 Finalized Teams
   const teamRecords = useMemo(() => {
@@ -227,6 +263,10 @@ export default function AdminDashboard({
         </div>
 
         <div className="admin-top-actions">
+          <button className="btn-admin-add-team" onClick={handleOpenCreateModal}>
+            <Plus size={15} />
+            <span>+ Add New Team</span>
+          </button>
           <button className="btn-export-csv" onClick={handleExportCSV}>
             <Download size={15} />
             <span>Export Master Roster (CSV)</span>
@@ -634,6 +674,25 @@ export default function AdminDashboard({
                         {/* Form View & Actions */}
                         <td>
                           <div className="admin-actions-cell-group">
+                            {/* Edit Team Record */}
+                            <button 
+                              className="btn-admin-row-action edit"
+                              onClick={() => handleOpenEditModal(team)}
+                              title="Edit team information and evaluation"
+                            >
+                              <Edit3 size={13} />
+                              <span>Edit</span>
+                            </button>
+
+                            {/* Delete Team Record */}
+                            <button 
+                              className="btn-admin-row-action delete"
+                              onClick={() => handleOpenDeleteModal(team)}
+                              title="Delete team from finalist roster"
+                            >
+                              <Trash2 size={13} />
+                              <span>Delete</span>
+                            </button>
                             {/* Open & View/Edit Form Button */}
                             <button 
                               className={`btn-admin-form-view ${team.isRegistered ? 'filled' : 'pending'}`}
@@ -678,6 +737,23 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+          {/* Team Create / Edit Modal */}
+      <TeamEditorModal
+        isOpen={isEditorModalOpen}
+        onClose={() => setIsEditorModalOpen(false)}
+        onSave={handleSaveTeamEditor}
+        teamToEdit={teamToEdit}
+        nextSuggestedRank={teamRecords.length + 1}
+        nextSuggestedId={`SIH26-TM-${String(teamRecords.length + 1).padStart(3, '0')}`}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        teamToDelete={teamToDelete}
+      />
     </div>
   );
 }
