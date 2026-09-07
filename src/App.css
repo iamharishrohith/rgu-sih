@@ -3776,3 +3776,265 @@ body {
   background: #f8fafc !important;
   padding: 36px 24px !important;
 }
+
+
+/* ==========================================================================
+   MOBILE UI/UX OPTIMIZATIONS (320px - 768px Viewports)
+   ========================================================================== */
+
+/* 1. Header & Logo Banners on Mobile */
+@media (max-width: 768px) {
+  .header-logos-bar {
+    padding: 8px 16px !important;
+  }
+
+  .logos-container {
+    justify-content: center !important;
+    gap: 12px !important;
+  }
+
+  .moe-img {
+    height: 32px !important;
+  }
+
+  .rgu-img {
+    height: 30px !important;
+  }
+
+  .header-inner {
+    padding: 10px 16px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .brand-group {
+    width: 100% !important;
+  }
+
+  .brand-badge-icon {
+    width: 38px !important;
+    height: 38px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .brand-main-heading {
+    font-size: 0.95rem !important;
+    flex-wrap: wrap !important;
+  }
+
+  .pill-campus-tag {
+    font-size: 0.68rem !important;
+    padding: 2px 6px !important;
+  }
+
+  .brand-sub-heading {
+    font-size: 0.72rem !important;
+  }
+
+  .header-actions-group {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .meta-stats-pill {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+    padding: 6px 10px !important;
+  }
+}
+
+/* 2. Grand Hero & Actions on Mobile */
+@media (max-width: 640px) {
+  .grand-hero-section {
+    padding: 28px 16px 24px !important;
+  }
+
+  .grand-main-headline {
+    font-size: 1.75rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .grand-sub-headline {
+    font-size: 0.88rem !important;
+    margin-bottom: 12px !important;
+  }
+
+  .grand-hero-description {
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 24px !important;
+  }
+
+  .grand-cta-actions-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .btn-grand-primary-cta,
+  .btn-grand-secondary-cta {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    min-height: 46px !important;
+  }
+
+  .grand-stats-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    margin-top: 24px !important;
+  }
+
+  .grand-stat-card {
+    padding: 18px !important;
+  }
+
+  .stat-number-big {
+    font-size: 2rem !important;
+  }
+}
+
+/* 3. Instant Lookup on Mobile */
+@media (max-width: 640px) {
+  .instant-lookup-section {
+    padding: 20px 16px !important;
+  }
+
+  .instant-lookup-card {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .lookup-title {
+    font-size: 1.15rem !important;
+  }
+
+  .lookup-desc {
+    font-size: 0.82rem !important;
+  }
+
+  .instant-lookup-form {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .lookup-input-wrap {
+    min-width: 100% !important;
+  }
+
+  .lookup-input-field {
+    font-size: 16px !important; /* Prevents iOS Safari auto-zoom */
+    padding: 12px 14px 12px 42px !important;
+  }
+
+  .btn-lookup-submit {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 46px !important;
+  }
+}
+
+/* 4. Candidate Desk Table on Mobile */
+@media (max-width: 768px) {
+  .main-viewport {
+    padding: 16px 12px !important;
+  }
+
+  .search-filter-card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .three-tier-navigator {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .tier-nav-card {
+    padding: 14px 16px !important;
+  }
+
+  .desk-table-container {
+    border-radius: 14px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .shortlist-data-table {
+    min-width: 680px !important;
+  }
+
+  .col-leader,
+  .col-team {
+    min-width: 160px !important;
+  }
+
+  .btn-register-vibrant,
+  .btn-status-confirmed {
+    padding: 6px 10px !important;
+    font-size: 0.78rem !important;
+  }
+}
+
+/* 5. Modals & Forms on Mobile */
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-card,
+  .reg-modal-content {
+    width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 20px 16px !important;
+  }
+
+  .modal-header {
+    padding-bottom: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .modal-header h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .reg-wizard-nav {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 6px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .wizard-step-btn {
+    padding: 6px 10px !important;
+    font-size: 0.76rem !important;
+    white-space: nowrap !important;
+  }
+
+  .form-row,
+  .form-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .form-input,
+  .form-select {
+    font-size: 16px !important; /* Prevents iOS auto-zoom */
+    padding: 10px 12px !important;
+  }
+
+  .modal-footer {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .modal-footer button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
