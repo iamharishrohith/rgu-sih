@@ -20,7 +20,7 @@ export default function AdminDashboard({
   onCreateTeam,
   onUpdateTeam,
   onDeleteTeam,
-  hiddenTeamIds = new Set(),
+  hiddenTeamIds = [],
   onToggleTeamVisibility
 }) {
   // Navigation Tabs: 'analytics' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload'
@@ -72,7 +72,9 @@ export default function AdminDashboard({
       const isRegistered = !!reg;
       const phone = reg?.leader_phone || contact?.phone_number || t.mobile || '';
       const whatsapp = reg?.leader_whatsapp || contact?.whatsapp_number || t.mobile || '';
-      const isHidden = hiddenTeamIds instanceof Set ? hiddenTeamIds.has(t.temp_team_id) : false;
+      const isHidden = Array.isArray(hiddenTeamIds) 
+        ? hiddenTeamIds.includes(t.temp_team_id) 
+        : (hiddenTeamIds instanceof Set ? hiddenTeamIds.has(t.temp_team_id) : false);
 
       return {
         ...t,

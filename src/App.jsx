@@ -26,11 +26,31 @@ export default function App() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTier, setActiveTier] = useState('shortlist');
-  const [hiddenTeamIds, setHiddenTeamIds] = useState(new Set());
+  const [hiddenTeamIds, setHiddenTeamIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sih_hidden_teams');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Custom & Dynamic Teams State (CRUD Persistence)
-  const [customTeamsMap, setCustomTeamsMap] = useState({});
-  const [deletedTeamIds, setDeletedTeamIds] = useState(new Set());
+  const [customTeamsMap, setCustomTeamsMap] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_custom_teams') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [deletedTeamIds, setDeletedTeamIds] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('sih_deleted_teams') || '[]');
+      return new Set(saved);
+    } catch {
+      return new Set();
+    }
+  });
 
   // Combined Active Finalized Master Teams
   const masterTeamsList = useMemo(() => {
@@ -47,7 +67,8 @@ export default function App() {
 
   // Public Teams List for Students (excludes teams marked as Hidden by Admin)
   const publicTeamsList = useMemo(() => {
-    return masterTeamsList.filter(t => !hiddenTeamIds.has(t.temp_team_id));
+    const hiddenArr = Array.isArray(hiddenTeamIds) ? hiddenTeamIds : [];
+    return masterTeamsList.filter(t => !hiddenArr.includes(t.temp_team_id));
   }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
   
   // Registrations Map & Team Contacts Map
@@ -96,15 +117,24 @@ export default function App() {
     }
   };
 
-  // Hydrate registrations & contacts from Supabase & LocalStorage on boot
+  // Hydrate registrations, contacts, custom teams, and app settings from Supabase & LocalStorage on boot
   useEffect(() => {
     async function loadData() {
       // 1. Load LocalStorage first
       try {
         const localRegs = JSON.parse(localStorage.getItem('sih_registrations') || '{}');
         const localContacts = JSON.parse(localStorage.getItem('sih_team_contacts') || '{}');
+        const localCustom = JSON.parse(localStorage.getItem('sih_custom_teams') || '{}');
+        const localDeleted = JSON.parse(localStorage.getItem('sih_deleted_teams') || '[]');
+        const localHidden = JSON.parse(localStorage.getItem('sih_hidden_teams') || '[]');
+
         setRegistrationsMap(localRegs);
         setTeamContactsMap(localContacts);
+        setCustomTeamsMap(prev => ({ ...prev, ...localCustom }));
+        setDeletedTeamIds(prev => new Set([...prev, ...localDeleted]));
+        if (Array.isArray(localHidden) && localHidden.length > 0) {
+          setHiddenTeamIds(localHidden);
+        }
       } catch (e) {
         console.error('LocalStorage load error', e);
       }
@@ -134,6 +164,38 @@ export default function App() {
           });
           setTeamContactsMap(prev => ({ ...prev, ...remoteContactMap }));
         }
+
+        // Fetch custom teams
+        const { data: customData } = await supabase
+          .from('custom_teams')
+          .select('*');
+
+        if (customData) {
+          const remoteCustom = {};
+          const remoteDeleted = [];
+          customData.forEach(c => {
+            if (c.is_deleted) {
+              remoteDeleted.push(c.temp_team_id);
+            } else {
+              remoteCustom[c.temp_team_id] = c;
+            }
+          });
+          setCustomTeamsMap(prev => ({ ...prev, ...remoteCustom }));
+          setDeletedTeamIds(prev => new Set([...prev, ...remoteDeleted]));
+        }
+
+        // Fetch app settings (hidden team ids)
+        const { data: settingsData } = await supabase
+          .from('app_settings')
+          .select('*');
+
+        if (settingsData) {
+          const hiddenEntry = settingsData.find(s => s.key === 'hidden_team_ids');
+          if (hiddenEntry && Array.isArray(hiddenEntry.value)) {
+            setHiddenTeamIds(hiddenEntry.value);
+            localStorage.setItem('sih_hidden_teams', JSON.stringify(hiddenEntry.value));
+          }
+        }
       } catch (err) {
         console.warn('Supabase fetch error, running on cached dataset:', err);
       }
@@ -142,21 +204,23 @@ export default function App() {
     loadData();
   }, []);
 
-    // Per-Team Visibility Toggle Handler (Supabase & LocalStorage)
+  // Per-Team Visibility Toggle Handler (Supabase & LocalStorage)
   const handleToggleTeamVisibility = async (tempTeamId) => {
     setHiddenTeamIds(prev => {
-      const next = new Set(prev);
-      if (next.has(tempTeamId)) {
-        next.delete(tempTeamId);
-      } else {
-        next.add(tempTeamId);
+      const currentArr = Array.isArray(prev) ? prev : [];
+      const next = currentArr.includes(tempTeamId)
+        ? currentArr.filter(id => id !== tempTeamId)
+        : [...currentArr, tempTeamId];
+
+      try {
+        localStorage.setItem('sih_hidden_teams', JSON.stringify(next));
+      } catch (e) {
+        console.warn('LocalStorage error:', e);
       }
-      const arr = Array.from(next);
-      localStorage.setItem('sih_hidden_teams', JSON.stringify(arr));
 
       supabase
         .from('app_settings')
-        .upsert([{ key: 'hidden_team_ids', value: arr, updated_at: new Date().toISOString() }])
+        .upsert([{ key: 'hidden_team_ids', value: next, updated_at: new Date().toISOString() }], { onConflict: 'key' })
         .then(() => {})
         .catch(err => console.warn('Supabase hidden_teams sync error:', err));
 
