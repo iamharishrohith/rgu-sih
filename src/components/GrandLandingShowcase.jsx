@@ -9,8 +9,7 @@ export default function GrandLandingShowcase({
   onExploreBench, 
   onExploreWaitlist, 
   allTeams,
-  onOpenTeamRegistration,
-  onTriggerConfetti
+  onOpenTeamRegistration
 }) {
   const [quickSearch, setQuickSearch] = useState('');
   const [searchedTeam, setSearchedTeam] = useState(null);
@@ -35,24 +34,20 @@ export default function GrandLandingShowcase({
     );
 
     setSearchedTeam(match || null);
-    if (match) {
-      if (onTriggerConfetti) onTriggerConfetti();
-    }
   };
 
   return (
     <div className="grand-landing-viewport">
       {/* Hero Grand Announcement Section */}
       <section className="grand-hero-section">
-        <div className="grand-hero-backdrop-glow"></div>
+        
 
         <div className="grand-hero-container">
           {/* Official Badge & Live Status */}
           <div className="grand-announcement-badge-row">
-            <div className="celebrate-pill-badge" onClick={onTriggerConfetti} style={{ cursor: 'pointer' }}>
-              <Sparkles size={14} className="text-amber animate-spin-slow" />
+            <div className="celebrate-pill-badge">
+              <Sparkles size={14} className="text-emerald" />
               <span>OFFICIAL SELECTION RESULTS ANNOUNCED</span>
-              <span className="party-burst-tag">🎉 Click to Celebrate</span>
             </div>
           </div>
 

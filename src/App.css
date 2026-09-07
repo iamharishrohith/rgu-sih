@@ -3706,3 +3706,73 @@ body {
   line-height: 1.55;
   font-weight: 500;
 }
+
+
+/* ==========================================================================
+   PLAIN CLEAN ENTERPRISE THEME (ZERO ANIMATIONS / SOLID CLEAN SURFACES)
+   ========================================================================== */
+
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.interactive-bg-wrapper,
+.cyber-grid-overlay,
+.ambient-aurora-orb,
+.confetti-canvas-overlay,
+.grand-hero-backdrop-glow {
+  display: none !important;
+}
+
+.site-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.grand-hero-section {
+  padding: 48px 24px 36px !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.grand-stat-card,
+.instant-lookup-card,
+.domain-card,
+.tier-nav-card,
+.search-filter-card,
+.desk-table-container,
+.admin-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none !important;
+}
+
+.grand-stat-card:hover,
+.domain-card:hover {
+  transform: none !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.domains-showcase-section {
+  background: #f8fafc !important;
+  padding: 48px 24px !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+.instant-lookup-section {
+  background: #f8fafc !important;
+  padding: 36px 24px !important;
+}

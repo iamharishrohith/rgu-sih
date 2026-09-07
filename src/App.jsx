@@ -5,8 +5,6 @@ import PasscodeModal from './components/PasscodeModal.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import TeamDetailsModal from './components/TeamDetailsModal.jsx';
 import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
-import ConfettiCanvas from './components/ConfettiCanvas.jsx';
-import InteractiveBackground from './components/InteractiveBackground.jsx';
 import { MASTER_TEAMS } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -24,8 +22,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'candidate_desk' | 'admin'
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
-  const [isConfettiActive, setIsConfettiActive] = useState(false);
-
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTier, setActiveTier] = useState('shortlist'); // strictly: 'shortlist' | 'bench' | 'waitlist'
   
@@ -38,11 +35,7 @@ export default function App() {
   const [sortBy, setSortBy] = useState('rank');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  // Trigger celebration confetti
-  const triggerConfetti = () => {
-    setIsConfettiActive(true);
-  };
-
+  
   // Secret keyboard listener (Ctrl + Shift + A) & Hash listener (#admin)
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -280,15 +273,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Cool Interactive 60fps Background Mesh & Aurora Visual System */}
-      <InteractiveBackground />
-      {/* Celebration Confetti Engine */}
-      <ConfettiCanvas 
-        active={isConfettiActive} 
-        duration={3500} 
-        onComplete={() => setIsConfettiActive(false)} 
-      />
-
       <Navbar
         registeredCount={finalizedSubmittedCount}
         totalFinalizedCount={tierCounts.totalFinalized}
@@ -318,7 +302,7 @@ export default function App() {
           onExploreWaitlist={() => openTierDesk('waitlist')}
           allTeams={FINALIZED_MASTER_TEAMS}
           onOpenTeamRegistration={(team) => setActiveRegTeam(team)}
-          onTriggerConfetti={triggerConfetti}
+          
         />
       ) : (
         /* VIEW 3: CANDIDATE REGISTRATION DESK TABLE */
