@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, CheckCircle2, UserCheck, LayoutDashboard, Sparkles, Table2, Home } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, UserCheck, LayoutDashboard } from 'lucide-react';
 
 export default function Navbar({ 
   registeredCount, 
@@ -71,25 +71,8 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* View Switchers & Status */}
+        {/* View Status */}
         <div className="header-actions-group">
-          {/* Landing vs Desk Switcher */}
-          <div className="view-switch-pill-container">
-            <button 
-              className={`view-switch-btn ${currentView === 'landing' ? 'active' : ''}`}
-              onClick={onOpenLandingView}
-            >
-              <Home size={14} />
-              <span>Grand Announcement</span>
-            </button>
-            <button 
-              className={`view-switch-btn ${currentView === 'candidate_desk' ? 'active' : ''}`}
-              onClick={onOpenCandidateDesk}
-            >
-              <Table2 size={14} />
-              <span>Candidate Desk</span>
-            </button>
-          </div>
 
           {/* Strict 110 Finalized Teams Counter */}
           <div className="meta-stats-pill">
