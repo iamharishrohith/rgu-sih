@@ -5,6 +5,7 @@ import PasscodeModal from './components/PasscodeModal.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import TeamDetailsModal from './components/TeamDetailsModal.jsx';
 import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
+import FlowerConfettiRain from './components/FlowerConfettiRain.jsx';
 import { MASTER_TEAMS } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -273,6 +274,8 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {/* Always-on Flower Petals & Confetti Shower */}
+      <FlowerConfettiRain />
       <Navbar
         registeredCount={finalizedSubmittedCount}
         totalFinalizedCount={tierCounts.totalFinalized}
