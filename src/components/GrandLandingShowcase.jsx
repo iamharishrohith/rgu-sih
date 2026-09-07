@@ -16,6 +16,11 @@ export default function GrandLandingShowcase({
   const [searchedTeam, setSearchedTeam] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
+  const shortlistCount = allTeams.filter(t => t.status === 'Shortlist').length || 80;
+  const benchCount = allTeams.filter(t => t.status === 'Bench').length || 10;
+  const waitlistCount = allTeams.filter(t => t.status === 'Waitlist').length || 23;
+  const totalCount = shortlistCount + benchCount + waitlistCount;
+
   const handleInstantLookup = (e) => {
     e.preventDefault();
     if (!quickSearch.trim()) return;
@@ -77,7 +82,7 @@ export default function GrandLandingShowcase({
 
             <button className="btn-grand-secondary-cta" onClick={() => onExploreWaitlist('waitlist')}>
               <Filter size={18} className="text-indigo" />
-              <span>Waitlist Pool (20)</span>
+              <span>Waitlist Pool ({waitlistCount})</span>
             </button>
           </div>
 
@@ -118,7 +123,7 @@ export default function GrandLandingShowcase({
                 <div className="stat-icon-badge indigo">
                   <Filter size={22} />
                 </div>
-                <span className="stat-number-big">20</span>
+                <span className="stat-number-big">{waitlistCount}</span>
               </div>
               <div className="stat-card-title">Waitlist Pool</div>
               <p className="stat-card-sub">High-Scoring Contenders for Domain Balancing</p>
@@ -133,7 +138,7 @@ export default function GrandLandingShowcase({
                 <div className="stat-icon-badge violet">
                   <Trophy size={22} />
                 </div>
-                <span className="stat-number-big">110</span>
+                <span className="stat-number-big">{totalCount}</span>
               </div>
               <div className="stat-card-title">Finalized Innovators</div>
               <p className="stat-card-sub">Strictly Finalized Teams Verified by Section 65B</p>

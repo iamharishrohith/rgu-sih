@@ -6,6 +6,7 @@ import AdminDashboard from './components/AdminDashboard.jsx';
 import TeamDetailsModal from './components/TeamDetailsModal.jsx';
 import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
 import ConfettiCanvas from './components/ConfettiCanvas.jsx';
+import InteractiveBackground from './components/InteractiveBackground.jsx';
 import { MASTER_TEAMS } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -279,6 +280,8 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {/* Cool Interactive 60fps Background Mesh & Aurora Visual System */}
+      <InteractiveBackground />
       {/* Celebration Confetti Engine */}
       <ConfettiCanvas 
         active={isConfettiActive} 
