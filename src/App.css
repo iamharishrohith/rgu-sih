@@ -4584,3 +4584,48 @@ body {
   color: #94a3b8;
   font-weight: 600;
 }
+
+
+/* ==========================================================================
+   PER-TEAM VISIBILITY EYE BUTTON
+   ========================================================================== */
+
+.btn-team-vis-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.btn-team-vis-toggle.visible-state {
+  color: #047857;
+  border-color: #a7f3d0;
+  background: #f0fdf4;
+}
+
+.btn-team-vis-toggle.visible-state:hover {
+  background: #dcfce7;
+  border-color: #6ee7b7;
+}
+
+.btn-team-vis-toggle.hidden-state {
+  color: #b45309;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.btn-team-vis-toggle.hidden-state:hover {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+.visibility-control-pill {
+  display: none !important;
+}

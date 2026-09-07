@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Users, CheckCircle2, Clock, Phone, MessageSquare, Download, Upload, Plus, Trash2, 
+  Users, CheckCircle2, Clock, Phone, MessageSquare, Download, Upload, Plus, Trash2, EyeOff, 
   Search, Filter, ShieldCheck, UserCheck, Eye, Edit3, Save, X, ExternalLink,
   LogOut, RefreshCw, Layers, BarChart3, PieChart, Award, FileText, Send, Check
 } from 'lucide-react';
@@ -20,8 +20,8 @@ export default function AdminDashboard({
   onCreateTeam,
   onUpdateTeam,
   onDeleteTeam,
-  isShortlistVisible = true,
-  onToggleShortlistVisibility
+  hiddenTeamIds = new Set(),
+  onToggleTeamVisibility
 }) {
   // Navigation Tabs: 'analytics' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -72,6 +72,7 @@ export default function AdminDashboard({
       const isRegistered = !!reg;
       const phone = reg?.leader_phone || contact?.phone_number || t.mobile || '';
       const whatsapp = reg?.leader_whatsapp || contact?.whatsapp_number || t.mobile || '';
+      const isHidden = hiddenTeamIds instanceof Set ? hiddenTeamIds.has(t.temp_team_id) : false;
 
       return {
         ...t,
@@ -79,10 +80,11 @@ export default function AdminDashboard({
         registrationData: reg,
         contactData: contact,
         effectivePhone: phone,
-        effectiveWhatsapp: whatsapp
+        effectiveWhatsapp: whatsapp,
+        isHidden
       };
     });
-  }, [allMasterTeams, registrationsMap, teamContactsMap]);
+  }, [allMasterTeams, registrationsMap, teamContactsMap, hiddenTeamIds]);
 
   // Overall & Tier Analytics
   const stats = useMemo(() => {
@@ -264,25 +266,10 @@ export default function AdminDashboard({
           </div>
         </div>
 
-                <div className="admin-top-actions">
-          {/* Public Student Shortlist Visibility On/Off Control */}
-          <div className={`visibility-control-pill ${isShortlistVisible ? 'live' : 'hidden'}`}>
-            <span className="vis-indicator-dot"></span>
-            <span className="vis-label-text">
-              Student View: <strong>{isShortlistVisible ? 'VISIBLE (ON)' : 'HIDDEN (OFF)'}</strong>
-            </span>
-            <button 
-              type="button"
-              className={`btn-toggle-switch ${isShortlistVisible ? 'active' : ''}`}
-              onClick={() => onToggleShortlistVisibility && onToggleShortlistVisibility(!isShortlistVisible)}
-              title={isShortlistVisible ? 'Switch OFF: Hide shortlist from students' : 'Switch ON: Make shortlist visible to students'}
-            >
-              <span className="switch-knob"></span>
-            </button>
-          </div>
+                        <div className="admin-top-actions">
           <button className="btn-admin-add-team" onClick={handleOpenCreateModal}>
             <Plus size={15} />
-            <span>+ Add New Team</span>
+            <span>Add New Team</span>
           </button>
           <button className="btn-export-csv" onClick={handleExportCSV}>
             <Download size={15} />
@@ -691,6 +678,15 @@ export default function AdminDashboard({
                         {/* Form View & Actions */}
                         <td>
                           <div className="admin-actions-cell-group">
+                            {/* Per-Team Visibility Eye Toggle */}
+                            <button 
+                              className={`btn-team-vis-toggle ${team.isHidden ? 'hidden-state' : 'visible-state'}`}
+                              onClick={() => onToggleTeamVisibility && onToggleTeamVisibility(team.temp_team_id)}
+                              title={team.isHidden ? 'Student View: HIDDEN. Click to make visible to students' : 'Student View: VISIBLE. Click to hide from students'}
+                            >
+                              {team.isHidden ? <EyeOff size={13} className="text-amber" /> : <Eye size={13} className="text-emerald" />}
+                              <span>{team.isHidden ? 'Hidden' : 'Visible'}</span>
+                            </button>
                             {/* Edit Team Record */}
                             <button 
                               className="btn-admin-row-action edit"

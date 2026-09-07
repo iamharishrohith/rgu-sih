@@ -26,7 +26,7 @@ export default function App() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTier, setActiveTier] = useState('shortlist');
-  const [isShortlistVisible, setIsShortlistVisible] = useState(true);
+  const [hiddenTeamIds, setHiddenTeamIds] = useState(new Set());
 
   // Custom & Dynamic Teams State (CRUD Persistence)
   const [customTeamsMap, setCustomTeamsMap] = useState({});
@@ -43,7 +43,12 @@ export default function App() {
       .filter(t => !baseIds.has(t.temp_team_id) && !deletedTeamIds.has(t.temp_team_id) && !t.is_deleted);
 
     return [...baseList, ...newlyCreated];
-  }, [customTeamsMap, deletedTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
+  }, [customTeamsMap, deletedTeamIds]);
+
+  // Public Teams List for Students (excludes teams marked as Hidden by Admin)
+  const publicTeamsList = useMemo(() => {
+    return masterTeamsList.filter(t => !hiddenTeamIds.has(t.temp_team_id));
+  }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
   
   // Registrations Map & Team Contacts Map
   const [registrationsMap, setRegistrationsMap] = useState({});
@@ -137,18 +142,26 @@ export default function App() {
     loadData();
   }, []);
 
-  // Toggle Public Shortlist Visibility Handler (Supabase & LocalStorage)
-  const handleToggleShortlistVisibility = async (newVisibility) => {
-    setIsShortlistVisible(newVisibility);
-    localStorage.setItem('sih_shortlist_visible', JSON.stringify(newVisibility));
+    // Per-Team Visibility Toggle Handler (Supabase & LocalStorage)
+  const handleToggleTeamVisibility = async (tempTeamId) => {
+    setHiddenTeamIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tempTeamId)) {
+        next.delete(tempTeamId);
+      } else {
+        next.add(tempTeamId);
+      }
+      const arr = Array.from(next);
+      localStorage.setItem('sih_hidden_teams', JSON.stringify(arr));
 
-    try {
-      await supabase
+      supabase
         .from('app_settings')
-        .upsert([{ key: 'is_shortlist_visible', value: newVisibility, updated_at: new Date().toISOString() }]);
-    } catch (e) {
-      console.warn('Supabase app_settings upsert error:', e);
-    }
+        .upsert([{ key: 'hidden_team_ids', value: arr, updated_at: new Date().toISOString() }])
+        .then(() => {})
+        .catch(err => console.warn('Supabase hidden_teams sync error:', err));
+
+      return next;
+    });
   };
 
   // 1. Create Team Handler
@@ -396,41 +409,16 @@ export default function App() {
           onCreateTeam={handleCreateTeam}
           onUpdateTeam={handleUpdateTeam}
           onDeleteTeam={handleDeleteTeam}
-          isShortlistVisible={isShortlistVisible}
-          onToggleShortlistVisibility={handleToggleShortlistVisibility}
+          hiddenTeamIds={hiddenTeamIds}
+          onToggleTeamVisibility={handleToggleTeamVisibility}
         />
-      ) : !isShortlistVisible ? (
-        /* VIEW WHEN SHORTLIST IS TURNED OFF BY ADMIN */
-        <main className="maintenance-lock-viewport">
-          <div className="maintenance-lock-card">
-            <div className="maintenance-icon-wrap">
-              <Lock size={36} className="text-amber" />
-            </div>
-            <div className="maintenance-pill-status">
-              <span className="dot-pulse-amber"></span>
-              <span>RESULTS UNDER FINAL COMMITTEE VALIDATION</span>
-            </div>
-            <h1 className="maintenance-title">Smart India Hackathon 2026</h1>
-            <h2 className="maintenance-sub">Candidate Selection &amp; Shortlist Registry</h2>
-            <p className="maintenance-message">
-              The Campus Evaluation Authority is currently finalizing candidate slots and Section 65B proof compliance audits. The public shortlist view and registration desk are temporarily paused and will be published shortly.
-            </p>
-            <div className="maintenance-info-box">
-              <ShieldCheck size={18} className="text-emerald" />
-              <span>Jury validation in progress • Please check back soon</span>
-            </div>
-            <div className="maintenance-authority-badge">
-              Rathinam Global University • MoE / AICTE Innovation Cell
-            </div>
-          </div>
-        </main>
       ) : currentView === 'landing' ? (
         /* VIEW 2: GRAND ANNOUNCEMENT LANDING SHOWCASE */
         <GrandLandingShowcase
           onExploreShortlist={() => openTierDesk('shortlist')}
           onExploreBench={() => openTierDesk('bench')}
           onExploreWaitlist={() => openTierDesk('waitlist')}
-          allTeams={masterTeamsList}
+          allTeams={publicTeamsList}
           onOpenTeamRegistration={(team) => setActiveRegTeam(team)}
           
         />
