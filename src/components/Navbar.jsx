@@ -74,11 +74,13 @@ export default function Navbar({
         {/* View Status */}
         <div className="header-actions-group">
 
-          {/* Strict 110 Finalized Teams Counter */}
-          <div className="meta-stats-pill">
-            <CheckCircle2 size={15} className="text-emerald" />
-            <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms Submitted</span>
-          </div>
+          {/* Strict Finalized Teams Counter - Visible ONLY for authenticated admin */}
+          {isAdminLoggedIn && (
+            <div className="meta-stats-pill">
+              <CheckCircle2 size={15} className="text-emerald" />
+              <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms Submitted</span>
+            </div>
+          )}
 
           {/* Admin Navigation Button appears ONLY when already authenticated */}
           {isAdminLoggedIn && (
