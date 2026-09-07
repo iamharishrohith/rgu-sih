@@ -19,7 +19,9 @@ export default function AdminDashboard({
   onOpenTeamForm,
   onCreateTeam,
   onUpdateTeam,
-  onDeleteTeam
+  onDeleteTeam,
+  isShortlistVisible = true,
+  onToggleShortlistVisibility
 }) {
   // Navigation Tabs: 'analytics' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -262,7 +264,22 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        <div className="admin-top-actions">
+                <div className="admin-top-actions">
+          {/* Public Student Shortlist Visibility On/Off Control */}
+          <div className={`visibility-control-pill ${isShortlistVisible ? 'live' : 'hidden'}`}>
+            <span className="vis-indicator-dot"></span>
+            <span className="vis-label-text">
+              Student View: <strong>{isShortlistVisible ? 'VISIBLE (ON)' : 'HIDDEN (OFF)'}</strong>
+            </span>
+            <button 
+              type="button"
+              className={`btn-toggle-switch ${isShortlistVisible ? 'active' : ''}`}
+              onClick={() => onToggleShortlistVisibility && onToggleShortlistVisibility(!isShortlistVisible)}
+              title={isShortlistVisible ? 'Switch OFF: Hide shortlist from students' : 'Switch ON: Make shortlist visible to students'}
+            >
+              <span className="switch-knob"></span>
+            </button>
+          </div>
           <button className="btn-admin-add-team" onClick={handleOpenCreateModal}>
             <Plus size={15} />
             <span>+ Add New Team</span>

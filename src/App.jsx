@@ -26,6 +26,7 @@ export default function App() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTier, setActiveTier] = useState('shortlist');
+  const [isShortlistVisible, setIsShortlistVisible] = useState(true);
 
   // Custom & Dynamic Teams State (CRUD Persistence)
   const [customTeamsMap, setCustomTeamsMap] = useState({});
@@ -135,6 +136,20 @@ export default function App() {
 
     loadData();
   }, []);
+
+  // Toggle Public Shortlist Visibility Handler (Supabase & LocalStorage)
+  const handleToggleShortlistVisibility = async (newVisibility) => {
+    setIsShortlistVisible(newVisibility);
+    localStorage.setItem('sih_shortlist_visible', JSON.stringify(newVisibility));
+
+    try {
+      await supabase
+        .from('app_settings')
+        .upsert([{ key: 'is_shortlist_visible', value: newVisibility, updated_at: new Date().toISOString() }]);
+    } catch (e) {
+      console.warn('Supabase app_settings upsert error:', e);
+    }
+  };
 
   // 1. Create Team Handler
   const handleCreateTeam = async (newTeam) => {
@@ -368,7 +383,7 @@ export default function App() {
         currentView={currentView}
       />
 
-      {/* VIEW 1: ADMIN DASHBOARD */}
+            {/* VIEW 1: ADMIN DASHBOARD */}
       {currentView === 'admin' && isAdminLoggedIn ? (
         <AdminDashboard
           allMasterTeams={masterTeamsList}
@@ -381,7 +396,34 @@ export default function App() {
           onCreateTeam={handleCreateTeam}
           onUpdateTeam={handleUpdateTeam}
           onDeleteTeam={handleDeleteTeam}
+          isShortlistVisible={isShortlistVisible}
+          onToggleShortlistVisibility={handleToggleShortlistVisibility}
         />
+      ) : !isShortlistVisible ? (
+        /* VIEW WHEN SHORTLIST IS TURNED OFF BY ADMIN */
+        <main className="maintenance-lock-viewport">
+          <div className="maintenance-lock-card">
+            <div className="maintenance-icon-wrap">
+              <Lock size={36} className="text-amber" />
+            </div>
+            <div className="maintenance-pill-status">
+              <span className="dot-pulse-amber"></span>
+              <span>RESULTS UNDER FINAL COMMITTEE VALIDATION</span>
+            </div>
+            <h1 className="maintenance-title">Smart India Hackathon 2026</h1>
+            <h2 className="maintenance-sub">Candidate Selection &amp; Shortlist Registry</h2>
+            <p className="maintenance-message">
+              The Campus Evaluation Authority is currently finalizing candidate slots and Section 65B proof compliance audits. The public shortlist view and registration desk are temporarily paused and will be published shortly.
+            </p>
+            <div className="maintenance-info-box">
+              <ShieldCheck size={18} className="text-emerald" />
+              <span>Jury validation in progress • Please check back soon</span>
+            </div>
+            <div className="maintenance-authority-badge">
+              Rathinam Global University • MoE / AICTE Innovation Cell
+            </div>
+          </div>
+        </main>
       ) : currentView === 'landing' ? (
         /* VIEW 2: GRAND ANNOUNCEMENT LANDING SHOWCASE */
         <GrandLandingShowcase
