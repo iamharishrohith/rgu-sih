@@ -5,6 +5,7 @@ import {
   ChevronRight, Save, Check
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
 
 export default function RegistrationModal({ team, onClose, onConfirmRegistration, existingRegistration }) {
   if (!team) return null;
@@ -33,15 +34,15 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     leader_whatsapp: existingRegistration?.leader_whatsapp || team.mobile || '',
     leader_year: existingRegistration?.leader_year || '3rd Year',
     leader_dept: existingRegistration?.leader_dept || team.school || 'Computer Science & Engineering',
-    leader_school: existingRegistration?.leader_school || team.school || 'School of Engineering & Technology',
+    leader_school: normalizeSchoolName(existingRegistration?.leader_school || team.school),
 
     // 5 Team Members (Members 2 to 6)
-    members: existingRegistration?.members || [
-      { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-      { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-      { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-      { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-      { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+    members: existingRegistration?.members ? existingRegistration.members.map(m => ({ ...m, school: normalizeSchoolName(m.school) })) : [
+      { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+      { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+      { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+      { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+      { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
     ],
 
     // Faculty Mentor
@@ -68,13 +69,13 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
         leader_whatsapp: existingRegistration?.leader_whatsapp || team.mobile || '',
         leader_year: existingRegistration?.leader_year || '3rd Year',
         leader_dept: existingRegistration?.leader_dept || team.school || 'Computer Science & Engineering',
-        leader_school: existingRegistration?.leader_school || team.school || 'School of Engineering & Technology',
-        members: existingRegistration?.members || [
-          { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-          { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-          { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-          { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
-          { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+        leader_school: normalizeSchoolName(existingRegistration?.leader_school || team.school),
+        members: existingRegistration?.members ? existingRegistration.members.map(m => ({ ...m, school: normalizeSchoolName(m.school) })) : [
+          { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+          { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+          { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+          { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+          { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
         ],
         mentor_name: existingRegistration?.mentor_name || '',
         mentor_designation: existingRegistration?.mentor_designation || 'Assistant Professor',
@@ -494,13 +495,14 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                     <div className="input-group">
                       <label>School / Faculty <span className="req">*</span></label>
-                      <input 
-                        type="text" 
-                        required 
-                        placeholder="e.g. School of Engineering & Technology"
+                      <select 
                         value={formData.leader_school}
                         onChange={(e) => setFormData({...formData, leader_school: e.target.value})}
-                      />
+                      >
+                        {OFFICIAL_SCHOOLS.map(sch => (
+                          <option key={sch} value={sch}>{sch}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -655,13 +657,14 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                       <div className="input-group">
                         <label>School / Faculty <span className="req">*</span></label>
-                        <input 
-                          type="text" 
-                          required 
-                          placeholder="e.g. School of Engineering & Technology"
+                        <select 
                           value={formData.members[activeMemberTab].school}
                           onChange={(e) => updateMember(activeMemberTab, 'school', e.target.value)}
-                        />
+                        >
+                          {OFFICIAL_SCHOOLS.map(sch => (
+                            <option key={sch} value={sch}>{sch}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>

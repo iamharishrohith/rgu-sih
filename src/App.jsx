@@ -6,7 +6,7 @@ import AdminDashboard from './components/AdminDashboard.jsx';
 import TeamDetailsModal from './components/TeamDetailsModal.jsx';
 import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
 import FlowerConfettiRain from './components/FlowerConfettiRain.jsx';
-import { MASTER_TEAMS } from './data/sihMasterData.js';
+import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
   Search, ArrowUpDown, UserCheck, ShieldCheck, Sparkles, Filter, Award, 
@@ -86,7 +86,7 @@ export default function App() {
         ps_title: reg.ps_title || teamObj.ps_title,
         leader_name: reg.leader_name || teamObj.leader_name,
         reg_no: reg.leader_reg_no || reg.reg_no || teamObj.reg_no,
-        school: reg.leader_school || reg.leader_dept || teamObj.school,
+        school: normalizeSchoolName(reg.leader_school || reg.leader_dept || teamObj.school),
         mobile: reg.leader_phone || teamObj.mobile,
         status: reg.status || teamObj.status
       };

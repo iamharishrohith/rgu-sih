@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { sanitizeCSVField } from '../crypto_security';
+import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
 import TeamEditorModal from './TeamEditorModal.jsx';
 import DeleteConfirmationModal from './DeleteConfirmationModal.jsx';
 
@@ -83,7 +84,7 @@ export default function AdminDashboard({
         ps_title: reg?.ps_title || t.ps_title,
         leader_name: reg?.leader_name || t.leader_name,
         reg_no: reg?.leader_reg_no || reg?.reg_no || t.reg_no,
-        school: reg?.leader_school || reg?.leader_dept || t.school,
+        school: normalizeSchoolName(reg?.leader_school || reg?.leader_dept || t.school),
         isRegistered,
         registrationData: reg,
         contactData: contact,
@@ -110,10 +111,13 @@ export default function AdminDashboard({
     const benchReg = benchTeams.filter(t => t.isRegistered).length;
     const waitlistReg = waitlistTeams.filter(t => t.isRegistered).length;
 
-    // School breakdown
+    // School breakdown initialized with official schools
     const schoolMap = {};
+    OFFICIAL_SCHOOLS.forEach(sch => {
+      schoolMap[sch] = { total: 0, reg: 0 };
+    });
     teamRecords.forEach(t => {
-      const sch = t.school || 'Unspecified';
+      const sch = normalizeSchoolName(t.school);
       if (!schoolMap[sch]) schoolMap[sch] = { total: 0, reg: 0 };
       schoolMap[sch].total++;
       if (t.isRegistered) schoolMap[sch].reg++;
@@ -133,8 +137,8 @@ export default function AdminDashboard({
 
   // List of distinct schools for filtering
   const distinctSchools = useMemo(() => {
-    return Array.from(new Set(teamRecords.map(t => t.school).filter(Boolean)));
-  }, [teamRecords]);
+    return OFFICIAL_SCHOOLS;
+  }, []);
 
   // Filtered List based on active tab & search
   const currentTabTeams = useMemo(() => {

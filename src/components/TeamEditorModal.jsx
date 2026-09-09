@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, ShieldCheck, Users, Award, BookOpen, AlertCircle, Sparkles, Hash, Building, MapPin, Phone } from 'lucide-react';
 import { sanitizeInputText } from '../crypto_security';
+import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
 
 export default function TeamEditorModal({ isOpen, onClose, onSave, teamToEdit, nextSuggestedRank, nextSuggestedId }) {
   if (!isOpen) return null;
@@ -41,7 +42,7 @@ export default function TeamEditorModal({ isOpen, onClose, onSave, teamToEdit, n
         team_name: teamToEdit.team_name || '',
         leader_name: teamToEdit.leader_name || '',
         reg_no: teamToEdit.reg_no || '',
-        school: teamToEdit.school || 'School of Quantum Science, Computing & AI',
+        school: normalizeSchoolName(teamToEdit.school || 'School of Quantum Science, Computing & AI'),
         venue: teamToEdit.venue || 'Tower C312',
         mobile: teamToEdit.mobile || teamToEdit.effectivePhone || '',
         ps_id: teamToEdit.ps_id || 'SIH26209',
@@ -292,12 +293,9 @@ export default function TeamEditorModal({ isOpen, onClose, onSave, teamToEdit, n
                   onChange={(e) => handleChange('school', e.target.value)}
                   className="form-select"
                 >
-                  <option value="School of Quantum Science, Computing & AI">School of Quantum Science, Computing &amp; AI</option>
-                  <option value="School of Engineering & Technology">School of Engineering &amp; Technology</option>
-                  <option value="School of Business & Commerce">School of Business &amp; Commerce</option>
-                  <option value="School of Allied Health & Life Sciences">School of Allied Health &amp; Life Sciences</option>
-                  <option value="School of Arts, Science & Humanities">School of Arts, Science &amp; Humanities</option>
-                  <option value="Advanced Autonomous Intelligence Division">Advanced Autonomous Intelligence Division</option>
+                  {OFFICIAL_SCHOOLS.map(sch => (
+                    <option key={sch} value={sch}>{sch}</option>
+                  ))}
                 </select>
               </div>
 
