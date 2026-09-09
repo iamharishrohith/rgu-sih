@@ -286,6 +286,38 @@ export default function App() {
 
     setCustomTeamsMap(prev => ({ ...prev, [tempTeamId]: fullTeam }));
 
+    // If registration exists, synchronize registration fields
+    if (registrationsMap[tempTeamId]) {
+      const updatedReg = {
+        ...registrationsMap[tempTeamId],
+        team_name: updatedTeam.team_name,
+        sih_ps_id: updatedTeam.ps_id,
+        ps_id: updatedTeam.ps_id,
+        ps_title: updatedTeam.ps_title || registrationsMap[tempTeamId].ps_title,
+        leader_name: updatedTeam.leader_name,
+        leader_reg_no: updatedTeam.reg_no,
+        leader_school: updatedTeam.school,
+        leader_phone: updatedTeam.mobile || registrationsMap[tempTeamId].leader_phone,
+        leader_whatsapp: updatedTeam.mobile || registrationsMap[tempTeamId].leader_whatsapp,
+        status: updatedTeam.status,
+        updated_at: new Date().toISOString()
+      };
+
+      setRegistrationsMap(prev => {
+        const next = { ...prev, [tempTeamId]: updatedReg };
+        localStorage.setItem('sih_registrations', JSON.stringify(next));
+        return next;
+      });
+
+      try {
+        await supabase
+          .from('registrations')
+          .upsert([updatedReg], { onConflict: 'temp_team_id' });
+      } catch (e) {
+        console.warn('Supabase registration sync warning:', e);
+      }
+    }
+
     try {
       await supabase
         .from('custom_teams')
@@ -1024,6 +1056,10 @@ export default function App() {
             registrationData: registrationsMap[activeDetailsTeam.temp_team_id]
           }}
           onClose={() => setActiveDetailsTeam(null)}
+          onEditForm={(team) => {
+            setActiveDetailsTeam(null);
+            setActiveRegTeam(team);
+          }}
         />
       )}
     </div>

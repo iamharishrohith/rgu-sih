@@ -718,10 +718,10 @@ export default function AdminDashboard({
                             <button 
                               className={`btn-admin-form-view ${team.isRegistered ? 'filled' : 'pending'}`}
                               onClick={() => onOpenTeamForm(team)}
-                              title={team.isRegistered ? 'View & Edit Submitted Form' : 'Open Registration Form'}
+                              title={team.isRegistered ? 'Edit 6-Member Submitted Registration Form' : 'Open Registration Form'}
                             >
                               <FileText size={13} />
-                              <span>{team.isRegistered ? 'View Form' : 'Fill Form'}</span>
+                              <span>{team.isRegistered ? 'Edit Form' : 'Fill Form'}</span>
                             </button>
 
                             {/* View Roster Inspector (if submitted) */}

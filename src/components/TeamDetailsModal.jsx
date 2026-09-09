@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, ShieldCheck, User, Mail, Phone, Building, Hash, Award, Users } from 'lucide-react';
 
-export default function TeamDetailsModal({ team, onClose }) {
+export default function TeamDetailsModal({ team, onClose, onEditForm }) {
   if (!team || !team.registrationData) return null;
   const reg = team.registrationData;
   const members = reg.members || [];
@@ -127,6 +127,17 @@ export default function TeamDetailsModal({ team, onClose }) {
             <button className="btn-primary-action" onClick={onClose}>
               Close Roster
             </button>
+            {onEditForm && (
+              <button 
+                type="button"
+                className="btn-edit-submission-outline" 
+                onClick={() => {
+                  if (onEditForm) onEditForm(team);
+                }}
+              >
+                <span>Edit 6-Member Form</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
