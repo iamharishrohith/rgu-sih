@@ -714,24 +714,25 @@ export default function AdminDashboard({
                               <Trash2 size={13} />
                               <span>Delete</span>
                             </button>
-                            {/* Open & View/Edit Form Button */}
-                            <button 
-                              className={`btn-admin-form-view ${team.isRegistered ? 'filled' : 'pending'}`}
-                              onClick={() => onOpenTeamForm(team)}
-                              title={team.isRegistered ? 'Edit 6-Member Submitted Registration Form' : 'Open Registration Form'}
-                            >
-                              <FileText size={13} />
-                              <span>{team.isRegistered ? 'Edit Form' : 'Fill Form'}</span>
-                            </button>
 
-                            {/* View Roster Inspector (if submitted) */}
-                            {team.isRegistered && (
+                            {/* Registration Action: View Roster (if submitted) or Fill Form (if pending) */}
+                            {team.isRegistered ? (
                               <button 
-                                className="btn-view-roster-pill"
+                                className="btn-admin-form-view filled"
                                 onClick={() => onViewTeamDetails(team)}
-                                title="View 6-member student details & faculty mentor"
+                                title="View & Edit 6-Member Student Roster & Mentor"
                               >
                                 <Eye size={13} />
+                                <span>Roster</span>
+                              </button>
+                            ) : (
+                              <button 
+                                className="btn-admin-form-view pending"
+                                onClick={() => onOpenTeamForm(team)}
+                                title="Open Registration Form to enter student details"
+                              >
+                                <FileText size={13} />
+                                <span>Fill Form</span>
                               </button>
                             )}
 
