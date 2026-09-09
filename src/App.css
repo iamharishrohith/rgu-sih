@@ -768,7 +768,7 @@ body {
   box-shadow: 0 6px 14px rgba(79, 70, 229, 0.35);
 }
 
-.btn-status-confirmed {
+.btn-status-confirmed, .badge-status-confirmed {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -779,7 +779,13 @@ body {
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 700;
-  cursor: pointer;
+  user-select: none;
+}
+
+.mob-badge-full {
+  width: 100%;
+  justify-content: center;
+  padding: 10px 16px;
 }
 
 .btn-status-confirmed:hover {

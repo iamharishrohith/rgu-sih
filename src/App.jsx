@@ -77,9 +77,10 @@ export default function App() {
   const masterTeamsList = useMemo(() => {
     const mergeWithReg = (teamObj) => {
       const reg = registrationsMap[teamObj.temp_team_id];
-      if (!reg) return teamObj;
+      if (!reg) return { ...teamObj, isRegistered: false };
       return {
         ...teamObj,
+        isRegistered: true,
         team_name: reg.team_name || teamObj.team_name,
         ps_id: reg.sih_ps_id || reg.ps_id || teamObj.ps_id,
         ps_title: reg.ps_title || teamObj.ps_title,
@@ -863,13 +864,13 @@ export default function App() {
 
                           <td className="col-action">
                             {isRegistered ? (
-                              <button
-                                className="btn-status-confirmed"
-                                onClick={() => setActiveRegTeam(team)}
+                              <div 
+                                className="badge-status-confirmed"
+                                title="Registration officially completed & locked"
                               >
-                                <UserCheck size={14} />
+                                <CheckCircle2 size={14} className="text-emerald" />
                                 <span>Form Submitted</span>
-                              </button>
+                              </div>
                             ) : (
                               <button
                                 className="btn-register-vibrant"
@@ -983,13 +984,13 @@ export default function App() {
 
                         <div className="mob-card-action">
                           {isRegistered ? (
-                            <button
-                              className="btn-status-confirmed mob-btn-full"
-                              onClick={() => setActiveRegTeam(team)}
+                            <div 
+                              className="badge-status-confirmed mob-badge-full"
+                              title="Registration officially completed & locked"
                             >
-                              <UserCheck size={15} />
-                              <span>Form Submitted (Edit Details)</span>
-                            </button>
+                              <CheckCircle2 size={15} className="text-emerald" />
+                              <span>Form Submitted &amp; Locked</span>
+                            </div>
                           ) : (
                             <button
                               className="btn-register-vibrant mob-btn-full"

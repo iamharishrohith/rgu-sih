@@ -216,17 +216,32 @@ export default function GrandLandingShowcase({
                     </div>
 
                     <div className="result-action-strip">
-                      <div className="congrats-text-note">
-                        <CheckCircle2 size={16} className="text-emerald" />
-                        <span>Congratulations! Your team is finalized. Complete your 6-member roster now.</span>
-                      </div>
-                      <button 
-                        className="btn-result-register-now"
-                        onClick={() => onOpenTeamRegistration(searchedTeam)}
-                      >
-                        <span>Complete Registration Form</span>
-                        <ArrowRight size={16} />
-                      </button>
+                      {searchedTeam.isRegistered ? (
+                        <>
+                          <div className="congrats-text-note">
+                            <CheckCircle2 size={16} className="text-emerald" />
+                            <span>Registration completed &amp; locked. Roster is verified.</span>
+                          </div>
+                          <div className="badge-status-confirmed">
+                            <CheckCircle2 size={16} className="text-emerald" />
+                            <span>Form Submitted</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="congrats-text-note">
+                            <CheckCircle2 size={16} className="text-emerald" />
+                            <span>Congratulations! Your team is finalized. Complete your 6-member roster now.</span>
+                          </div>
+                          <button 
+                            className="btn-result-register-now"
+                            onClick={() => onOpenTeamRegistration(searchedTeam)}
+                          >
+                            <span>Complete Registration Form</span>
+                            <ArrowRight size={16} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
