@@ -12,21 +12,21 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
   // Active sub-step in form (0: Team & PS, 1: Team Leader, 2: 5 Members, 3: Mentor & Submit)
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(!!existingRegistration);
+  const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
     // Team & PS
-    team_name: team.team_name !== 'Team Unknown' ? team.team_name : '',
+    team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
     temp_team_id: team.temp_team_id,
-    sih_ps_id: team.ps_id,
+    sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
     ps_title: existingRegistration?.ps_title || '',
-    status: team.status,
+    status: existingRegistration?.status || team.status || 'Shortlist',
     
     // Team Leader (Member 1)
-    leader_name: team.leader_name,
-    leader_reg_no: team.reg_no,
+    leader_name: existingRegistration?.leader_name || team.leader_name || '',
+    leader_reg_no: existingRegistration?.leader_reg_no || team.reg_no || '',
     leader_personal_email: existingRegistration?.leader_personal_email || '',
     leader_college_email: existingRegistration?.leader_college_email || '',
     leader_phone: existingRegistration?.leader_phone || team.mobile || '',
@@ -50,6 +50,40 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     mentor_email: existingRegistration?.mentor_email || '',
     mentor_phone: existingRegistration?.mentor_phone || ''
   });
+
+  // Keep form data synchronized whenever active team or existing registration updates
+  useEffect(() => {
+    if (team) {
+      setFormData({
+        team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
+        temp_team_id: team.temp_team_id,
+        sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
+        ps_title: existingRegistration?.ps_title || '',
+        status: existingRegistration?.status || team.status || 'Shortlist',
+        leader_name: existingRegistration?.leader_name || team.leader_name || '',
+        leader_reg_no: existingRegistration?.leader_reg_no || team.reg_no || '',
+        leader_personal_email: existingRegistration?.leader_personal_email || '',
+        leader_college_email: existingRegistration?.leader_college_email || '',
+        leader_phone: existingRegistration?.leader_phone || team.mobile || '',
+        leader_whatsapp: existingRegistration?.leader_whatsapp || team.mobile || '',
+        leader_year: existingRegistration?.leader_year || '3rd Year',
+        leader_dept: existingRegistration?.leader_dept || team.school || 'Computer Science & Engineering',
+        leader_school: existingRegistration?.leader_school || team.school || 'School of Engineering & Technology',
+        members: existingRegistration?.members || [
+          { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+          { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+          { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+          { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+          { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: 'School of Engineering & Technology' },
+        ],
+        mentor_name: existingRegistration?.mentor_name || '',
+        mentor_designation: existingRegistration?.mentor_designation || 'Assistant Professor',
+        mentor_email: existingRegistration?.mentor_email || '',
+        mentor_phone: existingRegistration?.mentor_phone || ''
+      });
+      setSubmitted(false);
+    }
+  }, [team, existingRegistration]);
 
   const [activeMemberTab, setActiveMemberTab] = useState(0);
 
@@ -233,6 +267,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
               <div className="success-actions">
                 <button className="btn-primary-action" onClick={onClose}>
                   Back to Shortlist Desk
+                </button>
+                <button type="button" className="btn-edit-submission-outline" onClick={() => setSubmitted(false)}>
+                  Modify Form Details
                 </button>
               </div>
             </div>

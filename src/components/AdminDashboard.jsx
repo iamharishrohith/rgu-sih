@@ -78,6 +78,12 @@ export default function AdminDashboard({
 
       return {
         ...t,
+        team_name: reg?.team_name || t.team_name,
+        ps_id: reg?.sih_ps_id || reg?.ps_id || t.ps_id,
+        ps_title: reg?.ps_title || t.ps_title,
+        leader_name: reg?.leader_name || t.leader_name,
+        reg_no: reg?.leader_reg_no || reg?.reg_no || t.reg_no,
+        school: reg?.leader_school || reg?.leader_dept || t.school,
         isRegistered,
         registrationData: reg,
         contactData: contact,

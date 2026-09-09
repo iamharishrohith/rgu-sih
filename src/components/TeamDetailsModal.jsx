@@ -19,7 +19,7 @@ export default function TeamDetailsModal({ team, onClose }) {
                 Team Verified Roster: {reg.team_name || team.team_name}
               </span>
               <div className="modal-title-sub">
-                Temp ID: {team.temp_team_id} • PS: {team.ps_id} • Status: {team.status}
+                Temp ID: {team.temp_team_id} • PS: {reg.sih_ps_id || reg.ps_id || team.ps_id} • Status: {reg.status || team.status}
               </div>
             </div>
           </div>
@@ -33,7 +33,7 @@ export default function TeamDetailsModal({ team, onClose }) {
           <div className="detail-section">
             <h4 className="detail-heading">Problem Statement</h4>
             <div className="ps-detail-card">
-              <span className="ps-id-pill">{team.ps_id}</span>
+              <span className="ps-id-pill">{reg.sih_ps_id || reg.ps_id || team.ps_id}</span>
               <p className="ps-title-full">{reg.ps_title || 'National Problem Statement'}</p>
             </div>
           </div>

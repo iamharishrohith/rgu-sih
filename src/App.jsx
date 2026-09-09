@@ -52,33 +52,65 @@ export default function App() {
     }
   });
 
-  // Combined Active Finalized Master Teams
+  // Registrations Map & Team Contacts Map
+  const [registrationsMap, setRegistrationsMap] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_registrations') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [teamContactsMap, setTeamContactsMap] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_team_contacts') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  const [activeRegTeam, setActiveRegTeam] = useState(null);
+  const [activeDetailsTeam, setActiveDetailsTeam] = useState(null);
+  const [sortBy, setSortBy] = useState('rank');
+  const [sortOrder, setSortOrder] = useState('asc');
+
+  // Combined Active Finalized Master Teams (Merged with latest submitted form details)
   const masterTeamsList = useMemo(() => {
+    const mergeWithReg = (teamObj) => {
+      const reg = registrationsMap[teamObj.temp_team_id];
+      if (!reg) return teamObj;
+      return {
+        ...teamObj,
+        team_name: reg.team_name || teamObj.team_name,
+        ps_id: reg.sih_ps_id || reg.ps_id || teamObj.ps_id,
+        ps_title: reg.ps_title || teamObj.ps_title,
+        leader_name: reg.leader_name || teamObj.leader_name,
+        reg_no: reg.leader_reg_no || reg.reg_no || teamObj.reg_no,
+        school: reg.leader_school || reg.leader_dept || teamObj.school,
+        mobile: reg.leader_phone || teamObj.mobile,
+        status: reg.status || teamObj.status
+      };
+    };
+
     const baseList = FINALIZED_MASTER_TEAMS
       .filter(t => !deletedTeamIds.has(t.temp_team_id))
-      .map(t => customTeamsMap[t.temp_team_id] || t);
+      .map(t => {
+        const custom = customTeamsMap[t.temp_team_id] || t;
+        return mergeWithReg(custom);
+      });
 
     const baseIds = new Set(FINALIZED_MASTER_TEAMS.map(t => t.temp_team_id));
     const newlyCreated = Object.values(customTeamsMap)
-      .filter(t => !baseIds.has(t.temp_team_id) && !deletedTeamIds.has(t.temp_team_id) && !t.is_deleted);
+      .filter(t => !baseIds.has(t.temp_team_id) && !deletedTeamIds.has(t.temp_team_id) && !t.is_deleted)
+      .map(t => mergeWithReg(t));
 
     return [...baseList, ...newlyCreated];
-  }, [customTeamsMap, deletedTeamIds]);
+  }, [customTeamsMap, deletedTeamIds, registrationsMap]);
 
   // Public Teams List for Students (excludes teams marked as Hidden by Admin)
   const publicTeamsList = useMemo(() => {
     const hiddenArr = Array.isArray(hiddenTeamIds) ? hiddenTeamIds : [];
     return masterTeamsList.filter(t => !hiddenArr.includes(t.temp_team_id));
   }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
-  
-  // Registrations Map & Team Contacts Map
-  const [registrationsMap, setRegistrationsMap] = useState({});
-  const [teamContactsMap, setTeamContactsMap] = useState({});
-
-  const [activeRegTeam, setActiveRegTeam] = useState(null);
-  const [activeDetailsTeam, setActiveDetailsTeam] = useState(null);
-  const [sortBy, setSortBy] = useState('rank');
-  const [sortOrder, setSortOrder] = useState('asc');
 
   
   // Secret keyboard listener (Ctrl + Shift + A) & Hash listener (#admin)
@@ -425,10 +457,18 @@ export default function App() {
   };
 
   const handleConfirmReg = (teamId, registrationPayload) => {
-    setRegistrationsMap(prev => ({
-      ...prev,
-      [teamId]: registrationPayload
-    }));
+    setRegistrationsMap(prev => {
+      const next = {
+        ...prev,
+        [teamId]: registrationPayload
+      };
+      try {
+        localStorage.setItem('sih_registrations', JSON.stringify(next));
+      } catch (e) {
+        console.warn('LocalStorage save error:', e);
+      }
+      return next;
+    });
     triggerConfetti();
   };
 
@@ -762,7 +802,15 @@ export default function App() {
 
                           <td className="col-team">
                             <div className="team-name-strong">
-                              {regRecord?.team_name || team.team_name}
+                              {team.team_name}
+                            </div>
+                            <div className="ps-info-sub">
+                              <span className="ps-id-tag">{team.ps_id}</span>
+                              {team.ps_title && (
+                                <span className="ps-title-tag" title={team.ps_title}>
+                                  • {team.ps_title}
+                                </span>
+                              )}
                             </div>
                           </td>
 
@@ -870,7 +918,16 @@ export default function App() {
                         </div>
 
                         <div className="mob-team-name">
-                          {regRecord?.team_name || team.team_name}
+                          {team.team_name}
+                        </div>
+
+                        <div className="mob-ps-sub">
+                          <span className="ps-id-tag">{team.ps_id}</span>
+                          {team.ps_title && (
+                            <span className="mob-ps-title-text" title={team.ps_title}>
+                              {team.ps_title}
+                            </span>
+                          )}
                         </div>
 
                         <div className="mob-details-grid">
@@ -885,6 +942,10 @@ export default function App() {
                           <div className="mob-detail-row">
                             <span className="mob-detail-label">School:</span>
                             <span className="mob-detail-val school-text">{team.school}</span>
+                          </div>
+                          <div className="mob-detail-row">
+                            <span className="mob-detail-label">PS ID:</span>
+                            <span className="mob-detail-val font-mono font-bold text-indigo">{team.ps_id}</span>
                           </div>
                         </div>
 
