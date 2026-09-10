@@ -9,6 +9,7 @@ import { sanitizeCSVField } from '../crypto_security';
 import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
 import TeamEditorModal from './TeamEditorModal.jsx';
 import DeleteConfirmationModal from './DeleteConfirmationModal.jsx';
+import BulkWhatsAppSender from './BulkWhatsAppSender.jsx';
 
 export default function AdminDashboard({ 
   allMasterTeams, 
@@ -346,6 +347,15 @@ export default function AdminDashboard({
           <Upload size={16} />
           <span>Bulk Upload Numbers</span>
         </button>
+
+        <button 
+          className={`admin-mod-tab ${activeTab === 'whatsapp' ? 'active' : ''}`}
+          onClick={() => setActiveTab('whatsapp')}
+          style={{ background: activeTab === 'whatsapp' ? '#25d366' : 'transparent', color: activeTab === 'whatsapp' ? '#ffffff' : 'inherit' }}
+        >
+          <MessageSquare size={16} className={activeTab === 'whatsapp' ? 'text-white' : 'text-emerald'} />
+          <span>WhatsApp Broadcast</span>
+        </button>
       </div>
 
       {/* =========================================================================
@@ -529,9 +539,19 @@ export default function AdminDashboard({
       )}
 
       {/* =========================================================================
+          VIEW 2.5: BULK WHATSAPP SENDER VIEW
+          ========================================================================= */}
+      {activeTab === 'whatsapp' && (
+        <BulkWhatsAppSender
+          teamRecords={teamRecords}
+          onUpdateContact={onUpdateContact}
+        />
+      )}
+
+      {/* =========================================================================
           VIEW 3, 4, 5, 6: TABLE VIEWS (Shortlist, Bench, Waitlist, Pending)
           ========================================================================= */}
-      {activeTab !== 'analytics' && activeTab !== 'upload' && (
+      {activeTab !== 'analytics' && activeTab !== 'upload' && activeTab !== 'whatsapp' && (
         <div className="admin-table-container">
           {/* Top Search & Filter Bar */}
           <div className="admin-table-controls-strip">
