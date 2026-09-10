@@ -188,8 +188,7 @@ def run_automation():
     try:
         choice = input("Enter choice (1-6) [Default: 1]: ").strip() or "1"
     except KeyboardInterrupt:
-        print("
-Aborted by user.")
+        print("\nAborted by user.")
         return
 
     target_list = []
@@ -240,8 +239,7 @@ Aborted by user.")
     print()
     print(f"[✓] Ready to dispatch WhatsApp message to {len(valid_targets)} Team Leaders.")
     print(f"[*] Starting Chromium browser with persistent session ({SESSION_DIR})...")
-    print("    (If not logged in, scan the QR code in the browser window once)
-")
+    print("    (If not logged in, scan the QR code in the browser window once)\n")
 
     time.sleep(1.5)
 
@@ -263,8 +261,7 @@ Aborted by user.")
         # Wait for either main chat search or chat list
         try:
             page.wait_for_selector("div[contenteditable='true'], div[data-tab='3'], #side", timeout=90000)
-            print("[✓] WhatsApp Web Connected & Ready!
-")
+            print("[✓] WhatsApp Web Connected & Ready!\n")
         except Exception:
             print("[!] Timeout waiting for WhatsApp Web login. Please make sure you scan the QR code and try again.")
             context.close()
@@ -350,16 +347,14 @@ Aborted by user.")
                 print(f"    ⏳ Pausing {delay:.1f}s before next message...")
                 time.sleep(delay)
 
-        print("
-" + "=" * 70)
+        print("\n" + "=" * 70)
         print(f"  🎉 BROADCAST RUN COMPLETE!")
         print(f"     - Successfully Sent: {success_count}")
         print(f"     - Failed / Invalid:  {fail_count}")
         print(f"     - Results logged to: {LOG_FILE}")
         print("=" * 70)
 
-        input("
-Press Enter to close browser session...")
+        input("\nPress Enter to close browser session...")
         context.close()
 
 if __name__ == "__main__":
