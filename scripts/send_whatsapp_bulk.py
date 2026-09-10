@@ -65,10 +65,24 @@ SIH 2026 Campus Evaluation Authority
 Rathinam Global University"""
 
 def load_master_teams():
-    master_path = os.path.join(os.path.dirname(__file__), "..", "src", "data", "sihMasterData.js")
-    if not os.path.exists(master_path):
-        master_path = os.path.join("src", "data", "sihMasterData.js")
-    
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), "..", "sih-announcement-web", "src", "data", "sihMasterData.js"),
+        os.path.join(os.path.dirname(__file__), "..", "src", "data", "sihMasterData.js"),
+        os.path.join(os.path.dirname(__file__), "sih-announcement-web", "src", "data", "sihMasterData.js"),
+        os.path.join(os.path.dirname(__file__), "src", "data", "sihMasterData.js"),
+        os.path.join("sih-announcement-web", "src", "data", "sihMasterData.js"),
+        os.path.join("src", "data", "sihMasterData.js"),
+        r"D:\SIH 2026\sih-announcement-web\src\data\sihMasterData.js",
+    ]
+    master_path = None
+    for p in possible_paths:
+        if os.path.exists(p):
+            master_path = p
+            break
+
+    if not master_path:
+        raise FileNotFoundError(f"Could not locate sihMasterData.js. Checked: {possible_paths}")
+
     with open(master_path, "r", encoding="utf-8") as f:
         text = f.read()
 
