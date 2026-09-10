@@ -151,7 +151,7 @@ def log_dispatch(temp_team_id, status, team_name, leader_name, phone, note=""):
 def format_message(template, team):
     return template.replace("{leader_name}", team.get("leader_name", "Team Leader"))                    .replace("{team_name}", team.get("team_name", "Innovators"))                    .replace("{temp_team_id}", team.get("temp_team_id", ""))                    .replace("{ps_id}", team.get("ps_id", "SIH2026"))                    .replace("{tier_status}", team.get("status", "Finalist"))                    .replace("{school}", team.get("school", "RGU"))
 
-def run_automation():
+def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
     print("=" * 70)
     print("  🚀 SIH 2026 AUTOMATED BULK WHATSAPP DISPATCH ENGINE")
     print("  Rathinam Global University - Campus Evaluation Authority")
@@ -197,21 +197,25 @@ def run_automation():
     print(f"    - Already Logged Sent:   {len(sent_ids)}")
     print()
 
-    print("Select Target Audience to Broadcast:")
-    print("  [1] Send to ALL PENDING Teams (Recommended)")
-    print(f"      ({len(pending_teams)} teams awaiting registration submission)")
-    print("  [2] Send to Shortlist Finalists Only (80 Teams)")
-    print("  [3] Send to Bench Standby Teams (10 Teams)")
-    print("  [4] Send to Waitlist Pool (20 Teams)")
-    print("  [5] Send to ALL 110 Finalized Teams")
-    print("  [6] Test Send to Single Custom Phone Number")
-    print()
+    if not arg_choice:
+        print("Select Target Audience to Broadcast:")
+        print("  [1] Send to ALL PENDING Teams (Recommended)")
+        print(f"      ({len(pending_teams)} teams awaiting registration submission)")
+        print("  [2] Send to Shortlist Finalists Only (80 Teams)")
+        print("  [3] Send to Bench Standby Teams (10 Teams)")
+        print("  [4] Send to Waitlist Pool (20 Teams)")
+        print("  [5] Send to ALL 110 Finalized Teams")
+        print("  [6] Test Send to Single Custom Phone Number")
+        print()
 
-    try:
-        choice = input("Enter choice (1-6) [Default: 1]: ").strip() or "1"
-    except KeyboardInterrupt:
-        print("\nAborted by user.")
-        return
+    if arg_choice:
+        choice = str(arg_choice).strip()
+    else:
+        try:
+            choice = input("Enter choice (1-6) [Default: 1]: ").strip() or "1"
+        except (KeyboardInterrupt, EOFError):
+            print("\nAborted by user.")
+            return
 
     target_list = []
     if choice == "1":
@@ -225,7 +229,13 @@ def run_automation():
     elif choice == "5":
         target_list = enriched_teams
     elif choice == "6":
-        test_num = input("Enter 10-digit test phone number: ").strip()
+        if arg_test_phone:
+            test_num = str(arg_test_phone).strip()
+        else:
+            try:
+                test_num = input("Enter 10-digit test phone number: ").strip()
+            except (KeyboardInterrupt, EOFError):
+                test_num = ""
         clean_test = clean_phone_number(test_num)
         if not clean_test:
             print("[!] Invalid phone number.")
@@ -250,7 +260,13 @@ def run_automation():
         unvisited = [t for t in valid_targets if t["temp_team_id"] not in sent_ids]
         if len(unvisited) < len(valid_targets):
             print(f"[*] Note: {len(valid_targets) - len(unvisited)} teams were already marked SENT in log.")
-            skip_choice = input("Skip already sent teams? (Y/N) [Default: Y]: ").strip().lower() or "y"
+            if arg_skip_sent is not None:
+                skip_choice = str(arg_skip_sent).strip().lower()
+            else:
+                try:
+                    skip_choice = input("Skip already sent teams? (Y/N) [Default: Y]: ").strip().lower() or "y"
+                except (KeyboardInterrupt, EOFError):
+                    skip_choice = "y"
             if skip_choice == "y":
                 valid_targets = unvisited
 
@@ -376,8 +392,21 @@ def run_automation():
         print(f"     - Results logged to: {LOG_FILE}")
         print("=" * 70)
 
-        input("\nPress Enter to close browser session...")
+        try:
+            input("\nPress Enter to close browser session...")
+        except (KeyboardInterrupt, EOFError):
+            pass
         context.close()
 
 if __name__ == "__main__":
-    run_automation()
+    import argparse
+    parser = argparse.ArgumentParser(description="SIH 2026 Automated Bulk WhatsApp Dispatcher")
+    parser.add_argument("--choice", "-c", choices=["1","2","3","4","5","6"], default=None, help="Target audience (1: Pending, 2: Shortlist, 3: Bench, 4: Waitlist, 5: All, 6: Custom)")
+    parser.add_argument("--skip-sent", "-s", choices=["y","n"], default=None, help="Skip already sent teams")
+    parser.add_argument("--phone", "-p", default=None, help="Custom phone number for test (choice 6)")
+    parser.add_argument("--auto", "-a", action="store_true", help="Auto mode (uses choice=1, skip-sent=y)")
+    args = parser.parse_args()
+
+    c = "1" if args.auto else args.choice
+    s = "y" if args.auto else args.skip_sent
+    run_automation(arg_choice=c, arg_skip_sent=s, arg_test_phone=args.phone)
