@@ -5469,5 +5469,339 @@ body {
   }
 }
 
+.btn-launch-auto-queue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  color: #065f46;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+}
+
+.btn-launch-auto-queue:hover:not(:disabled) {
+  background: #f0fdf4;
+  transform: translateY(-1px);
+}
+
+.btn-launch-auto-queue:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wa-platform-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+
+.platform-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.platform-pill {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.platform-pill.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.badge-wa-missing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.btn-add-number-quick {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-add-number-quick:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-mini-edit {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+}
+
+.btn-mini-edit:hover {
+  color: #0f172a;
+}
+
+.inline-num-edit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inline-tel-input {
+  width: 120px;
+  padding: 4px 6px;
+  border: 1.5px solid #4f46e5;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+}
+
+.btn-inline-save {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-inline-cancel {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Queue Runner Modal */
+.queue-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.queue-modal-card {
+  max-width: 620px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-light);
+}
+
+.queue-modal-header {
+  padding: 16px 20px;
+  background: #064e3b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.queue-modal-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.btn-close-queue {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.btn-close-queue:hover {
+  opacity: 1;
+}
+
+.queue-progress-bar-wrap {
+  height: 4px;
+  background: #e2e8f0;
+}
+
+.queue-progress-fill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.2s ease;
+}
+
+.queue-modal-content {
+  padding: 24px;
+}
+
+.queue-team-info-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.queue-step-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #059669;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.queue-info-left h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0;
+}
+
+.queue-info-left p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.queue-phone-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+
+.queue-preview-message-box label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.queue-preview-message-box pre {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.8rem;
+  color: #334155;
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
+.queue-modal-actions {
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-queue-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-queue-skip:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-queue-send-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #25d366;
+  color: #ffffff;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+  transition: all 0.15s ease;
+}
+
+.btn-queue-send-primary:hover {
+  background: #1eb855;
+  transform: translateY(-1px);
+}
+
+
 
 

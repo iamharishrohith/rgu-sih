@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Send, MessageSquare, CheckCircle2, Clock, Filter, AlertCircle, 
-  ExternalLink, Users, Copy, Check, Sparkles, RefreshCw, Smartphone
+  ExternalLink, Users, Copy, Check, Sparkles, RefreshCw, Smartphone,
+  Play, ChevronRight, SkipForward, X, Globe, PhoneForwarded, Edit3, Save
 } from 'lucide-react';
 
 export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
   // Target Filter: 'pending' (default) | 'all' | 'shortlist' | 'bench' | 'waitlist' | 'registered'
   const [targetFilter, setTargetFilter] = useState('pending');
+  const [platformMode, setPlatformMode] = useState('api'); // 'api' (Universal/Mobile/Desktop) | 'web' (WhatsApp Web) | 'wame'
   
   // Custom Message Template
   const [templateType, setTemplateType] = useState('deadline'); // 'deadline' | 'shortlist_congrats' | 'custom'
@@ -18,6 +20,14 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
   const [sentSet, setSentSet] = useState(() => new Set());
   const [copiedId, setCopiedId] = useState(null);
 
+  // Quick Queue Modal state
+  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
+  const [queueIndex, setQueueIndex] = useState(0);
+
+  // Inline Number Editor State
+  const [editingId, setEditingId] = useState(null);
+  const [editingPhone, setEditingPhone] = useState('');
+
   // Predefined Templates
   const templates = {
     deadline: 'Hello {leader_name} (Team: {team_name}, ID: {temp_team_id}),\n\nUrgent Reminder from Rathinam Global University for Smart India Hackathon 2026.\n\nYour team is selected under [{tier_status}] for Problem Statement {ps_id}.\n\nThe portal closes tonight at 12:00 AM Midnight. Please complete your 6-member roster & mentor details immediately:\nhttps://rgu-sih.vercel.app\n\nRegards,\nSIH 2026 Coordination Desk',
@@ -26,6 +36,15 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
   };
 
   const activeTemplate = templateType === 'custom' ? customMsgText : templates[templateType];
+
+  // Robust Phone Number Sanitization
+  const cleanPhoneNumber = (raw) => {
+    if (!raw) return '';
+    let p = String(raw).replace(/\D/g, '');
+    if (p.startsWith('0')) p = p.substring(1);
+    if (p.length === 10) p = '91' + p;
+    return p;
+  };
 
   // Filtered recipient candidates
   const targetTeams = useMemo(() => {
@@ -39,8 +58,9 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
     });
   }, [teamRecords, targetFilter]);
 
-  const teamsWithNumber = useMemo(() => targetTeams.filter(t => !!t.effectiveWhatsapp || !!t.effectivePhone), [targetTeams]);
-  const teamsWithoutNumber = useMemo(() => targetTeams.filter(t => !t.effectiveWhatsapp && !t.effectivePhone), [targetTeams]);
+  const teamsWithNumber = useMemo(() => {
+    return targetTeams.filter(t => !!cleanPhoneNumber(t.effectiveWhatsapp || t.effectivePhone));
+  }, [targetTeams]);
 
   // Interpolate message for a specific team
   const buildTeamMessage = (team) => {
@@ -54,16 +74,34 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
       .replace(/{school}/g, team.school || 'RGU');
   };
 
+  // Construct WhatsApp URL with platform fallback
   const getWhatsAppLink = (team) => {
-    const phone = (team.effectiveWhatsapp || team.effectivePhone || '').replace(/\D/g, '');
-    if (!phone) return null;
-    const cleanPhone = phone.length === 10 ? `91${phone}` : phone;
+    const cleanPhone = cleanPhoneNumber(team.effectiveWhatsapp || team.effectivePhone);
+    if (!cleanPhone) return null;
     const msg = encodeURIComponent(buildTeamMessage(team));
-    return `https://wa.me/${cleanPhone}?text=${msg}`;
+
+    if (platformMode === 'web') {
+      return `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${msg}`;
+    } else if (platformMode === 'wame') {
+      return `https://wa.me/${cleanPhone}?text=${msg}`;
+    }
+    // Default universal API link
+    return `https://api.whatsapp.com/send/?phone=${cleanPhone}&text=${msg}&type=phone_number&app_absent=0`;
   };
 
   const handleMarkSent = (teamId) => {
     setSentSet(prev => new Set([...prev, teamId]));
+  };
+
+  // Direct 1-Click Launch
+  const handleLaunchWhatsApp = (team) => {
+    const url = getWhatsAppLink(team);
+    if (!url) {
+      alert('No valid phone number for this team leader. Please add a contact number.');
+      return;
+    }
+    handleMarkSent(team.temp_team_id);
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleCopyMessage = (team) => {
@@ -71,6 +109,35 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
     navigator.clipboard.writeText(msg);
     setCopiedId(team.temp_team_id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Interactive Queue Runner
+  const handleStartQueue = () => {
+    if (teamsWithNumber.length === 0) return;
+    setQueueIndex(0);
+    setIsQueueModalOpen(true);
+  };
+
+  const activeQueueTeam = teamsWithNumber[queueIndex] || null;
+
+  const handleSendAndAdvance = () => {
+    if (!activeQueueTeam) return;
+    handleLaunchWhatsApp(activeQueueTeam);
+    if (queueIndex < teamsWithNumber.length - 1) {
+      setQueueIndex(prev => prev + 1);
+    }
+  };
+
+  const handleSkipQueue = () => {
+    if (queueIndex < teamsWithNumber.length - 1) {
+      setQueueIndex(prev => prev + 1);
+    }
+  };
+
+  const handleSaveInlinePhone = async (tempTeamId) => {
+    if (!editingPhone.trim() || !onUpdateContact) return;
+    await onUpdateContact(tempTeamId, editingPhone, editingPhone);
+    setEditingId(null);
   };
 
   return (
@@ -87,19 +154,16 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
           </div>
         </div>
 
-        <div className="wa-header-stats-strip">
-          <div className="wa-stat-pill">
-            <Users size={14} className="text-indigo" />
-            <span>Target Pool: <strong>{targetTeams.length}</strong> TLs</span>
-          </div>
-          <div className="wa-stat-pill">
-            <Smartphone size={14} className="text-emerald" />
-            <span>With Numbers: <strong>{teamsWithNumber.length}</strong></span>
-          </div>
-          <div className="wa-stat-pill">
-            <CheckCircle2 size={14} className="text-emerald" />
-            <span>Dispatched: <strong>{sentSet.size}</strong></span>
-          </div>
+        <div className="wa-header-right-actions">
+          <button 
+            type="button" 
+            className="btn-launch-auto-queue"
+            onClick={handleStartQueue}
+            disabled={teamsWithNumber.length === 0}
+          >
+            <Play size={16} fill="currentColor" />
+            <span>Start 1-Click Queue Runner ({teamsWithNumber.length})</span>
+          </button>
         </div>
       </div>
 
@@ -159,10 +223,33 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
             </button>
           </div>
 
-          {/* Quick Stats Note */}
-          <div className="audience-note-box">
-            <Sparkles size={14} className="text-amber" />
-            <span>Targeting <strong>{teamsWithNumber.length}</strong> leaders with active WhatsApp phone numbers.</span>
+          {/* Platform URL Selector */}
+          <div className="wa-platform-selector">
+            <span className="platform-label">Launch Mode:</span>
+            <button 
+              type="button" 
+              className={`platform-pill ${platformMode === 'api' ? 'active' : ''}`}
+              onClick={() => setPlatformMode('api')}
+              title="Universal Desktop & Mobile Link"
+            >
+              Universal (Auto)
+            </button>
+            <button 
+              type="button" 
+              className={`platform-pill ${platformMode === 'web' ? 'active' : ''}`}
+              onClick={() => setPlatformMode('web')}
+              title="Direct web.whatsapp.com Link"
+            >
+              WhatsApp Web
+            </button>
+            <button 
+              type="button" 
+              className={`platform-pill ${platformMode === 'wame' ? 'active' : ''}`}
+              onClick={() => setPlatformMode('wame')}
+              title="wa.me Short Link"
+            >
+              wa.me
+            </button>
           </div>
         </div>
 
@@ -199,7 +286,7 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
 
           {templateType === 'custom' ? (
             <textarea
-              rows={6}
+              rows={5}
               className="wa-template-textarea"
               value={customMsgText}
               onChange={(e) => setCustomMsgText(e.target.value)}
@@ -226,19 +313,21 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
       <div className="wa-recipients-card">
         <div className="wa-recipients-header">
           <div className="header-title-wrap">
-            <h4>Recipient Queue ({teamsWithNumber.length} Ready to Send)</h4>
-            <span className="header-subtext">Click 'Send WhatsApp' to launch official chat in WhatsApp Web / App with pre-filled message.</span>
+            <h4>Recipient Queue ({teamsWithNumber.length} Leaders Ready with Numbers)</h4>
+            <span className="header-subtext">Click 'Send WhatsApp' to instantly launch chat in WhatsApp with pre-filled message text.</span>
           </div>
 
-          <button 
-            type="button"
-            className="btn-reset-sent-state"
-            onClick={() => setSentSet(new Set())}
-            title="Reset dispatched tracker"
-          >
-            <RefreshCw size={13} />
-            <span>Reset Tracker</span>
-          </button>
+          <div className="header-right-tools">
+            <button 
+              type="button"
+              className="btn-reset-sent-state"
+              onClick={() => setSentSet(new Set())}
+              title="Reset dispatched tracker"
+            >
+              <RefreshCw size={13} />
+              <span>Reset Dispatched ({sentSet.size})</span>
+            </button>
+          </div>
         </div>
 
         <div className="table-scroll-box">
@@ -252,32 +341,37 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
                 <th>Tier</th>
                 <th>Form Status</th>
                 <th>WhatsApp Phone</th>
-                <th>Message Action</th>
+                <th>One-Click Send Action</th>
               </tr>
             </thead>
             <tbody>
-              {teamsWithNumber.length === 0 ? (
+              {targetTeams.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="empty-state-box">
-                    No recipients with phone numbers found for the selected filter.
+                    No recipients found for the selected filter.
                   </td>
                 </tr>
               ) : (
-                teamsWithNumber.map((team) => {
+                targetTeams.map((team) => {
                   const isSent = sentSet.has(team.temp_team_id);
-                  const waUrl = getWhatsAppLink(team);
+                  const cleanPhone = cleanPhoneNumber(team.effectiveWhatsapp || team.effectivePhone);
                   const isCopied = copiedId === team.temp_team_id;
+                  const isInlineEditing = editingId === team.temp_team_id;
 
                   return (
                     <tr key={`wa-${team.temp_team_id}`} className={`table-row ${isSent ? 'row-sent-done' : ''}`}>
                       <td>
                         {isSent ? (
                           <span className="badge-wa-sent">
-                            <Check size={12} /> Sent
+                            <Check size={12} /> Dispatched
                           </span>
-                        ) : (
+                        ) : cleanPhone ? (
                           <span className="badge-wa-queued">
                             <Clock size={12} /> Ready
+                          </span>
+                        ) : (
+                          <span className="badge-wa-missing">
+                            No Number
                           </span>
                         )}
                       </td>
@@ -304,26 +398,72 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
                         )}
                       </td>
                       <td>
-                        <div className="num-pill-box">
-                          <Smartphone size={13} className="text-emerald" />
-                          <span className="font-mono font-bold">{team.effectiveWhatsapp || team.effectivePhone}</span>
-                        </div>
+                        {isInlineEditing ? (
+                          <div className="inline-num-edit-wrap">
+                            <input 
+                              type="tel"
+                              value={editingPhone}
+                              onChange={(e) => setEditingPhone(e.target.value)}
+                              placeholder="10-digit number"
+                              className="inline-tel-input"
+                              autoFocus
+                            />
+                            <button 
+                              type="button"
+                              className="btn-inline-save"
+                              onClick={() => handleSaveInlinePhone(team.temp_team_id)}
+                            >
+                              <Save size={12} />
+                            </button>
+                            <button 
+                              type="button"
+                              className="btn-inline-cancel"
+                              onClick={() => setEditingId(null)}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="num-pill-box">
+                            <Smartphone size={13} className={cleanPhone ? "text-emerald" : "text-gray"} />
+                            <span className="font-mono font-bold">{cleanPhone || 'Missing'}</span>
+                            <button 
+                              type="button"
+                              className="btn-mini-edit"
+                              onClick={() => {
+                                setEditingId(team.temp_team_id);
+                                setEditingPhone(cleanPhone || '');
+                              }}
+                              title="Edit number"
+                            >
+                              <Edit3 size={11} />
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td>
                         <div className="wa-action-cell-buttons">
-                          {waUrl ? (
-                            <a
-                              href={waUrl}
-                              target="_blank"
-                              rel="noreferrer"
+                          {cleanPhone ? (
+                            <button
+                              type="button"
                               className={`btn-send-wa-action ${isSent ? 'already-sent' : ''}`}
-                              onClick={() => handleMarkSent(team.temp_team_id)}
+                              onClick={() => handleLaunchWhatsApp(team)}
+                              title={`Send WhatsApp message to ${team.leader_name}`}
                             >
-                              <Send size={13} />
+                              <Send size={14} />
                               <span>{isSent ? 'Resend WA' : 'Send WhatsApp'}</span>
-                            </a>
+                            </button>
                           ) : (
-                            <span className="no-num-tag">No Number</span>
+                            <button 
+                              type="button"
+                              className="btn-add-number-quick"
+                              onClick={() => {
+                                setEditingId(team.temp_team_id);
+                                setEditingPhone('');
+                              }}
+                            >
+                              + Add Number
+                            </button>
                           )}
 
                           <button 
@@ -344,6 +484,73 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
           </table>
         </div>
       </div>
+
+      {/* Quick Queue Runner Modal */}
+      {isQueueModalOpen && activeQueueTeam && (
+        <div className="queue-modal-overlay">
+          <div className="queue-modal-card">
+            <div className="queue-modal-header">
+              <div className="queue-modal-badge">
+                <Play size={15} fill="currentColor" />
+                <span>Automated Queue Dispatcher</span>
+              </div>
+              <button 
+                type="button" 
+                className="btn-close-queue"
+                onClick={() => setIsQueueModalOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="queue-progress-bar-wrap">
+              <div 
+                className="queue-progress-fill" 
+                style={{ width: `${((queueIndex + 1) / teamsWithNumber.length) * 100}%` }}
+              ></div>
+            </div>
+
+            <div className="queue-modal-content">
+              <div className="queue-team-info-banner">
+                <div className="queue-info-left">
+                  <span className="queue-step-num">Team {queueIndex + 1} of {teamsWithNumber.length}</span>
+                  <h3>{activeQueueTeam.team_name} ({activeQueueTeam.temp_team_id})</h3>
+                  <p>Leader: <strong>{activeQueueTeam.leader_name}</strong> • PS: {activeQueueTeam.ps_id} • Status: {activeQueueTeam.status}</p>
+                </div>
+                <div className="queue-phone-tag">
+                  <Smartphone size={16} />
+                  <span>{cleanPhoneNumber(activeQueueTeam.effectiveWhatsapp || activeQueueTeam.effectivePhone)}</span>
+                </div>
+              </div>
+
+              <div className="queue-preview-message-box">
+                <label>Personalized Message Preview:</label>
+                <pre>{buildTeamMessage(activeQueueTeam)}</pre>
+              </div>
+            </div>
+
+            <div className="queue-modal-actions">
+              <button 
+                type="button" 
+                className="btn-queue-skip"
+                onClick={handleSkipQueue}
+              >
+                <SkipForward size={15} />
+                <span>Skip</span>
+              </button>
+
+              <button 
+                type="button" 
+                className="btn-queue-send-primary"
+                onClick={handleSendAndAdvance}
+              >
+                <Send size={16} />
+                <span>Send WhatsApp &amp; Next Team &rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
