@@ -6,6 +6,8 @@ import AdminDashboard from './components/AdminDashboard.jsx';
 import TeamDetailsModal from './components/TeamDetailsModal.jsx';
 import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
 import FlowerConfettiRain from './components/FlowerConfettiRain.jsx';
+import MidnightCountdownBanner from './components/MidnightCountdownBanner.jsx';
+import PortalClosedView from './components/PortalClosedView.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -23,6 +25,27 @@ export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'candidate_desk' | 'admin'
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+  
+  // Automatic Midnight Portal Closure State (12:00 AM tonight)
+  const [isPortalClosed, setIsPortalClosed] = useState(() => {
+    const now = new Date();
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
+    return now.getTime() >= midnight;
+  });
+  const [isReadOnlyAfterClosure, setIsReadOnlyAfterClosure] = useState(false);
+
+  useEffect(() => {
+    const checkMidnight = () => {
+      const now = new Date();
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
+      const closed = now.getTime() >= midnight;
+      setIsPortalClosed(closed);
+    };
+
+    checkMidnight();
+    const timer = setInterval(checkMidnight, 1000);
+    return () => clearInterval(timer);
+  }, []);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTier, setActiveTier] = useState('shortlist');
@@ -531,12 +554,25 @@ export default function App() {
         totalFinalizedCount={tierCounts.totalFinalized}
         onSecretAdminTrigger={triggerSecretAdmin}
         isAdminLoggedIn={isAdminLoggedIn}
-        onOpenLandingView={() => setCurrentView('landing')}
+        onOpenLandingView={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('landing');
+        }}
         onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
         currentView={currentView}
       />
 
-            {/* VIEW 1: ADMIN DASHBOARD */}
+      {/* Live Midnight Closure Countdown Banner */}
+      <MidnightCountdownBanner 
+        onActionClick={() => {
+          if (currentView !== 'candidate_desk') {
+            setCurrentView('candidate_desk');
+          }
+        }}
+        isPortalClosed={isPortalClosed}
+      />
+
+      {/* VIEW 1: ADMIN DASHBOARD */}
       {currentView === 'admin' && isAdminLoggedIn ? (
         <AdminDashboard
           allMasterTeams={masterTeamsList}
@@ -552,6 +588,17 @@ export default function App() {
           hiddenTeamIds={hiddenTeamIds}
           onToggleTeamVisibility={handleToggleTeamVisibility}
         />
+      ) : isPortalClosed && !isReadOnlyAfterClosure ? (
+        /* PORTAL CLOSED VIEW (Automatically active after 12:00 AM Midnight) */
+        <PortalClosedView
+          onSecretAdminTrigger={triggerSecretAdmin}
+          registeredCount={finalizedSubmittedCount}
+          totalFinalizedCount={tierCounts.totalFinalized}
+          onViewShortlist={() => {
+            setIsReadOnlyAfterClosure(true);
+            setCurrentView('candidate_desk');
+          }}
+        />
       ) : currentView === 'landing' ? (
         /* VIEW 2: GRAND ANNOUNCEMENT LANDING SHOWCASE */
         <GrandLandingShowcase
@@ -559,8 +606,9 @@ export default function App() {
           onExploreBench={() => openTierDesk('bench')}
           onExploreWaitlist={() => openTierDesk('waitlist')}
           allTeams={publicTeamsList}
-          onOpenTeamRegistration={(team) => setActiveRegTeam(team)}
-          
+          onOpenTeamRegistration={(team) => {
+            if (!isPortalClosed) setActiveRegTeam(team);
+          }}
         />
       ) : (
         /* VIEW 3: CANDIDATE REGISTRATION DESK TABLE */
@@ -871,6 +919,14 @@ export default function App() {
                                 <CheckCircle2 size={14} className="text-emerald" />
                                 <span>Form Submitted</span>
                               </div>
+                            ) : isPortalClosed ? (
+                              <div 
+                                className="badge-status-closed"
+                                title="Candidate registration closed at 12:00 AM Midnight"
+                              >
+                                <Lock size={13} className="text-rose" />
+                                <span>Window Closed</span>
+                              </div>
                             ) : (
                               <button
                                 className="btn-register-vibrant"
@@ -990,6 +1046,14 @@ export default function App() {
                             >
                               <CheckCircle2 size={15} className="text-emerald" />
                               <span>Form Submitted &amp; Locked</span>
+                            </div>
+                          ) : isPortalClosed ? (
+                            <div 
+                              className="badge-status-closed mob-badge-full"
+                              title="Candidate registration closed at 12:00 AM Midnight"
+                            >
+                              <Lock size={15} className="text-rose" />
+                              <span>Registration Window Closed</span>
                             </div>
                           ) : (
                             <button
