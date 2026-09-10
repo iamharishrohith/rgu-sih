@@ -8,11 +8,12 @@ import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
 import FlowerConfettiRain from './components/FlowerConfettiRain.jsx';
 import MidnightCountdownBanner from './components/MidnightCountdownBanner.jsx';
 import PortalClosedView from './components/PortalClosedView.jsx';
+import PortalTimerModal from './components/PortalTimerModal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
   Search, ArrowUpDown, UserCheck, ShieldCheck, Sparkles, Filter, Award, 
-  ArrowRight, Lock, CheckCircle2, Home, ArrowLeft
+  ArrowRight, Lock, Unlock, CheckCircle2, Home, ArrowLeft
 } from 'lucide-react';
 import './App.css';
 
@@ -25,27 +26,66 @@ export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'candidate_desk' | 'admin'
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
-  
-  // Automatic Midnight Portal Closure State (12:00 AM tonight)
-  const [isPortalClosed, setIsPortalClosed] = useState(() => {
-    const now = new Date();
-    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
-    return now.getTime() >= midnight;
-  });
+  const [openTimerAfterAuth, setOpenTimerAfterAuth] = useState(false);
+  const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
   const [isReadOnlyAfterClosure, setIsReadOnlyAfterClosure] = useState(false);
 
+  // Institutional Portal Access & Dynamic Automatic Closure Timer Settings (Closed by default)
+  const [portalSettings, setPortalSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sih_portal_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (!parsed.isClosed && parsed.closeTimestamp && Date.now() >= parsed.closeTimestamp) {
+          return { ...parsed, isClosed: true, presetLabel: 'Scheduled Window Concluded' };
+        }
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading portal settings', e);
+    }
+    return {
+      isClosed: true,
+      closeTimestamp: null,
+      timerPreset: null,
+      presetLabel: 'Submission Window Concluded',
+      lastUpdated: new Date().toISOString()
+    };
+  });
+
+  const isPortalClosed = portalSettings.isClosed;
+
+  // Active Timer Tick Handler: automatically locks portal when closeTimestamp is reached
   useEffect(() => {
-    const checkMidnight = () => {
-      const now = new Date();
-      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
-      const closed = now.getTime() >= midnight;
-      setIsPortalClosed(closed);
+    const checkTimer = () => {
+      if (!portalSettings.isClosed && portalSettings.closeTimestamp) {
+        if (Date.now() >= portalSettings.closeTimestamp) {
+          const updated = {
+            ...portalSettings,
+            isClosed: true,
+            presetLabel: 'Scheduled Window Concluded',
+            lastUpdated: new Date().toISOString()
+          };
+          setPortalSettings(updated);
+          localStorage.setItem('sih_portal_settings', JSON.stringify(updated));
+        }
+      }
     };
 
-    checkMidnight();
-    const timer = setInterval(checkMidnight, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    checkTimer();
+    const interval = setInterval(checkTimer, 1000);
+    return () => clearInterval(interval);
+  }, [portalSettings]);
+
+  const handleUpdatePortalSettings = (newSettings) => {
+    const merged = { ...portalSettings, ...newSettings };
+    setPortalSettings(merged);
+    try {
+      localStorage.setItem('sih_portal_settings', JSON.stringify(merged));
+    } catch (e) {
+      console.error('Failed to save portal settings', e);
+    }
+  };
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTier, setActiveTier] = useState('shortlist');
@@ -531,7 +571,12 @@ export default function App() {
   const handlePasscodeSuccess = () => {
     setIsAdminLoggedIn(true);
     setIsPasscodeModalOpen(false);
-    setCurrentView('admin');
+    if (openTimerAfterAuth) {
+      setOpenTimerAfterAuth(false);
+      setIsTimerModalOpen(true);
+    } else {
+      setCurrentView('admin');
+    }
   };
 
   const handleAdminLogout = () => {
@@ -560,6 +605,15 @@ export default function App() {
         }}
         onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
         currentView={currentView}
+        isPortalClosed={isPortalClosed}
+        onOpenTimerModal={() => {
+          if (isAdminLoggedIn) {
+            setIsTimerModalOpen(true);
+          } else {
+            setOpenTimerAfterAuth(true);
+            setIsPasscodeModalOpen(true);
+          }
+        }}
       />
 
       {/* Live Midnight Closure Countdown Banner */}
@@ -570,6 +624,7 @@ export default function App() {
           }
         }}
         isPortalClosed={isPortalClosed}
+        portalSettings={portalSettings}
       />
 
       {/* VIEW 1: ADMIN DASHBOARD */}
@@ -587,13 +642,26 @@ export default function App() {
           onDeleteTeam={handleDeleteTeam}
           hiddenTeamIds={hiddenTeamIds}
           onToggleTeamVisibility={handleToggleTeamVisibility}
+          portalSettings={portalSettings}
+          onOpenTimerModal={() => setIsTimerModalOpen(true)}
+          onUpdatePortalSettings={handleUpdatePortalSettings}
         />
       ) : isPortalClosed && !isReadOnlyAfterClosure ? (
-        /* PORTAL CLOSED VIEW (Automatically active after 12:00 AM Midnight) */
+        /* PORTAL CLOSED VIEW (Active when portal is locked) */
         <PortalClosedView
           onSecretAdminTrigger={triggerSecretAdmin}
           registeredCount={finalizedSubmittedCount}
           totalFinalizedCount={tierCounts.totalFinalized}
+          isAdminLoggedIn={isAdminLoggedIn}
+          onOpenTimerModal={() => {
+            if (isAdminLoggedIn) {
+              setIsTimerModalOpen(true);
+            } else {
+              setOpenTimerAfterAuth(true);
+              setIsPasscodeModalOpen(true);
+            }
+          }}
+          onGoToAdmin={() => setCurrentView('admin')}
           onViewShortlist={() => {
             setIsReadOnlyAfterClosure(true);
             setCurrentView('candidate_desk');
@@ -1127,6 +1195,14 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Portal Timer & Access Modal */}
+      <PortalTimerModal
+        isOpen={isTimerModalOpen}
+        onClose={() => setIsTimerModalOpen(false)}
+        portalSettings={portalSettings}
+        onUpdatePortalSettings={handleUpdatePortalSettings}
+      />
     </div>
   );
 }

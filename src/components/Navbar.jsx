@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { CheckCircle2, UserCheck, LayoutDashboard } from 'lucide-react';
+import { CheckCircle2, UserCheck, LayoutDashboard, Lock, Unlock, Clock } from 'lucide-react';
 
 export default function Navbar({ 
   registeredCount, 
-  totalFinalizedCount = 113, 
+  totalFinalizedCount = 110, 
   onSecretAdminTrigger, 
   isAdminLoggedIn, 
   onOpenLandingView,
   onOpenCandidateDesk, 
-  currentView 
+  currentView,
+  isPortalClosed,
+  onOpenTimerModal
 }) {
   const [clickCount, setClickCount] = useState(0);
 
@@ -61,9 +63,18 @@ export default function Navbar({
           {/* Admin Navigation Button appears ONLY when already authenticated */}
           {isAdminLoggedIn && (
             <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button 
+                className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
+                onClick={onOpenTimerModal}
+                title="Manage Registration Window & Timer"
+              >
+                {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
+                <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
+              </button>
+
               <div className="meta-stats-pill">
                 <CheckCircle2 size={15} className="text-emerald" />
-                <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms Submitted</span>
+                <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
               </div>
 
               {currentView === 'admin' ? (

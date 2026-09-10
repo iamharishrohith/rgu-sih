@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { 
   Users, CheckCircle2, Clock, Phone, MessageSquare, Download, Upload, Plus, Trash2, EyeOff, 
   Search, Filter, ShieldCheck, UserCheck, Eye, Edit3, Save, X, ExternalLink,
-  LogOut, RefreshCw, Layers, BarChart3, PieChart, Award, FileText, Send, Check
+  LogOut, RefreshCw, Layers, BarChart3, PieChart, Award, FileText, Send, Check,
+  Lock, Unlock, Hourglass, Zap, Calendar
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { sanitizeCSVField } from '../crypto_security';
@@ -23,7 +24,10 @@ export default function AdminDashboard({
   onUpdateTeam,
   onDeleteTeam,
   hiddenTeamIds = [],
-  onToggleTeamVisibility
+  onToggleTeamVisibility,
+  portalSettings,
+  onOpenTimerModal,
+  onUpdatePortalSettings
 }) {
   // Navigation Tabs: 'analytics' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -280,6 +284,14 @@ export default function AdminDashboard({
         </div>
 
                         <div className="admin-top-actions">
+          <button 
+            className={`btn-admin-portal-pill ${portalSettings?.isClosed ? 'locked' : 'active'}`}
+            onClick={onOpenTimerModal}
+            title="Configure Registration Portal Access & Automatic Closure Timer"
+          >
+            {portalSettings?.isClosed ? <Lock size={15} className="text-rose" /> : <Unlock size={15} className="text-emerald" />}
+            <span>Portal: {portalSettings?.isClosed ? 'Locked / Closed' : 'Open (Active)'}</span>
+          </button>
           <button className="btn-admin-add-team" onClick={handleOpenCreateModal}>
             <Plus size={15} />
             <span>Add New Team</span>
@@ -363,6 +375,59 @@ export default function AdminDashboard({
           ========================================================================= */}
       {activeTab === 'analytics' && (
         <div className="master-analytics-view-container">
+          {/* Institutional Portal Access & Submission Timer Controller Card */}
+          <div className={`admin-portal-ctrl-card ${portalSettings?.isClosed ? 'closed' : 'open'}`}>
+            <div className="portal-ctrl-left">
+              <div className={`portal-ctrl-icon ${portalSettings?.isClosed ? 'bg-rose-soft' : 'bg-emerald-soft'}`}>
+                {portalSettings?.isClosed ? <Lock size={22} className="text-rose" /> : <Unlock size={22} className="text-emerald" />}
+              </div>
+              <div className="portal-ctrl-info">
+                <div className="portal-ctrl-header-row">
+                  <h4>Candidate Portal Status: {portalSettings?.isClosed ? 'LOCKED / REGISTRATION CLOSED' : 'ACTIVE & ACCEPTING SUBMISSIONS'}</h4>
+                  <span className={`portal-live-pill ${portalSettings?.isClosed ? 'pill-closed' : 'pill-open'}`}>
+                    {portalSettings?.isClosed ? 'Submissions Disabled' : 'Submissions Active'}
+                  </span>
+                </div>
+                <p className="portal-ctrl-desc">
+                  {portalSettings?.isClosed 
+                    ? 'Candidates currently see the submission window closed screen. You can reopen the portal and configure an automatic closure timer.'
+                    : portalSettings?.closeTimestamp
+                      ? `Portal is open and will automatically lock at: ${new Date(portalSettings.closeTimestamp).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true })} (${portalSettings.presetLabel || 'Timer Active'})`
+                      : 'Portal is open with no automatic deadline timer.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="portal-ctrl-actions">
+              {portalSettings?.isClosed ? (
+                <button className="btn-portal-reopen-primary" onClick={onOpenTimerModal}>
+                  <Unlock size={16} />
+                  <span>Reopen Portal &amp; Set Time Limit</span>
+                </button>
+              ) : (
+                <div className="portal-ctrl-btn-group">
+                  <button className="btn-portal-adjust-timer" onClick={onOpenTimerModal}>
+                    <Clock size={15} />
+                    <span>Adjust Deadline Timer</span>
+                  </button>
+                  <button 
+                    className="btn-portal-lock-fast" 
+                    onClick={() => onUpdatePortalSettings({
+                      isClosed: true,
+                      closeTimestamp: null,
+                      timerPreset: null,
+                      presetLabel: 'Manually Locked by Admin',
+                      lastUpdated: new Date().toISOString()
+                    })}
+                  >
+                    <Lock size={14} />
+                    <span>Lock Portal Now</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Top 4 KPI Metrics */}
           <div className="analytics-metrics-grid">
             <div className="metric-card total-card">

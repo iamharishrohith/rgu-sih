@@ -1,11 +1,17 @@
 import React from 'react';
-import { Lock, ShieldCheck, Award, FileText, CheckCircle2, UserCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import { 
+  Lock, Unlock, ShieldCheck, Award, FileText, CheckCircle2, 
+  UserCheck, AlertCircle, ArrowRight, Clock, Sparkles 
+} from 'lucide-react';
 
 export default function PortalClosedView({ 
   onSecretAdminTrigger, 
   registeredCount, 
   totalFinalizedCount = 110,
-  onViewShortlist
+  onViewShortlist,
+  isAdminLoggedIn = false,
+  onOpenTimerModal,
+  onGoToAdmin
 }) {
   return (
     <div className="portal-closed-viewport">
@@ -25,12 +31,12 @@ export default function PortalClosedView({
         </h1>
 
         <p className="closed-sub-headline">
-          The candidate registration portal officially closed at <strong>12:00 AM Midnight Tonight</strong>.
+          The candidate registration portal is currently <strong>Locked by Authority</strong>.
         </p>
 
         <div className="closed-explanation-box">
           <p>
-            All 6-member finalist rosters, mentor nominations, and project proposals have been locked and submitted to the <strong>Institutional SIH 2026 Evaluation Committee</strong> for final central validation and national submission.
+            All 6-member finalist rosters, mentor nominations, and project proposals have been locked and submitted to the <strong>Institutional SIH 2026 Evaluation Committee</strong> for central validation and national submission.
           </p>
         </div>
 
@@ -76,10 +82,25 @@ export default function PortalClosedView({
             </button>
           )}
 
-          <button className="btn-closed-admin-access" onClick={onSecretAdminTrigger}>
-            <Lock size={14} />
-            <span>Institutional Admin Access</span>
-          </button>
+          {isAdminLoggedIn ? (
+            <div className="admin-reopen-btn-group">
+              <button className="btn-closed-reopen-portal" onClick={onOpenTimerModal}>
+                <Unlock size={15} className="text-emerald" />
+                <span>Reopen Portal &amp; Set Time Limit</span>
+              </button>
+              {onGoToAdmin && (
+                <button className="btn-closed-admin-access" onClick={onGoToAdmin}>
+                  <ShieldCheck size={14} />
+                  <span>Admin Desk</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <button className="btn-closed-admin-access" onClick={onSecretAdminTrigger}>
+              <Lock size={14} />
+              <span>Institutional Admin Access</span>
+            </button>
+          )}
         </div>
 
         <div className="closed-authority-footer">
