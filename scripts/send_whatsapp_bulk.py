@@ -52,6 +52,14 @@ Your team is selected under [{tier_status}] for Problem Statement {ps_id}.
 The candidate registration portal closes tonight at 12:00 AM Midnight. Please complete your mandatory 6-member student roster and mentor details immediately on the official portal:
 https://rgu-sih.vercel.app
 
+*NOTE FOR TEAMS WITH ISSUES / SHORTAGE OF MEMBERS:*
+Those who have issues or shortage of team members - post your team details and issue:
+
+Team Name: {team_name}
+PS ID: {ps_id}
+Status of Team: {tier_status}
+Issue: 
+
 Regards,
 SIH 2026 Campus Evaluation Authority
 Rathinam Global University"""

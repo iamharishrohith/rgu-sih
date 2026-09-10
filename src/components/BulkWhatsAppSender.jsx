@@ -13,7 +13,7 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
   // Custom Message Template
   const [templateType, setTemplateType] = useState('deadline'); // 'deadline' | 'shortlist_congrats' | 'custom'
   const [customMsgText, setCustomMsgText] = useState(
-    'Hello {leader_name} (Team: {team_name}, ID: {temp_team_id}),\n\nThis is an urgent announcement from Rathinam Global University for Smart India Hackathon 2026.\n\nYour team is selected under [{tier_status}] for Problem Statement {ps_id}.\n\nPlease complete your mandatory 6-member student roster and mentor details on the official portal before tonight 12:00 AM Midnight:\nhttps://rgu-sih.vercel.app\n\nRegards,\nSIH 2026 Campus Evaluation Authority'
+    'Hello {leader_name} (Team: {team_name}, ID: {temp_team_id}),\n\nThis is an urgent announcement from Rathinam Global University for Smart India Hackathon 2026.\n\nYour team is selected under [{tier_status}] for Problem Statement {ps_id}.\n\nPlease complete your mandatory 6-member student roster and mentor details on the official portal before tonight 12:00 AM Midnight:\nhttps://rgu-sih.vercel.app\n\n*NOTE FOR TEAMS WITH ISSUES / SHORTAGE OF MEMBERS:*\nThose who have issues or shortage of team members - post your team details and issue:\n\nTeam Name: {team_name}\nPS ID: {ps_id}\nStatus of Team: {tier_status}\nIssue: \n\nRegards,\nSIH 2026 Campus Evaluation Authority'
   );
 
   // Sent Tracking state (Session-based)
@@ -30,8 +30,8 @@ export default function BulkWhatsAppSender({ teamRecords, onUpdateContact }) {
 
   // Predefined Templates
   const templates = {
-    deadline: 'Hello {leader_name} (Team: {team_name}, ID: {temp_team_id}),\n\nUrgent Reminder from Rathinam Global University for Smart India Hackathon 2026.\n\nYour team is selected under [{tier_status}] for Problem Statement {ps_id}.\n\nThe portal closes tonight at 12:00 AM Midnight. Please complete your 6-member roster & mentor details immediately:\nhttps://rgu-sih.vercel.app\n\nRegards,\nSIH 2026 Coordination Desk',
-    shortlist_congrats: 'Congratulations {leader_name}!\n\nYour team {team_name} ({temp_team_id}) has been officially SHORTLISTED for Smart India Hackathon 2026 for Problem Statement {ps_id}.\n\nPlease complete your official team roster verification on the portal before midnight:\nhttps://rgu-sih.vercel.app\n\nRegards,\nRathinam Global University',
+    deadline: 'Hello {leader_name} (Team: {team_name}, ID: {temp_team_id}),\n\nUrgent Reminder from Rathinam Global University for Smart India Hackathon 2026.\n\nYour team is selected under [{tier_status}] for Problem Statement {ps_id}.\n\nThe portal closes tonight at 12:00 AM Midnight. Please complete your 6-member roster & mentor details immediately:\nhttps://rgu-sih.vercel.app\n\n*NOTE FOR TEAMS WITH ISSUES / SHORTAGE OF MEMBERS:*\nThose who have issues or shortage of team members - post your team details and issue:\n\nTeam Name: {team_name}\nPS ID: {ps_id}\nStatus of Team: {tier_status}\nIssue: \n\nRegards,\nSIH 2026 Coordination Desk',
+    shortlist_congrats: 'Congratulations {leader_name}!\n\nYour team {team_name} ({temp_team_id}) has been officially SHORTLISTED for Smart India Hackathon 2026 for Problem Statement {ps_id}.\n\nPlease complete your official team roster verification on the portal before midnight:\nhttps://rgu-sih.vercel.app\n\n*NOTE FOR TEAMS WITH ISSUES / SHORTAGE OF MEMBERS:*\nThose who have issues or shortage of team members - post your team details and issue:\n\nTeam Name: {team_name}\nPS ID: {ps_id}\nStatus of Team: {tier_status}\nIssue: \n\nRegards,\nRathinam Global University',
     custom: customMsgText
   };
 
