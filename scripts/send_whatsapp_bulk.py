@@ -22,6 +22,14 @@ import json
 import csv
 from datetime import datetime
 
+# Enable UTF-8 encoding for Windows terminals
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 try:
     import requests
 except ImportError:
