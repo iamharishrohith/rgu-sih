@@ -4881,6 +4881,7 @@ export const STATS_SUMMARY = {
 export const OFFICIAL_SCHOOLS = [
   'School of Quantum Science, Computing & AI',
   'School of Business & Commerce',
+  'School of Applied Bioscience',
   'School of Liberal Arts and Science',
   'School of Fashion Design, Media & Performing Arts'
 ];
@@ -4889,6 +4890,9 @@ export function normalizeSchoolName(raw) {
   if (!raw || typeof raw !== 'string') return 'School of Quantum Science, Computing & AI';
   const s = raw.trim().toLowerCase();
   
+  if (s.includes('bioscience') || s.includes('applied bio') || s.includes('biotech') || s.includes('biotechnology') || s.includes('microbiology') || s.includes('biochem') || s.includes('bio-science') || s.includes('bio science') || s.includes('botany') || s.includes('zoology') || s.includes('life science') || s.includes('allied health') || s.includes('health science')) {
+    return 'School of Applied Bioscience';
+  }
   if (s.includes('business') || s.includes('commerce') || s.includes('management') || s.includes('bba') || s.includes('b.com') || s.includes('mba') || s.includes('finance')) {
     return 'School of Business & Commerce';
   }
