@@ -523,14 +523,45 @@ body {
 }
 
 .table-scroll-box {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll-box::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-scroll-box::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-scroll-box::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-scroll-box::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .modern-teams-table {
   width: 100%;
+  min-width: 860px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;
+}
+
+.modern-teams-table.admin-table {
+  min-width: 1240px;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  min-width: 330px;
+  white-space: nowrap;
 }
 
 .modern-teams-table thead {
@@ -2522,6 +2553,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .btn-admin-form-view {
@@ -2535,6 +2568,8 @@ body {
   cursor: pointer;
   border: none;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-admin-form-view.filled {
@@ -2586,6 +2621,7 @@ body {
   justify-content: center;
   text-decoration: none;
   box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+  flex-shrink: 0;
 }
 
 .admin-table-controls-strip {
@@ -2603,6 +2639,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .school-filter-dropdown {
@@ -2613,11 +2650,14 @@ body {
   background: #ffffff;
   font-weight: 600;
   color: #334155;
+  max-width: 320px;
 }
 
 .table-count-tag {
   font-size: 0.82rem;
   color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -4280,6 +4320,8 @@ body {
   cursor: pointer;
   border: 1px solid #e2e8f0;
   background: #ffffff;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-admin-row-action.edit {
@@ -4677,6 +4719,8 @@ body {
   border: 1px solid #e2e8f0;
   background: #ffffff;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-team-vis-toggle.visible-state {
