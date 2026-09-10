@@ -82,7 +82,7 @@ export default function PortalClosedView({
             </button>
           )}
 
-          {isAdminLoggedIn ? (
+          {isAdminLoggedIn && (
             <div className="admin-reopen-btn-group">
               <button className="btn-closed-reopen-portal" onClick={onOpenTimerModal}>
                 <Unlock size={15} className="text-emerald" />
@@ -95,11 +95,6 @@ export default function PortalClosedView({
                 </button>
               )}
             </div>
-          ) : (
-            <button className="btn-closed-admin-access" onClick={onSecretAdminTrigger}>
-              <Lock size={14} />
-              <span>Institutional Admin Access</span>
-            </button>
           )}
         </div>
 
