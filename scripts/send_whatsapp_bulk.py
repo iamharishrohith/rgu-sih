@@ -308,12 +308,12 @@ def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
         print("[*] Waiting for WhatsApp Web session to be ready...")
         print("    👉 Please scan the QR code on your phone if not logged in.")
         
-        # Wait for either main chat search or chat list (up to 3 minutes for QR scan)
+        # Wait for either main chat search or chat list (no timeout - waits until QR scanned)
         try:
-            page.wait_for_selector("div[contenteditable='true'], div[data-tab='3'], #side, header", timeout=180000)
+            page.wait_for_selector("div[contenteditable='true'], div[data-tab='3'], #side, header", timeout=0)
             print("[✓] WhatsApp Web Connected & Ready!\n")
-        except Exception:
-            print("[!] Timeout waiting for WhatsApp Web login. Please make sure you scan the QR code and try again.")
+        except Exception as e:
+            print(f"[!] Error during WhatsApp Web login: {e}")
             context.close()
             return
 
