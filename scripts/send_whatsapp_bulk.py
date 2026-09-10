@@ -298,15 +298,19 @@ def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
             args=["--disable-blink-features=AutomationControlled"]
         )
         
-        page = context.new_page()
-        page.goto("https://web.whatsapp.com")
+        # Use existing page or create new
+        page = context.pages[0] if context.pages else context.new_page()
+        page.set_default_timeout(60000)
+        
+        print("[*] Loading WhatsApp Web...")
+        page.goto("https://web.whatsapp.com", wait_until="domcontentloaded", timeout=120000)
         
         print("[*] Waiting for WhatsApp Web session to be ready...")
         print("    👉 Please scan the QR code on your phone if not logged in.")
         
-        # Wait for either main chat search or chat list
+        # Wait for either main chat search or chat list (up to 3 minutes for QR scan)
         try:
-            page.wait_for_selector("div[contenteditable='true'], div[data-tab='3'], #side", timeout=90000)
+            page.wait_for_selector("div[contenteditable='true'], div[data-tab='3'], #side, header", timeout=180000)
             print("[✓] WhatsApp Web Connected & Ready!\n")
         except Exception:
             print("[!] Timeout waiting for WhatsApp Web login. Please make sure you scan the QR code and try again.")
@@ -331,7 +335,7 @@ def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
             print(f"[{idx}/{len(valid_targets)}] Dispatching to {tid} • {name} ({tname}) - +{phone}...")
 
             try:
-                page.goto(url)
+                page.goto(url, wait_until="domcontentloaded", timeout=45000)
                 
                 # Wait for send button or text input area
                 send_button_selector = "button[aria-label='Send'], span[data-icon='send'], span[data-icon='send-refreshed']"
