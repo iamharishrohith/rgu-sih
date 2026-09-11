@@ -15,8 +15,8 @@ export default function PortalTimerModal({
   const isCurrentlyClosed = portalSettings?.isClosed ?? true;
   const currentTimestamp = portalSettings?.closeTimestamp ?? null;
 
-  // Selected Option: '30m' | '1h' | '2h' | '4h' | '12h' | 'midnight' | 'indefinite' | 'custom'
-  const [selectedPreset, setSelectedPreset] = useState('1h');
+  // Selected Option: '1pm' | '30m' | '1h' | '2h' | '4h' | '12h' | 'midnight' | 'indefinite' | 'custom'
+  const [selectedPreset, setSelectedPreset] = useState('1pm');
   const [customDateTime, setCustomDateTime] = useState(() => {
     const d = new Date(Date.now() + 60 * 60 * 1000);
     // Format for datetime-local: YYYY-MM-DDTHH:mm
@@ -35,7 +35,13 @@ export default function PortalTimerModal({
     const now = new Date();
     let target = null;
 
-    if (selectedPreset === '30m') {
+    if (selectedPreset === '1pm') {
+      let today1pm = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0, 0);
+      if (today1pm.getTime() <= now.getTime()) {
+        today1pm = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 13, 0, 0, 0);
+      }
+      target = today1pm;
+    } else if (selectedPreset === '30m') {
       target = new Date(now.getTime() + 30 * 60 * 1000);
     } else if (selectedPreset === '1h') {
       target = new Date(now.getTime() + 60 * 60 * 1000);
@@ -77,7 +83,14 @@ export default function PortalTimerModal({
     let closeTimestamp = null;
     let label = '';
 
-    if (selectedPreset === '30m') {
+    if (selectedPreset === '1pm') {
+      let target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0, 0, 0);
+      if (target.getTime() <= now.getTime()) {
+        target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 13, 0, 0, 0);
+      }
+      closeTimestamp = target.getTime();
+      label = 'Open until 1:00 PM Today';
+    } else if (selectedPreset === '30m') {
       closeTimestamp = now.getTime() + 30 * 60 * 1000;
       label = '+30 Minutes Extension';
     } else if (selectedPreset === '1h') {
@@ -188,6 +201,18 @@ export default function PortalTimerModal({
           </label>
 
           <div className="timer-presets-grid">
+            <button 
+              type="button"
+              className={`preset-pill-btn ${selectedPreset === '1pm' ? 'active' : ''}`}
+              onClick={() => setSelectedPreset('1pm')}
+            >
+              <Sparkles size={15} className="text-emerald" />
+              <div className="preset-btn-text">
+                <strong>Today 1:00 PM</strong>
+                <span>Official Extension</span>
+              </div>
+            </button>
+
             <button 
               type="button"
               className={`preset-pill-btn ${selectedPreset === '30m' ? 'active' : ''}`}

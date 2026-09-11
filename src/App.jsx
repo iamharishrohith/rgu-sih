@@ -30,7 +30,7 @@ export default function App() {
   const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
   const [isReadOnlyAfterClosure, setIsReadOnlyAfterClosure] = useState(false);
 
-  // Institutional Portal Access & Dynamic Automatic Closure Timer Settings (Closed by default)
+  // Institutional Portal Access & Dynamic Automatic Closure Timer Settings (Defaults to Extended until 1:00 PM Today)
   const [portalSettings, setPortalSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('sih_portal_settings');
@@ -45,10 +45,10 @@ export default function App() {
       console.error('Error loading portal settings', e);
     }
     return {
-      isClosed: true,
-      closeTimestamp: null,
-      timerPreset: null,
-      presetLabel: 'Submission Window Concluded',
+      isClosed: false,
+      closeTimestamp: 1789111800000, // 1:00 PM Today (11 Sep 2026)
+      timerPreset: '1pm',
+      presetLabel: 'Extended until 1:00 PM Today',
       lastUpdated: new Date().toISOString()
     };
   });
@@ -68,6 +68,12 @@ export default function App() {
           };
           setPortalSettings(updated);
           localStorage.setItem('sih_portal_settings', JSON.stringify(updated));
+          // Also sync to Supabase
+          supabase
+            .from('app_settings')
+            .upsert([{ key: 'portal_settings', value: updated, updated_at: new Date().toISOString() }], { onConflict: 'key' })
+            .then(() => {})
+            .catch(() => {});
         }
       }
     };
@@ -77,13 +83,25 @@ export default function App() {
     return () => clearInterval(interval);
   }, [portalSettings]);
 
-  const handleUpdatePortalSettings = (newSettings) => {
+  const handleUpdatePortalSettings = async (newSettings) => {
     const merged = { ...portalSettings, ...newSettings };
     setPortalSettings(merged);
     try {
       localStorage.setItem('sih_portal_settings', JSON.stringify(merged));
     } catch (e) {
       console.error('Failed to save portal settings', e);
+    }
+
+    try {
+      await supabase
+        .from('app_settings')
+        .upsert([{ 
+          key: 'portal_settings', 
+          value: merged, 
+          updated_at: new Date().toISOString() 
+        }], { onConflict: 'key' });
+    } catch (err) {
+      console.error('Supabase portal_settings sync error', err);
     }
   };
   
@@ -280,7 +298,7 @@ export default function App() {
           setDeletedTeamIds(prev => new Set([...prev, ...remoteDeleted]));
         }
 
-        // Fetch app settings (hidden team ids)
+        // Fetch app settings (hidden team ids & live portal settings)
         const { data: settingsData } = await supabase
           .from('app_settings')
           .select('*');
@@ -290,6 +308,17 @@ export default function App() {
           if (hiddenEntry && Array.isArray(hiddenEntry.value)) {
             setHiddenTeamIds(hiddenEntry.value);
             localStorage.setItem('sih_hidden_teams', JSON.stringify(hiddenEntry.value));
+          }
+
+          const portalEntry = settingsData.find(s => s.key === 'portal_settings');
+          if (portalEntry && portalEntry.value) {
+            const pVal = portalEntry.value;
+            const isNowExpired = !pVal.isClosed && pVal.closeTimestamp && Date.now() >= pVal.closeTimestamp;
+            const liveSettings = isNowExpired 
+              ? { ...pVal, isClosed: true, presetLabel: 'Scheduled Deadline Concluded' }
+              : pVal;
+            setPortalSettings(liveSettings);
+            localStorage.setItem('sih_portal_settings', JSON.stringify(liveSettings));
           }
         }
       } catch (err) {
