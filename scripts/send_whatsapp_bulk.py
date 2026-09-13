@@ -53,15 +53,15 @@ SESSION_DIR = os.path.abspath("whatsapp_user_session")
 
 DEFAULT_TEMPLATE = """Hello {leader_name} (Team: {team_name}, ID: {temp_team_id}),
 
-Urgent Reminder from Rathinam Global University for Smart India Hackathon 2026.
+🚨 URGENT: The SIH 2026 Candidate Registration Portal is REOPENED & LIVE.
 
 Your team is selected under [{tier_status}] for Problem Statement {ps_id}.
 
-The candidate registration portal closes tonight at 12:00 AM Midnight. Please complete your mandatory 6-member student roster and mentor details immediately on the official portal:
+Please complete and lock your mandatory 6-member student roster (including 1 female member) and mentor details ASAP on the official portal:
 https://rgu-sih.vercel.app
 
 *NOTE FOR TEAMS WITH ISSUES / SHORTAGE OF MEMBERS:*
-Those who have issues or shortage of team members - post your team details and issue:
+If facing any member shortage or registration issues, reply immediately with:
 
 Team Name: {team_name}
 PS ID: {ps_id}
