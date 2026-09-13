@@ -157,7 +157,29 @@ def log_dispatch(temp_team_id, status, team_name, leader_name, phone, note=""):
         writer.writerow([temp_team_id, status, datetime.now().isoformat(), team_name, leader_name, phone, note])
 
 def format_message(template, team):
-    return template.replace("{leader_name}", team.get("leader_name", "Team Leader"))                    .replace("{team_name}", team.get("team_name", "Innovators"))                    .replace("{temp_team_id}", team.get("temp_team_id", ""))                    .replace("{ps_id}", team.get("ps_id", "SIH2026"))                    .replace("{tier_status}", team.get("status", "Finalist"))                    .replace("{school}", team.get("school", "RGU"))
+    greetings = ["Hello", "Dear", "Greetings", "Hi"]
+    headers = ["🚨 URGENT:", "📌 IMPORTANT NOTIFICATION:", "⚡ SIH 2026 ALERT:", "📢 URGENT UPDATE:"]
+    closings = [
+        "Regards,\nSIH 2026 Coordination Desk\nRathinam Global University",
+        "Best regards,\nCampus Evaluation Authority\nRathinam Global University",
+        "Thank you,\nSIH 2026 Central Desk\nRathinam Global University",
+        "With regards,\nEvaluation Committee\nRathinam Global University"
+    ]
+    
+    greeting = random.choice(greetings)
+    hdr = random.choice(headers)
+    closing = random.choice(closings)
+    
+    msg = template.replace("Hello", greeting)\
+                  .replace("🚨 URGENT:", hdr)\
+                  .replace("{leader_name}", team.get("leader_name", "Team Leader"))\
+                  .replace("{team_name}", team.get("team_name", "Innovators"))\
+                  .replace("{temp_team_id}", team.get("temp_team_id", ""))\
+                  .replace("{ps_id}", team.get("ps_id", "SIH2026"))\
+                  .replace("{tier_status}", team.get("status", "Finalist"))\
+                  .replace("{school}", team.get("school", "RGU"))
+    
+    return msg
 
 def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
     print("=" * 70)
@@ -391,11 +413,16 @@ def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
                 log_dispatch(tid, "ERROR", tname, name, phone, str(e))
                 fail_count += 1
 
-            # Human-like delay between messages (4 to 7 seconds)
+            # Anti-ban Human Pacing Delay (14 to 24 seconds)
             if idx < len(valid_targets):
-                delay = random.uniform(4.0, 6.5)
-                print(f"    ⏳ Pausing {delay:.1f}s before next message...")
-                time.sleep(delay)
+                if idx % 6 == 0:
+                    cooldown = random.uniform(60.0, 90.0)
+                    print(f"\n    🛡️ ANTI-BAN SAFETY COOL-DOWN: Pausing {cooldown:.1f}s after {idx} messages to protect your account...")
+                    time.sleep(cooldown)
+                else:
+                    delay = random.uniform(14.0, 24.0)
+                    print(f"    ⏳ Anti-ban delay: Pausing {delay:.1f}s before next message...")
+                    time.sleep(delay)
 
         print("\n" + "=" * 70)
         print(f"  🎉 BROADCAST RUN COMPLETE!")
@@ -412,10 +439,11 @@ def run_automation(arg_choice=None, arg_skip_sent=None, arg_test_phone=None):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="SIH 2026 Automated Bulk WhatsApp Dispatcher")
+    parser = argparse.ArgumentParser(description="SIH 2026 Automated Bulk WhatsApp Dispatcher (Anti-Ban Protected)")
     parser.add_argument("--choice", "-c", choices=["1","2","3","4","5","6"], default=None, help="Target audience (1: Pending, 2: Shortlist, 3: Bench, 4: Waitlist, 5: All, 6: Custom)")
     parser.add_argument("--skip-sent", "-s", choices=["y","n"], default=None, help="Skip already sent teams")
     parser.add_argument("--phone", "-p", default=None, help="Custom phone number for test (choice 6)")
+    parser.add_argument("--batch", "-b", type=int, default=15, help="Safe batch limit per run (Default: 15 to prevent restrictions)")
     parser.add_argument("--auto", "-a", action="store_true", help="Auto mode (uses choice=1, skip-sent=y)")
     args = parser.parse_args()
 
