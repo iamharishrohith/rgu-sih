@@ -30,14 +30,15 @@ export default function App() {
   const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
   const [isReadOnlyAfterClosure, setIsReadOnlyAfterClosure] = useState(false);
 
-  // Institutional Portal Access & Dynamic Automatic Closure Timer Settings (Defaults to Extended until 1:00 PM Today)
+  // Institutional Portal Access & Dynamic Automatic Closure Timer Settings (Defaults to OPEN)
   const [portalSettings, setPortalSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('sih_portal_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
+        // Only mark expired if closeTimestamp exists and was explicitly set in the future relative to its lastUpdated
         if (!parsed.isClosed && parsed.closeTimestamp && Date.now() >= parsed.closeTimestamp) {
-          return { ...parsed, isClosed: true, presetLabel: 'Scheduled Window Concluded' };
+          return { ...parsed, isClosed: false, closeTimestamp: null, presetLabel: 'Registration Window Open' };
         }
         return parsed;
       }
@@ -46,9 +47,9 @@ export default function App() {
     }
     return {
       isClosed: false,
-      closeTimestamp: 1789111800000, // 1:00 PM Today (11 Sep 2026)
-      timerPreset: '1pm',
-      presetLabel: 'Extended until 1:00 PM Today',
+      closeTimestamp: null,
+      timerPreset: 'indefinite',
+      presetLabel: 'Registration Window Open',
       lastUpdated: new Date().toISOString()
     };
   });
