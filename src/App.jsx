@@ -10,6 +10,7 @@ import MidnightCountdownBanner from './components/MidnightCountdownBanner.jsx';
 import PortalClosedView from './components/PortalClosedView.jsx';
 import PortalTimerModal from './components/PortalTimerModal.jsx';
 import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
+import AdminGatewayModal from './components/AdminGatewayModal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -30,13 +31,18 @@ export default function App() {
   // '/desk' or '#desk' -> 'candidate_desk'
   // '/admin' or '#admin' -> 'admin'
   const [currentView, setCurrentView] = useState(() => {
-    const path = window.location.pathname.toLowerCase();
-    const hash = window.location.hash.toLowerCase();
-    if (path.includes('/arena') || hash.includes('arena')) {
-      return 'inout_portal';
-    }
-    if (path.includes('/desk') || hash.includes('desk')) {
-      return 'candidate_desk';
+    try {
+      const search = window.location.search.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      // Only open inout_portal if scanning a candidate QR code (?action=out or ?action=in)
+      if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
+        return 'inout_portal';
+      }
+      if (window.location.pathname.toLowerCase().includes('/desk') || hash.includes('desk')) {
+        return 'candidate_desk';
+      }
+    } catch (e) {
+      // Default fallback
     }
     return 'landing';
   });
@@ -44,6 +50,7 @@ export default function App() {
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
   const [openTimerAfterAuth, setOpenTimerAfterAuth] = useState(false);
   const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
+  const [isGatewayModalOpen, setIsGatewayModalOpen] = useState(false);
   const [isReadOnlyAfterClosure, setIsReadOnlyAfterClosure] = useState(false);
 
   // Institutional Portal Access & Dynamic Automatic Closure Timer Settings (Defaults to OPEN)
@@ -212,30 +219,25 @@ export default function App() {
   }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
 
   
-  // Subbranch URL / Hash listener & Secret Keyboard Listener
+  // Subbranch URL / Hash listener & Secret Keyboard Listener (Ctrl + Shift + A for Master Admin Gateway)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
         e.preventDefault();
         triggerSecretAdmin();
-      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
-        e.preventDefault();
-        window.history.pushState(null, '', '/arena');
-        setCurrentView('inout_portal');
       }
     };
 
     const syncRouteFromUrl = () => {
-      const path = window.location.pathname.toLowerCase();
+      const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (path.includes('/arena') || hash.includes('arena')) {
+      // Only route to inout_portal if scanning candidate gate QR code with action=out or action=in
+      if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         setCurrentView('inout_portal');
       } else if (hash === '#admin') {
         triggerSecretAdmin();
-      } else if (path.includes('/desk') || hash.includes('desk')) {
+      } else if (hash.includes('desk')) {
         setCurrentView('candidate_desk');
-      } else if (path === '/' && !hash) {
-        setCurrentView(prev => prev === 'inout_portal' ? 'landing' : prev);
       }
     };
 
@@ -254,7 +256,7 @@ export default function App() {
 
   const triggerSecretAdmin = () => {
     if (isAdminLoggedIn) {
-      setCurrentView('admin');
+      setIsGatewayModalOpen(true);
     } else {
       setIsPasscodeModalOpen(true);
     }
@@ -633,7 +635,7 @@ export default function App() {
       setOpenTimerAfterAuth(false);
       setIsTimerModalOpen(true);
     } else {
-      setCurrentView('admin');
+      setIsGatewayModalOpen(true);
     }
   };
 
@@ -1289,6 +1291,19 @@ export default function App() {
         onClose={() => setIsTimerModalOpen(false)}
         portalSettings={portalSettings}
         onUpdatePortalSettings={handleUpdatePortalSettings}
+      />
+
+      {/* Master Admin Gateway Modal */}
+      <AdminGatewayModal
+        isOpen={isGatewayModalOpen}
+        onClose={() => setIsGatewayModalOpen(false)}
+        onSelectView={(v) => setCurrentView(v)}
+        onOpenTimer={() => setIsTimerModalOpen(true)}
+        onAdminLogout={handleAdminLogout}
+        currentView={currentView}
+        isPortalClosed={isPortalClosed}
+        totalTeamsCount={tierCounts.totalFinalized}
+        submittedCount={finalizedSubmittedCount}
       />
     </div>
   );

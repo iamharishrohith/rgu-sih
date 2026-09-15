@@ -5,6 +5,7 @@ export default function Navbar({
   registeredCount, 
   totalFinalizedCount = 110, 
   onSecretAdminTrigger, 
+  onOpenAdminGateway,
   isAdminLoggedIn, 
   onOpenLandingView,
   onOpenCandidateDesk, 
@@ -21,7 +22,8 @@ export default function Navbar({
     setAdminClickCount(prev => {
       const next = prev + 1;
       if (next >= 3) {
-        onSecretAdminTrigger();
+        if (onOpenAdminGateway) onOpenAdminGateway();
+        else onSecretAdminTrigger();
         return 0;
       }
       return next;
@@ -33,7 +35,8 @@ export default function Navbar({
     setArenaClickCount(prev => {
       const next = prev + 1;
       if (next >= 4) {
-        if (onOpenInOutPortal) onOpenInOutPortal();
+        if (onOpenAdminGateway) onOpenAdminGateway();
+        else onSecretAdminTrigger();
         return 0;
       }
       return next;
@@ -50,7 +53,7 @@ export default function Navbar({
               className="logo-item moe-sih-banner" 
               onClick={handleLogoClick}
               style={{ cursor: 'pointer' }}
-              title="Smart India Hackathon 2026 (Triple-click for Admin Access)"
+              title="Smart India Hackathon 2026 (Ctrl+Shift+A or Triple-click for Admin Access)"
             >
               <img 
                 src="/logos/sih_moe_aicte_logo.png" 
@@ -92,17 +95,14 @@ export default function Navbar({
                 <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
               </div>
 
-              {currentView === 'admin' ? (
-                <button className="btn-nav-view active" onClick={onOpenCandidateDesk}>
-                  <UserCheck size={16} />
-                  <span>Exit Admin</span>
-                </button>
-              ) : (
-                <button className="btn-nav-admin active-admin" onClick={onSecretAdminTrigger}>
-                  <LayoutDashboard size={16} />
-                  <span>Admin Desk</span>
-                </button>
-              )}
+              <button 
+                className="btn-nav-admin active-admin" 
+                onClick={onOpenAdminGateway || onSecretAdminTrigger}
+                title="Open Master Admin Gateway (Ctrl+Shift+A)"
+              >
+                <LayoutDashboard size={15} />
+                <span>Admin Gateway</span>
+              </button>
             </div>
           )}
         </div>
