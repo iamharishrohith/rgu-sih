@@ -379,6 +379,199 @@ export default function InOutAttendancePortal({
     );
   };
 
+  // ================= 3-STACK ARENA STATUS HELPER (DEFAULT: NOT ACTIVE) =================
+  const getTeamStatusInfo = (team) => {
+    if (!team) return { status: 'NOT_ACTIVE', label: 'Not Active', subLabel: 'Awaiting Login', badgeClass: 'badge-not-active' };
+    const teamId = team.temp_team_id;
+    const session = teamSessions[teamId];
+    const activeBreak = Object.values(activeOuts).find(o => o.team_id === teamId);
+
+    if (activeBreak) {
+      return {
+        status: 'ARENA_OUT',
+        label: 'Arena Out (On Break)',
+        subLabel: `${activeBreak.reason_label} • Left: ${activeBreak.out_time} (Due: ${activeBreak.expected_return_time})`,
+        badgeClass: 'badge-arena-out',
+        activeBreak
+      };
+    }
+    if (session?.is_logged_out) {
+      return {
+        status: 'ARENA_OUT',
+        label: 'Arena Out (Logged Out)',
+        subLabel: `Departed at ${session.evening_logout_time || 'Evening'}`,
+        badgeClass: 'badge-arena-out-departed',
+        session
+      };
+    }
+    if (session?.is_logged_in) {
+      return {
+        status: 'ARENA_IN',
+        label: 'Arena In (Active)',
+        subLabel: `Logged In at ${session.morning_login_time || 'Morning'} • ${session.present_count || 'All'} In Arena`,
+        badgeClass: 'badge-arena-in',
+        session
+      };
+    }
+    // Default state for all teams: Not Active
+    return {
+      status: 'NOT_ACTIVE',
+      label: 'Not Active',
+      subLabel: 'Default State • Awaiting Login',
+      badgeClass: 'badge-not-active'
+    };
+  };
+
+  // Quick Action: Log In Team to Arena In
+  const handleQuickLogIn = (team) => {
+    const teamId = team.temp_team_id;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const roster = getTeamRoster(team);
+
+    // Clear any active break pass if this team had one
+    const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
+    if (activePasses.length > 0) {
+      setActiveOuts(prev => {
+        const copy = { ...prev };
+        activePasses.forEach(k => delete copy[k]);
+        return copy;
+      });
+    }
+
+    // Update session
+    setTeamSessions(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        is_logged_in: true,
+        is_logged_out: false,
+        morning_login_time: prev[teamId]?.morning_login_time || timeStr,
+        morning_timestamp: prev[teamId]?.morning_timestamp || now.getTime(),
+        present_count: roster.length,
+        total_roster: roster.length
+      }
+    }));
+
+    // Update member attendance
+    const teamAtt = {};
+    roster.forEach(m => {
+      teamAtt[m.name] = { is_present: true, marked_at: timeStr };
+    });
+    setMemberAttendance(prev => ({
+      ...prev,
+      [teamId]: { ...(prev[teamId] || {}), ...teamAtt }
+    }));
+
+    // Add movement log
+    const logEntry = {
+      team_id: teamId,
+      team_name: team.team_name,
+      leader_name: team.leader_name,
+      reg_no: team.reg_no,
+      venue: 'SIH Arena',
+      out_time: '---',
+      in_time: timeStr,
+      duration_minutes: 0,
+      reason_label: 'Team Check-In (Arena In)',
+      member_name: `Full Team (${roster.length}/${roster.length} Present)`,
+      custom_note: `Team logged in to SIH Arena at ${timeStr}.`,
+      status: 'ARENA_IN',
+      log_type: 'TEAM_LOGIN'
+    };
+    setMovementLogs(prev => [logEntry, ...prev]);
+
+    playBeep('login');
+  };
+
+  // Quick Action: Log Out Team to Arena Out
+  const handleQuickLogOut = (team, reason = 'Team Logout (Arena Out)') => {
+    const teamId = team.temp_team_id;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Clear any active break pass
+    const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
+    if (activePasses.length > 0) {
+      setActiveOuts(prev => {
+        const copy = { ...prev };
+        activePasses.forEach(k => delete copy[k]);
+        return copy;
+      });
+    }
+
+    // Update session
+    setTeamSessions(prev => ({
+      ...prev,
+      [teamId]: {
+        ...prev[teamId],
+        is_logged_out: true,
+        evening_logout_time: timeStr,
+        evening_timestamp: now.getTime()
+      }
+    }));
+
+    // Add log
+    const logEntry = {
+      team_id: teamId,
+      team_name: team.team_name,
+      leader_name: team.leader_name,
+      reg_no: team.reg_no,
+      venue: 'SIH Arena',
+      out_time: timeStr,
+      in_time: '---',
+      duration_minutes: 0,
+      reason_label: reason,
+      member_name: `Team Logout (${team.team_name})`,
+      custom_note: `Team logged out to Arena Out at ${timeStr}.`,
+      status: 'ARENA_OUT',
+      log_type: 'TEAM_LOGOUT'
+    };
+    setMovementLogs(prev => [logEntry, ...prev]);
+
+    playBeep('return');
+  };
+
+  // Quick Action: Reset to Default (Not Active)
+  const handleQuickResetInactive = (team) => {
+    const teamId = team.temp_team_id;
+    
+    // Clear any active break pass
+    const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
+    if (activePasses.length > 0) {
+      setActiveOuts(prev => {
+        const copy = { ...prev };
+        activePasses.forEach(k => delete copy[k]);
+        return copy;
+      });
+    }
+
+    // Reset session
+    setTeamSessions(prev => {
+      const copy = { ...prev };
+      delete copy[teamId];
+      return copy;
+    });
+
+    // Reset member attendance
+    setMemberAttendance(prev => {
+      const copy = { ...prev };
+      delete copy[teamId];
+      return copy;
+    });
+
+    playBeep('success');
+  };
+
+  // Bulk Reset All Teams to Default Not Active State
+  const handleBulkResetAllNotActive = () => {
+    if (!window.confirm('Reset ALL teams back to Default "Not Active" state? This clears current active session flags.')) return;
+    setTeamSessions({});
+    setMemberAttendance({});
+    setActiveOuts({});
+    playBeep('return');
+  };
+
   // ================= ACTION 1: MORNING TEAM LOGIN =================
   const handleMorningTeamLogin = (team, mode = 'ALL_PRESENT') => {
     const teamId = team.temp_team_id;
