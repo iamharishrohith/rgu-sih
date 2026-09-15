@@ -8,7 +8,7 @@ import {
   RotateCcw, Volume2, VolumeX, Sparkles, Filter, ExternalLink, Phone,
   User, Check, Flame, Printer, RefreshCw, Smartphone, KeyRound, Copy, Database,
   Lock, Unlock, ShieldAlert, Settings, Calendar, Bell, Plus, Trash2, Edit3,
-  Sun, Moon, UserX, LogIn, LogOut, CheckSquare, Square
+  Sun, Moon, UserX, LogIn, LogOut, CheckSquare, Square, LayoutDashboard
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { normalizeSchoolName } from '../data/sihMasterData';
@@ -36,7 +36,21 @@ export default function InOutAttendancePortal({
   registrationsMap = {},
   onBackToMain
 }) {
-  // Main Navigation Tabs
+  // Mode: If opened via QR code (?action=out or ?action=in), show dedicated minimal mobile form box!
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      const hash = (window.location.hash || '').toLowerCase();
+      if (action === 'out' || hash.includes('action=out')) return 'candidate_out';
+      if (action === 'in' || hash.includes('action=in')) return 'candidate_in';
+      return 'desk';
+    } catch {
+      return 'desk';
+    }
+  });
+
+  // Main Desk Tabs
   // 'morning_login' | 'scanner' | 'active_out' | 'evening_logout' | 'team_passes' | 'log' | 'master_admin'
   const [activeTab, setActiveTab] = useState('morning_login'); 
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,17 +72,12 @@ export default function InOutAttendancePortal({
   const [adminPassError, setAdminPassError] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Dynamic Rotating Gate Security Nonce (changes every 30 seconds to prevent replay attacks)
+  // Dynamic Rotating Gate Security Nonce
   const [dynamicSecurityToken, setDynamicSecurityToken] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
   const [tokenSecondsRemaining, setTokenSecondsRemaining] = useState(30);
 
   // Current Clock
   const [currentTimeStr, setCurrentTimeStr] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-
-  // Camera QR Scanner State
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [cameraError, setCameraError] = useState(null);
-  const html5QrCodeRef = useRef(null);
 
   // Target team/member being checked out (Manual or Scan)
   const [pendingExitTarget, setPendingExitTarget] = useState(null);
@@ -76,34 +85,18 @@ export default function InOutAttendancePortal({
   const [selectedMemberName, setSelectedMemberName] = useState('');
   const [customMemberInput, setCustomMemberInput] = useState('');
 
-  // Self-Service Gate Pass Wizard Modal (when student scans pasted QR or clicks button)
-  const [isSelfPassModalOpen, setIsSelfPassModalOpen] = useState(false);
+  // Self-Service Candidate Form Box State
   const [selfPassSearch, setSelfPassSearch] = useState('');
   const [selfPassSelectedTeam, setSelfPassSelectedTeam] = useState(null);
+  const [returnSearch, setReturnSearch] = useState('');
+  const [returnSuccessMsg, setReturnSuccessMsg] = useState('');
 
-  // Special Generated Live Team Card Modal
+  // Special Generated Live Team Card Modal / View
   const [activeSpecialCard, setActiveSpecialCard] = useState(null);
 
   // Printable Gate Poster Modal (Separate Dedicated Posters for OUT and IN)
   const [isPosterModalOpen, setIsPosterModalOpen] = useState(false);
   const [posterMode, setPosterMode] = useState('out'); // 'out' | 'in'
-
-  // URL Query / Hash Action Listener (?action=out or ?action=in)
-  useEffect(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const action = urlParams.get('action');
-      const hash = (window.location.hash || '').toLowerCase();
-      
-      if (action === 'out' || hash.includes('action=out')) {
-        setIsSelfPassModalOpen(true);
-      } else if (action === 'in' || hash.includes('action=in')) {
-        setActiveTab('active_out');
-      }
-    } catch (e) {
-      console.warn('URL action parse error:', e);
-    }
-  }, []);
 
   // Enlarge Team Pass Modal
   const [qrPassTeam, setQrPassTeam] = useState(null);
@@ -112,11 +105,11 @@ export default function InOutAttendancePortal({
   const [gallerySearch, setGallerySearch] = useState('');
   const [galleryFilterTier, setGalleryFilterTier] = useState('ALL');
 
-  // Morning Login Search
+  // Morning & Evening Searches
   const [morningSearch, setMorningSearch] = useState('');
   const [eveningSearch, setEveningSearch] = useState('');
 
-  // ================= PERSISTENT STATE 1: TEAM SESSIONS (Morning Login & Evening Logout) =================
+  // ================= PERSISTENT STATE 1: TEAM SESSIONS =================
   const [teamSessions, setTeamSessions] = useState(() => {
     try {
       const saved = localStorage.getItem('sih_arena_team_sessions');
@@ -126,7 +119,7 @@ export default function InOutAttendancePortal({
     }
   });
 
-  // ================= PERSISTENT STATE 2: GRANULAR MEMBER ATTENDANCE (Present / Absent) =================
+  // ================= PERSISTENT STATE 2: GRANULAR MEMBER ATTENDANCE =================
   const [memberAttendance, setMemberAttendance] = useState(() => {
     try {
       const saved = localStorage.getItem('sih_arena_member_attendance');
@@ -180,6 +173,23 @@ export default function InOutAttendancePortal({
       localStorage.setItem('sih_inout_logs', JSON.stringify(movementLogs));
     } catch (e) { console.warn('Failed to save movement logs', e); }
   }, [movementLogs]);
+
+  // URL Listener to sync viewMode (?action=out or ?action=in)
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      const hash = (window.location.hash || '').toLowerCase();
+      
+      if (action === 'out' || hash.includes('action=out')) {
+        setViewMode('candidate_out');
+      } else if (action === 'in' || hash.includes('action=in')) {
+        setViewMode('candidate_in');
+      }
+    } catch (e) {
+      console.warn('URL action parse error:', e);
+    }
+  }, []);
 
   // Direct Live Supabase Fetch Function
   const fetchSupabaseRegistrations = async () => {
@@ -245,20 +255,6 @@ export default function InOutAttendancePortal({
       statusText: 'No Official Common Break Active'
     };
   }, [currentTimeStr]);
-
-  // Rotating Token Timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTokenSecondsRemaining(prev => {
-        if (prev <= 1) {
-          setDynamicSecurityToken(Math.floor(100000 + Math.random() * 900000).toString());
-          return 30;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Merge Registrations
   const activeRegistrationsMap = useMemo(() => {
@@ -379,7 +375,6 @@ export default function InOutAttendancePortal({
     if (memberRecord !== undefined) {
       return memberRecord.is_present;
     }
-    // Default to present if team has logged in
     const session = teamSessions[teamId];
     if (session?.is_logged_in) return true;
     return false;
@@ -393,7 +388,7 @@ export default function InOutAttendancePortal({
     );
   };
 
-  // ================= ACTION 1: MORNING TEAM LOGIN (Full Team or Member Granular) =================
+  // ================= ACTION 1: MORNING TEAM LOGIN =================
   const handleMorningTeamLogin = (team, mode = 'ALL_PRESENT') => {
     const teamId = team.temp_team_id;
     const now = new Date();
@@ -429,7 +424,6 @@ export default function InOutAttendancePortal({
       [teamId]: newTeamAttendance
     }));
 
-    // Log to Section 65B Ledger
     const logEntry = {
       team_id: teamId,
       team_name: team.team_name,
@@ -539,13 +533,12 @@ export default function InOutAttendancePortal({
     playBeep('login');
   };
 
-  // ================= ACTION 2: EVENING TEAM LOGOUT (Departure Check-Out) =================
+  // ================= ACTION 2: EVENING TEAM LOGOUT =================
   const handleEveningTeamLogout = (team) => {
     const teamId = team.temp_team_id;
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // If team had any active break pass, close it
     const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
     if (activePasses.length > 0) {
       setActiveOuts(prev => {
@@ -565,7 +558,6 @@ export default function InOutAttendancePortal({
       }
     }));
 
-    // Log to Section 65B Ledger
     const logEntry = {
       team_id: teamId,
       team_name: team.team_name,
@@ -626,9 +618,9 @@ export default function InOutAttendancePortal({
     playBeep('return');
   };
 
-  // ================= ACTION 3: MID-DAY IN-OUT PASS AUTHORIZATION =================
+  // ================= ACTION 3: AUTHORIZE EXIT PASS =================
   const handleAuthorizeExit = () => {
-    const targetTeam = pendingExitTarget || selfPassSelectedTeam;
+    const targetTeam = selfPassSelectedTeam || pendingExitTarget;
     if (!targetTeam) return;
 
     const teamId = targetTeam.temp_team_id;
@@ -690,8 +682,6 @@ export default function InOutAttendancePortal({
 
     playBeep('success');
     setPendingExitTarget(null);
-    setIsSelfPassModalOpen(false);
-    setSelfPassSelectedTeam(null);
     setCustomNote('');
     setCustomMemberInput('');
 
@@ -731,6 +721,7 @@ export default function InOutAttendancePortal({
       setActiveSpecialCard(null);
     }
 
+    setReturnSuccessMsg(`Safe return logged for ${existing.member_name} (${existing.team_name})!`);
     playBeep('return');
   };
 
@@ -790,6 +781,7 @@ export default function InOutAttendancePortal({
       sessionStorage.setItem('sih_arena_master_auth', 'true');
       setIsAuthModalOpen(false);
       setAdminPassError('');
+      setViewMode('desk');
       setActiveTab('master_admin');
     } else {
       setAdminPassError('Incorrect Master Admin Passcode. Access Denied.');
@@ -886,7 +878,6 @@ export default function InOutAttendancePortal({
     document.body.removeChild(link);
   };
 
-  // Filtered Teams for Directory
   const filteredGalleryTeams = useMemo(() => {
     return displayedTeams.filter(t => {
       if (galleryFilterTier !== 'ALL' && t.status !== galleryFilterTier) return false;
@@ -925,6 +916,401 @@ export default function InOutAttendancePortal({
     );
   }, [displayedTeams, eveningSearch]);
 
+
+  // =========================================================================
+  // VIEW MODE 1 & 2: ULTRA-MINIMAL CANDIDATE QR SCANNER FORM BOX
+  // =========================================================================
+  if (viewMode === 'candidate_out' || viewMode === 'candidate_in') {
+    return (
+      <div className="candidate-minimal-screen">
+        {/* Minimal Header */}
+        <div className="candidate-minimal-header">
+          <div className="logos-minimal-row">
+            <img src="/logos/sih_moe_aicte_logo.png" alt="SIH" className="mini-hdr-logo" />
+            <div className="mini-hdr-divider"></div>
+            <img src="/logos/rathinam_rgu_logo.png" alt="RGU" className="mini-hdr-logo" />
+          </div>
+
+          <div className="candidate-title-block">
+            <div className={`minimal-badge ${viewMode === 'candidate_out' ? 'badge-exit' : 'badge-return'}`}>
+              {viewMode === 'candidate_out' ? (
+                <>
+                  <DoorOpen size={14} />
+                  <span>SIH ARENA • CANDIDATE EXIT GATE PASS</span>
+                </>
+              ) : (
+                <>
+                  <DoorClosed size={14} />
+                  <span>SIH ARENA • SAFE RETURN CHECK-IN</span>
+                </>
+              )}
+            </div>
+            <h1 className="minimal-main-title">
+              {viewMode === 'candidate_out' ? 'Generate Your Exit Pass' : 'Punch Your Safe Return'}
+            </h1>
+            <p className="minimal-subtitle">
+              {viewMode === 'candidate_out' 
+                ? 'Select your registered team and who is leaving to get your live pass.' 
+                : 'Select your team to confirm return and close active break movement.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Minimal Content Box */}
+        <div className="candidate-minimal-card">
+          {viewMode === 'candidate_out' ? (
+            /* ================= CANDIDATE EXIT PASS FORM ================= */
+            <div className="minimal-form-container">
+              {/* Step 1: Select Team */}
+              <div className="mini-step-group">
+                <label className="mini-step-label">
+                  <span className="mini-num">1</span>
+                  <span>Select Your Team:</span>
+                </label>
+
+                {selfPassSelectedTeam ? (
+                  <div className="mini-selected-team-pill">
+                    <div className="team-text-details">
+                      <span className="team-code-tag">{selfPassSelectedTeam.temp_team_id}</span>
+                      <strong className="team-name-strong">{selfPassSelectedTeam.team_name}</strong>
+                      <span className="team-ldr-tag">Leader: {selfPassSelectedTeam.leader_name} ({selfPassSelectedTeam.reg_no})</span>
+                    </div>
+                    <button 
+                      className="btn-mini-change"
+                      onClick={() => setSelfPassSelectedTeam(null)}
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mini-team-search-box">
+                    <div className="mini-input-wrap">
+                      <Search size={16} className="search-ico" />
+                      <input 
+                        type="text" 
+                        placeholder="Search team name, temp ID (e.g. SIH26-TM-051), or leader..."
+                        value={selfPassSearch}
+                        onChange={e => setSelfPassSearch(e.target.value)}
+                        className="mini-text-input"
+                        autoFocus
+                      />
+                      {selfPassSearch && (
+                        <button className="btn-mini-clear" onClick={() => setSelfPassSearch('')}>✕</button>
+                      )}
+                    </div>
+
+                    <div className="mini-team-dropdown-list">
+                      {displayedTeams
+                        .filter(t => {
+                          if (!selfPassSearch.trim()) return true;
+                          const q = selfPassSearch.toLowerCase();
+                          return (
+                            t.temp_team_id.toLowerCase().includes(q) ||
+                            t.team_name.toLowerCase().includes(q) ||
+                            t.leader_name.toLowerCase().includes(q) ||
+                            t.reg_no.toLowerCase().includes(q)
+                          );
+                        })
+                        .slice(0, 8)
+                        .map(team => (
+                          <div 
+                            key={team.temp_team_id}
+                            className="mini-team-option-row"
+                            onClick={() => {
+                              setSelfPassSelectedTeam(team);
+                              setSelectedMemberName(team.leader_name);
+                              setExitScope('team');
+                            }}
+                          >
+                            <span className="opt-code">{team.temp_team_id}</span>
+                            <span className="opt-name">{team.team_name}</span>
+                            <span className="opt-leader">{team.leader_name}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {selfPassSelectedTeam && (
+                <>
+                  {/* Step 2: Who is Leaving? */}
+                  <div className="mini-step-group">
+                    <label className="mini-step-label">
+                      <span className="mini-num">2</span>
+                      <span>Who is leaving the arena?</span>
+                    </label>
+
+                    <div className="mini-scope-tabs">
+                      <button 
+                        className={`mini-scope-btn ${exitScope === 'team' ? 'active' : ''}`}
+                        onClick={() => setExitScope('team')}
+                      >
+                        <Users size={15} />
+                        <span>Entire Team</span>
+                      </button>
+
+                      <button 
+                        className={`mini-scope-btn ${exitScope === 'leader' ? 'active' : ''}`}
+                        onClick={() => {
+                          setExitScope('leader');
+                          setSelectedMemberName(selfPassSelectedTeam.leader_name);
+                        }}
+                      >
+                        <UserCheck size={15} />
+                        <span>Leader Only</span>
+                      </button>
+
+                      <button 
+                        className={`mini-scope-btn ${exitScope === 'member' ? 'active' : ''}`}
+                        onClick={() => setExitScope('member')}
+                      >
+                        <User size={15} />
+                        <span>Specific Member</span>
+                      </button>
+                    </div>
+
+                    {exitScope === 'member' && (
+                      <div className="mini-member-select-wrap">
+                        <label className="mini-sublabel">Select Candidate from Roster:</label>
+                        <div className="mini-member-chips-grid">
+                          {getTeamRoster(selfPassSelectedTeam).map((m, idx) => (
+                            <button 
+                              key={idx}
+                              className={`mini-mchip ${selectedMemberName === m.name ? 'selected' : ''}`}
+                              onClick={() => setSelectedMemberName(m.name)}
+                            >
+                              <span>{m.role}: <strong>{m.name}</strong></span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step 3: Select Reason */}
+                  <div className="mini-step-group">
+                    <label className="mini-step-label">
+                      <span className="mini-num">3</span>
+                      <span>Select Authorized Reason:</span>
+                    </label>
+
+                    <div className="mini-reasons-grid">
+                      {MOVEMENT_REASONS.map(r => {
+                        const IconC = r.icon;
+                        const isSel = selectedReason === r.id;
+                        return (
+                          <div 
+                            key={r.id}
+                            className={`mini-reason-card ${isSel ? 'selected' : ''}`}
+                            onClick={() => {
+                              setSelectedReason(r.id);
+                              setCustomMinutes(r.defaultMins);
+                            }}
+                          >
+                            <IconC size={18} style={{ color: r.color }} />
+                            <div className="mini-reason-text">
+                              <strong>{r.label.split('(')[0]}</strong>
+                              <span>{r.defaultMins} Mins</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Time steppers */}
+                    <div className="mini-time-stepper-row">
+                      <span>Time Allowed:</span>
+                      <div className="mini-stepper">
+                        <button onClick={() => setCustomMinutes(m => Math.max(5, m - 5))}>-5m</button>
+                        <strong>{customMinutes} Mins</strong>
+                        <button onClick={() => setCustomMinutes(m => m + 5)}>+5m</button>
+                      </div>
+                      <span className="return-time-badge">
+                        Return Due: <strong>{new Date(Date.now() + customMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button className="btn-generate-minimal-pass" onClick={handleAuthorizeExit}>
+                    <Sparkles size={18} />
+                    <span>Generate Live Exit Pass</span>
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            /* ================= CANDIDATE SAFE RETURN FORM ================= */
+            <div className="minimal-form-container">
+              {returnSuccessMsg ? (
+                <div className="mini-success-banner">
+                  <CheckCircle2 size={36} className="text-emerald" />
+                  <h3>Safe Return Confirmed!</h3>
+                  <p>{returnSuccessMsg}</p>
+                  <button 
+                    className="btn-done-minimal"
+                    onClick={() => {
+                      setReturnSuccessMsg('');
+                      setViewMode('candidate_out');
+                    }}
+                  >
+                    Generate Another Pass
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="mini-step-group">
+                    <label className="mini-step-label">
+                      <span className="mini-num">1</span>
+                      <span>Select Your Active Outside Pass to Return:</span>
+                    </label>
+
+                    {Object.keys(activeOuts).length === 0 ? (
+                      <div className="mini-empty-outs-callout">
+                        <CheckCircle2 size={24} className="text-emerald" />
+                        <p>No teams currently marked outside. All candidates are inside SIH Arena.</p>
+                      </div>
+                    ) : (
+                      <div className="mini-active-outs-list">
+                        {Object.entries(activeOuts).map(([passKey, out]) => (
+                          <div key={passKey} className="mini-out-item-card">
+                            <div className="out-item-left">
+                              <span className="out-code">{out.team_id}</span>
+                              <strong className="out-team">{out.team_name}</strong>
+                              <span className="out-member">{out.member_name} ({out.reason_label})</span>
+                              <span className="out-time">Left: {out.out_time} • Due: {out.expected_return_time}</span>
+                            </div>
+                            <button 
+                              className="btn-mini-return-action"
+                              onClick={() => handlePunchIn(passKey)}
+                            >
+                              <CheckCircle2 size={16} />
+                              <span>Punch Return</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Minimal Footer Switcher */}
+        <div className="candidate-minimal-footer">
+          <div className="mini-footer-links">
+            <button 
+              className="footer-link-btn"
+              onClick={() => setViewMode(viewMode === 'candidate_out' ? 'candidate_in' : 'candidate_out')}
+            >
+              {viewMode === 'candidate_out' ? 'Returning to Arena? Switch to Check-In' : 'Leaving Arena? Switch to Exit Pass'}
+            </button>
+            <span className="divider-dot">•</span>
+            <button 
+              className="footer-link-btn text-muted"
+              onClick={() => setViewMode('desk')}
+            >
+              Switch to Arena Desk Dashboard
+            </button>
+          </div>
+        </div>
+
+        {/* Live Digital Card Modal if generated */}
+        {activeSpecialCard && (
+          <div className="inout-modal-overlay" onClick={() => setActiveSpecialCard(null)}>
+            <div className="special-card-modal-canvas" onClick={e => e.stopPropagation()}>
+              <div className="special-card-ticket">
+                <div className="ticket-top-header">
+                  <div className="ticket-org-brand">
+                    <img src="/logos/sih_moe_aicte_logo.png" alt="SIH" className="ticket-mini-logo" />
+                    <div className="brand-text">
+                      <span className="brand-sih">SMART INDIA HACKATHON 2026</span>
+                      <span className="brand-rgu">Rathinam Global University</span>
+                    </div>
+                  </div>
+                  <div className="ticket-token-pill">
+                    <KeyRound size={12} />
+                    <span>{activeSpecialCard.security_token}</span>
+                  </div>
+                </div>
+
+                <div className="ticket-status-bar">
+                  <div className="status-live-pill">
+                    <span className="live-dot"></span>
+                    <span>ACTIVE EXIT GATE PASS</span>
+                  </div>
+                  <div className="venue-name-tag">SIH Arena</div>
+                </div>
+
+                <div className="ticket-body-content">
+                  <div className="ticket-qr-section">
+                    <QRCodeSVG 
+                      value={`${activeSpecialCard.team_id}|${activeSpecialCard.security_token}|${activeSpecialCard.out_timestamp}`}
+                      size={160} 
+                      level="H" 
+                      includeMargin={true} 
+                    />
+                    <span className="qr-hash-code">{activeSpecialCard.team_id}</span>
+                  </div>
+
+                  <div className="ticket-info-section">
+                    <h2 className="ticket-team-title">{activeSpecialCard.team_name}</h2>
+                    <div className="ticket-meta-grid">
+                      <div className="meta-item">
+                        <span className="meta-lbl">Candidate / Scope</span>
+                        <span className="meta-val highlight">{activeSpecialCard.member_name}</span>
+                      </div>
+
+                      <div className="meta-item">
+                        <span className="meta-lbl">Authorized Reason</span>
+                        <span className="meta-val reason-val">{activeSpecialCard.reason_label}</span>
+                      </div>
+
+                      <div className="meta-item">
+                        <span className="meta-lbl">Departure Time</span>
+                        <span className="meta-val">{activeSpecialCard.out_time}</span>
+                      </div>
+
+                      <div className="meta-item">
+                        <span className="meta-lbl">Expected Return</span>
+                        <span className="meta-val text-orange font-bold">{activeSpecialCard.expected_return_time}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ticket-footer-action">
+                  <p>Show this Special Live Digital Card to Security Guards at the SIH Arena Exit Gate.</p>
+                  <div className="ticket-footer-btns">
+                    <button 
+                      className="btn-ticket-punch-return"
+                      onClick={() => handlePunchIn(activeSpecialCard.pass_id)}
+                    >
+                      <CheckCircle2 size={16} />
+                      <span>Punch Return to Arena</span>
+                    </button>
+                    <button 
+                      className="btn-ticket-close"
+                      onClick={() => setActiveSpecialCard(null)}
+                    >
+                      Close Card
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW MODE 3: FULL VENUE ADMIN & DESK WORKPLACE
+  // =========================================================================
   return (
     <div className="inout-portal-container">
       {/* Top Header Navigation */}
@@ -1034,11 +1420,11 @@ export default function InOutAttendancePortal({
           {/* Self-Service Mobile Pass Generator */}
           <button 
             className="btn-self-pass-trigger"
-            onClick={() => setIsSelfPassModalOpen(true)}
-            title="Candidate Self-Service Gate Pass (Choose Team, Person & Reason)"
+            onClick={() => setViewMode('candidate_out')}
+            title="Open Candidate Minimal Form Box"
           >
             <Smartphone size={14} />
-            <span>Generate Self Gate Pass</span>
+            <span>Candidate Form Box</span>
           </button>
 
           <button 
@@ -1155,7 +1541,6 @@ export default function InOutAttendancePortal({
 
       {/* Sub-Branch Navigation Tabs */}
       <div className="inout-nav-tabs">
-        {/* Tab 1: Morning Team Login */}
         <button 
           className={`inout-tab-btn ${activeTab === 'morning_login' ? 'active' : ''}`}
           onClick={() => setActiveTab('morning_login')}
@@ -1164,7 +1549,6 @@ export default function InOutAttendancePortal({
           <span>Morning Team Login ({metrics.teamsLoggedIn}/{metrics.totalTeams})</span>
         </button>
 
-        {/* Tab 2: Temporary Break Passes & Scanner */}
         <button 
           className={`inout-tab-btn ${activeTab === 'scanner' ? 'active' : ''}`}
           onClick={() => setActiveTab('scanner')}
@@ -1173,7 +1557,6 @@ export default function InOutAttendancePortal({
           <span>Issue Break Passes &amp; Gate Scanner</span>
         </button>
 
-        {/* Tab 3: Currently Outside */}
         <button 
           className={`inout-tab-btn ${activeTab === 'active_out' ? 'active' : ''}`}
           onClick={() => setActiveTab('active_out')}
@@ -1183,7 +1566,6 @@ export default function InOutAttendancePortal({
           {metrics.overdueCount > 0 && <span className="tab-alert-pill">{metrics.overdueCount} Overdue</span>}
         </button>
 
-        {/* Tab 4: Evening Team Logout */}
         <button 
           className={`inout-tab-btn ${activeTab === 'evening_logout' ? 'active' : ''}`}
           onClick={() => setActiveTab('evening_logout')}
@@ -1192,7 +1574,6 @@ export default function InOutAttendancePortal({
           <span>Evening Team Logout ({metrics.teamsLoggedOut})</span>
         </button>
 
-        {/* Tab 5: Team Passes & Rosters */}
         <button 
           className={`inout-tab-btn ${activeTab === 'team_passes' ? 'active' : ''}`}
           onClick={() => setActiveTab('team_passes')}
@@ -1201,7 +1582,6 @@ export default function InOutAttendancePortal({
           <span>Team Cards &amp; Rosters ({displayedTeams.length})</span>
         </button>
 
-        {/* Tab 6: Audit Log */}
         <button 
           className={`inout-tab-btn ${activeTab === 'log' ? 'active' : ''}`}
           onClick={() => setActiveTab('log')}
@@ -1225,7 +1605,6 @@ export default function InOutAttendancePortal({
       {activeTab === 'morning_login' && (
         <div className="inout-tab-pane">
           <div className="morning-login-container">
-            {/* Header & Search */}
             <div className="session-section-header">
               <div className="section-title-left">
                 <Sun size={22} className="text-amber" />
@@ -1243,7 +1622,6 @@ export default function InOutAttendancePortal({
               </div>
             </div>
 
-            {/* Filter Search Bar */}
             <div className="session-search-bar">
               <Search size={16} />
               <input 
@@ -1258,7 +1636,6 @@ export default function InOutAttendancePortal({
               )}
             </div>
 
-            {/* Team Attendance Cards Grid */}
             <div className="team-attendance-cards-grid">
               {filteredMorningTeams.map(team => {
                 const teamId = team.temp_team_id;
@@ -1291,7 +1668,6 @@ export default function InOutAttendancePortal({
                       </div>
                     </div>
 
-                    {/* Member Presence Roster Strip */}
                     <div className="card-roster-section">
                       <div className="roster-header-label">
                         <span>Individual Candidate Presence Roster ({roster.length} Slots):</span>
@@ -1330,7 +1706,6 @@ export default function InOutAttendancePortal({
                       </div>
                     </div>
 
-                    {/* Card Actions Footer */}
                     <div className="card-actions-footer">
                       {activeBreak && (
                         <div className="card-break-alert">
@@ -1375,7 +1750,6 @@ export default function InOutAttendancePortal({
       {activeTab === 'scanner' && (
         <div className="inout-tab-pane">
           <div className="scanner-dual-layout">
-            {/* Left Column: Fast Scanner & Search */}
             <div className="scanner-left-box">
               <div className="box-header-title">
                 <QrCode size={18} className="text-orange" />
@@ -1386,7 +1760,6 @@ export default function InOutAttendancePortal({
                 </span>
               </div>
 
-              {/* Fast Search / Input */}
               <form 
                 onSubmit={(e) => { 
                   e.preventDefault(); 
@@ -1425,7 +1798,6 @@ export default function InOutAttendancePortal({
                 </button>
               </form>
 
-              {/* Quick Preset Reason Selector */}
               <div className="quick-reason-block">
                 <label className="field-block-label">Select Authorized Movement Reason:</label>
                 <div className="reasons-pill-grid">
@@ -1450,7 +1822,6 @@ export default function InOutAttendancePortal({
                 </div>
               </div>
 
-              {/* Real-time Matching Teams List */}
               <div className="live-matched-teams-box">
                 <div className="box-sub-title">
                   <span>Matching Form-Submitted Teams ({displayedTeams.length}):</span>
@@ -1512,7 +1883,6 @@ export default function InOutAttendancePortal({
               </div>
             </div>
 
-            {/* Right Column: Physical Door QR Postings */}
             <div className="scanner-right-box">
               <div className="box-header-title">
                 <Printer size={18} className="text-emerald" />
@@ -1520,14 +1890,13 @@ export default function InOutAttendancePortal({
               </div>
 
               <div className="physical-poster-cards-stack">
-                {/* Exit Gate Card */}
                 <div className="gate-poster-cta-card cta-out">
                   <div className="cta-icon-wrap out">
                     <DoorOpen size={24} />
                   </div>
                   <div className="cta-content">
                     <h4>SIH Arena Exit Gate Terminal (OUT)</h4>
-                    <p>Pasted at arena exit doors. Candidates scan with any smartphone camera to choose their registered team, select who is leaving, pick authorized reason, and generate their live pass.</p>
+                    <p>Pasted at arena exit doors. Candidates scan with smartphone to open minimal pass form.</p>
                     <div className="cta-btns-row">
                       <button 
                         className="btn-open-poster-view btn-out"
@@ -1543,14 +1912,13 @@ export default function InOutAttendancePortal({
                   </div>
                 </div>
 
-                {/* Return Gate Card */}
                 <div className="gate-poster-cta-card cta-in">
                   <div className="cta-icon-wrap in">
                     <DoorClosed size={24} />
                   </div>
                   <div className="cta-content">
                     <h4>SIH Arena Return Gate Terminal (IN)</h4>
-                    <p>Pasted at arena return/entry doors. Returning candidates scan upon stepping back inside to punch return immediately and close their Section 65B movement record.</p>
+                    <p>Pasted at return doors. Candidates scan upon re-entering to punch return.</p>
                     <div className="cta-btns-row">
                       <button 
                         className="btn-open-poster-view btn-in"
@@ -1571,14 +1939,14 @@ export default function InOutAttendancePortal({
         </div>
       )}
 
-      {/* ================= TAB 3: CURRENTLY OUTSIDE (ACTIVE BREAK PASSES) ================= */}
+      {/* ================= TAB 3: CURRENTLY OUTSIDE ================= */}
       {activeTab === 'active_out' && (
         <div className="inout-tab-pane">
           <div className="active-outs-container">
             <div className="section-header-row">
               <div className="header-title-group">
                 <h2>Currently Active Outside Passes ({Object.keys(activeOuts).length})</h2>
-                <p>Live countdown timers for candidates currently outside the SIH Arena. Click 'Punch Return' when candidate re-enters.</p>
+                <p>Live countdown timers for candidates currently outside the SIH Arena.</p>
               </div>
 
               {Object.keys(activeOuts).length > 0 && (
@@ -1593,7 +1961,7 @@ export default function InOutAttendancePortal({
               <div className="empty-state-card">
                 <CheckCircle2 size={48} className="text-emerald" />
                 <h3>All Candidates are Stationed Inside SIH Arena</h3>
-                <p>Zero active exit passes. When candidates take authorized breaks, their live timer cards will appear here.</p>
+                <p>Zero active exit passes.</p>
               </div>
             ) : (
               <div className="active-outs-grid">
@@ -1622,7 +1990,6 @@ export default function InOutAttendancePortal({
                       </div>
 
                       <h3 className="out-team-name">{out.team_name}</h3>
-                      
                       <div className="out-member-highlight">
                         <User size={15} />
                         <span><strong>{out.member_name}</strong></span>
@@ -1637,12 +2004,6 @@ export default function InOutAttendancePortal({
                         <Clock size={14} />
                         <span>Expected Return: <strong>{out.expected_return_time}</strong></span>
                       </div>
-
-                      {out.custom_note && (
-                        <div className="out-remarks-box">
-                          <strong>Note:</strong> {out.custom_note}
-                        </div>
-                      )}
 
                       <div className="out-card-actions">
                         <button 
@@ -1662,7 +2023,7 @@ export default function InOutAttendancePortal({
         </div>
       )}
 
-      {/* ================= TAB 4: EVENING TEAM LOGOUT (DEPARTURE) ================= */}
+      {/* ================= TAB 4: EVENING TEAM LOGOUT ================= */}
       {activeTab === 'evening_logout' && (
         <div className="inout-tab-pane">
           <div className="evening-logout-container">
@@ -1671,7 +2032,7 @@ export default function InOutAttendancePortal({
                 <Moon size={22} className="text-indigo" />
                 <div>
                   <h2>Evening Session Team Departure Check-Out (Logout)</h2>
-                  <p>Log out teams departing from SIH Arena at the end of the day. Records electronic departure timestamp.</p>
+                  <p>Log out teams departing from SIH Arena at the end of the day.</p>
                 </div>
               </div>
 
@@ -1683,7 +2044,6 @@ export default function InOutAttendancePortal({
               </div>
             </div>
 
-            {/* Filter Search Bar */}
             <div className="session-search-bar">
               <Search size={16} />
               <input 
@@ -1698,7 +2058,6 @@ export default function InOutAttendancePortal({
               )}
             </div>
 
-            {/* Team Evening Logout Grid */}
             <div className="team-attendance-cards-grid">
               {filteredEveningTeams.map(team => {
                 const teamId = team.temp_team_id;
@@ -1765,7 +2124,7 @@ export default function InOutAttendancePortal({
         </div>
       )}
 
-      {/* ================= TAB 5: SPECIAL TEAM CARDS & ROSTERS ================= */}
+      {/* ================= TAB 5: SPECIAL TEAM CARDS ================= */}
       {activeTab === 'team_passes' && (
         <div className="inout-tab-pane">
           <div className="team-passes-gallery">
@@ -1930,7 +2289,6 @@ export default function InOutAttendancePortal({
               </button>
             </div>
 
-            {/* Quick Action Cards Grid */}
             <div className="admin-actions-grid">
               <div className="admin-action-box">
                 <div className="box-top">
@@ -1989,7 +2347,6 @@ export default function InOutAttendancePortal({
               </div>
             </div>
 
-            {/* Live Movement State Breakdown */}
             <div className="admin-breakdown-section">
               <h3>Currently Active Out Passes ({Object.keys(activeOuts).length})</h3>
               {Object.keys(activeOuts).length === 0 ? (
@@ -2026,7 +2383,7 @@ export default function InOutAttendancePortal({
         </div>
       )}
 
-      {/* ================= MODAL 1: PHYSICAL PASTED PAPER GATE POSTERS (SEPARATE IN & OUT) ================= */}
+      {/* ================= MODAL 1: PHYSICAL PASTED PAPER GATE POSTERS ================= */}
       {isPosterModalOpen && (
         <div className="inout-modal-overlay" onClick={() => setIsPosterModalOpen(false)}>
           <div className="poster-modal-card" onClick={e => e.stopPropagation()}>
@@ -2057,9 +2414,7 @@ export default function InOutAttendancePortal({
               </div>
             </div>
 
-            {/* Poster Canvas: Dynamic based on posterMode */}
             {posterMode === 'out' ? (
-              /* ================= DEDICATED OUT / EXIT POSTER ================= */
               <div className="printable-gate-poster poster-mode-out">
                 <div className="poster-header-logos">
                   <img src="/logos/sih_moe_aicte_logo.png" alt="MoE AICTE SIH" className="poster-moe-logo" />
@@ -2116,7 +2471,6 @@ export default function InOutAttendancePortal({
                 </div>
               </div>
             ) : (
-              /* ================= DEDICATED IN / RETURN POSTER ================= */
               <div className="printable-gate-poster poster-mode-in">
                 <div className="poster-header-logos">
                   <img src="/logos/sih_moe_aicte_logo.png" alt="MoE AICTE SIH" className="poster-moe-logo" />
@@ -2173,359 +2527,6 @@ export default function InOutAttendancePortal({
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL 2: CANDIDATE SELF-SERVICE GATE PASS WIZARD ================= */}
-      {isSelfPassModalOpen && (
-        <div className="inout-modal-overlay" onClick={() => setIsSelfPassModalOpen(false)}>
-          <div className="self-pass-modal-card" onClick={e => e.stopPropagation()}>
-            <div className="self-pass-header">
-              <div className="header-title-left">
-                <Smartphone size={20} className="text-orange" />
-                <div>
-                  <h2>Candidate Exit Gate Pass Generator</h2>
-                  <p>Step-by-step self-service pass for SIH Arena break / movement</p>
-                </div>
-              </div>
-              <button className="btn-close-modal" onClick={() => setIsSelfPassModalOpen(false)}>✕</button>
-            </div>
-
-            <div className="self-pass-body">
-              {/* Step 1: Choose Team */}
-              <div className="wizard-step-box">
-                <label className="wizard-step-label">
-                  <span className="step-badge">Step 1</span>
-                  <span>Select Your Team ({displayedTeams.length} Form-Filled Teams):</span>
-                </label>
-
-                <div className="wizard-search-container">
-                  <Search size={16} className="search-icon" />
-                  <input 
-                    type="text" 
-                    placeholder="Search by Team Name, Temp ID (e.g. SIH26-TM-051), Leader Name, or Reg No..."
-                    value={selfPassSearch}
-                    onChange={e => setSelfPassSearch(e.target.value)}
-                    className="wizard-search-input"
-                  />
-                  {selfPassSearch && (
-                    <button className="btn-clear-search" onClick={() => setSelfPassSearch('')}>Clear</button>
-                  )}
-                </div>
-
-                {selfPassSelectedTeam ? (
-                  <div className="selected-team-card-banner">
-                    <div className="team-banner-left">
-                      <div className="team-code">{selfPassSelectedTeam.temp_team_id}</div>
-                      <div className="team-name">{selfPassSelectedTeam.team_name}</div>
-                      <div className="team-leader">Leader: {selfPassSelectedTeam.leader_name} ({selfPassSelectedTeam.reg_no})</div>
-                      <div className="team-school">{selfPassSelectedTeam.school}</div>
-                    </div>
-                    <button 
-                      className="btn-change-team"
-                      onClick={() => setSelfPassSelectedTeam(null)}
-                    >
-                      Change Team
-                    </button>
-                  </div>
-                ) : (
-                  <div className="team-selection-scroll-list">
-                    {displayedTeams
-                      .filter(t => {
-                        if (!selfPassSearch.trim()) return true;
-                        const q = selfPassSearch.toLowerCase();
-                        return (
-                          t.temp_team_id.toLowerCase().includes(q) ||
-                          t.team_name.toLowerCase().includes(q) ||
-                          t.leader_name.toLowerCase().includes(q) ||
-                          t.reg_no.toLowerCase().includes(q)
-                        );
-                      })
-                      .slice(0, 12)
-                      .map(team => (
-                        <div 
-                          key={team.temp_team_id} 
-                          className="team-select-pill-row"
-                          onClick={() => {
-                            setSelfPassSelectedTeam(team);
-                            setSelectedMemberName(team.leader_name);
-                          }}
-                        >
-                          <div className="pill-code">{team.temp_team_id}</div>
-                          <div className="pill-name">{team.team_name}</div>
-                          <div className="pill-leader">{team.leader_name}</div>
-                          <button className="btn-select-team-action">Select</button>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-
-              {selfPassSelectedTeam && (
-                <>
-                  {/* Step 2: Choose Who is Going Out */}
-                  <div className="wizard-step-box">
-                    <label className="wizard-step-label">
-                      <span className="step-badge">Step 2</span>
-                      <span>Who is leaving the SIH Arena?</span>
-                    </label>
-
-                    <div className="scope-selection-grid">
-                      <div 
-                        className={`scope-choice-card ${exitScope === 'team' ? 'selected' : ''}`}
-                        onClick={() => setExitScope('team')}
-                      >
-                        <Users size={18} />
-                        <div>
-                          <strong>Entire Team (All Members)</strong>
-                          <p>All present members leaving together</p>
-                        </div>
-                      </div>
-
-                      <div 
-                        className={`scope-choice-card ${exitScope === 'leader' ? 'selected' : ''}`}
-                        onClick={() => {
-                          setExitScope('leader');
-                          setSelectedMemberName(selfPassSelectedTeam.leader_name);
-                        }}
-                      >
-                        <UserCheck size={18} />
-                        <div>
-                          <strong>Team Leader ({selfPassSelectedTeam.leader_name})</strong>
-                          <p>Leader only exiting</p>
-                        </div>
-                      </div>
-
-                      <div 
-                        className={`scope-choice-card ${exitScope === 'member' ? 'selected' : ''}`}
-                        onClick={() => setExitScope('member')}
-                      >
-                        <User size={18} />
-                        <div>
-                          <strong>Specific Team Member</strong>
-                          <p>Choose from registered roster</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {exitScope === 'member' && (
-                      <div className="member-picker-subbox">
-                        <label className="sub-label">Select Specific Member Exiting:</label>
-                        <div className="member-roster-options">
-                          {getTeamRoster(selfPassSelectedTeam).map((m, idx) => (
-                            <button 
-                              key={idx}
-                              className={`member-option-chip ${selectedMemberName === m.name ? 'active' : ''}`}
-                              onClick={() => {
-                                setSelectedMemberName(m.name);
-                                setExitScope('member');
-                              }}
-                            >
-                              <span>{m.role}: <strong>{m.name}</strong></span>
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="custom-member-entry">
-                          <label className="sub-label">Or Type Custom Member Name:</label>
-                          <input 
-                            type="text" 
-                            placeholder="Enter full name of candidate leaving..." 
-                            value={customMemberInput}
-                            onChange={e => {
-                              setCustomMemberInput(e.target.value);
-                              setExitScope('custom');
-                            }}
-                            className="custom-member-input"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step 3: Choose Reason */}
-                  <div className="wizard-step-box">
-                    <label className="wizard-step-label">
-                      <span className="step-badge">Step 3</span>
-                      <span>Select Reason for Exit:</span>
-                    </label>
-
-                    <div className="reasons-selection-grid">
-                      {MOVEMENT_REASONS.map(reason => {
-                        const IconComp = reason.icon;
-                        const isSelected = selectedReason === reason.id;
-                        return (
-                          <div 
-                            key={reason.id}
-                            className={`reason-card-choice ${isSelected ? 'selected' : ''}`}
-                            onClick={() => {
-                              setSelectedReason(reason.id);
-                              setCustomMinutes(reason.defaultMins);
-                            }}
-                          >
-                            <div className="reason-icon-circle" style={{ color: reason.color, background: reason.bg }}>
-                              <IconComp size={18} />
-                            </div>
-                            <div className="reason-text-wrap">
-                              <span className="reason-main-lbl">{reason.label}</span>
-                              <span className="reason-time-hint">{reason.defaultMins} Mins Allowed</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* If 'other' or custom note */}
-                    <div className="custom-reason-note-box">
-                      <label className="sub-label">
-                        {selectedReason === 'other' ? 'Specify Your Custom Reason (Required):' : 'Optional Destination Remarks / Notes:'}
-                      </label>
-                      <input 
-                        type="text" 
-                        placeholder={selectedReason === 'other' ? 'e.g. Going to Hardware Shop for Arduino, Meeting Mentor at Admin Block...' : 'e.g. Dining Hall Token #42, Component lab visit...'}
-                        value={customNote}
-                        onChange={e => setCustomNote(e.target.value)}
-                        className="modal-note-input"
-                      />
-                    </div>
-
-                    {/* Time Stepper */}
-                    <div className="time-allowance-box">
-                      <div className="time-allowance-row">
-                        <label className="sub-label">Expected Time Outside:</label>
-                        <div className="mins-stepper">
-                          <button onClick={() => setCustomMinutes(m => Math.max(5, m - 5))}>-5m</button>
-                          <span className="mins-val">{customMinutes} Minutes</span>
-                          <button onClick={() => setCustomMinutes(m => m + 5)}>+5m</button>
-                        </div>
-                      </div>
-                      <div className="expected-return-callout">
-                        <Clock size={15} />
-                        <span>Expected Return Time: <strong>{new Date(Date.now() + customMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong></span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 4: Authorize & Generate Card */}
-                  <div className="wizard-action-footer">
-                    <button className="btn-cancel-exit" onClick={() => setIsSelfPassModalOpen(false)}>
-                      Cancel
-                    </button>
-                    <button className="btn-generate-special-card" onClick={handleAuthorizeExit}>
-                      <Sparkles size={16} />
-                      <span>Issue Pass &amp; Generate Special Team Card</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL 3: SPECIAL LIVE DIGITAL TEAM CARD ================= */}
-      {activeSpecialCard && (
-        <div className="inout-modal-overlay" onClick={() => setActiveSpecialCard(null)}>
-          <div className="special-card-modal-canvas" onClick={e => e.stopPropagation()}>
-            <div className="special-card-ticket">
-              {/* Ticket Top Strip */}
-              <div className="ticket-top-header">
-                <div className="ticket-org-brand">
-                  <img src="/logos/sih_moe_aicte_logo.png" alt="SIH" className="ticket-mini-logo" />
-                  <div className="brand-text">
-                    <span className="brand-sih">SMART INDIA HACKATHON 2026</span>
-                    <span className="brand-rgu">Rathinam Global University • Campus Evaluation Authority</span>
-                  </div>
-                </div>
-                <div className="ticket-token-pill">
-                  <KeyRound size={12} />
-                  <span>{activeSpecialCard.security_token || 'SEC-VERIFIED'}</span>
-                </div>
-              </div>
-
-              {/* Status Header */}
-              <div className="ticket-status-bar">
-                <div className="status-live-pill">
-                  <span className="live-dot"></span>
-                  <span>ACTIVE EXIT GATE PASS</span>
-                </div>
-                <div className="venue-name-tag">SIH Arena</div>
-              </div>
-
-              {/* Main Ticket Details */}
-              <div className="ticket-body-content">
-                <div className="ticket-qr-section">
-                  <QRCodeSVG 
-                    value={`${activeSpecialCard.team_id}|${activeSpecialCard.security_token}|${activeSpecialCard.out_timestamp}`}
-                    size={160} 
-                    level="H" 
-                    includeMargin={true} 
-                  />
-                  <span className="qr-hash-code">{activeSpecialCard.team_id}</span>
-                </div>
-
-                <div className="ticket-info-section">
-                  <h2 className="ticket-team-title">{activeSpecialCard.team_name}</h2>
-                  <div className="ticket-meta-grid">
-                    <div className="meta-item">
-                      <span className="meta-lbl">Candidate / Scope</span>
-                      <span className="meta-val highlight">{activeSpecialCard.member_name}</span>
-                    </div>
-
-                    <div className="meta-item">
-                      <span className="meta-lbl">Authorized Reason</span>
-                      <span className="meta-val reason-val">{activeSpecialCard.reason_label}</span>
-                    </div>
-
-                    <div className="meta-item">
-                      <span className="meta-lbl">Departure Time</span>
-                      <span className="meta-val">{activeSpecialCard.out_time}</span>
-                    </div>
-
-                    <div className="meta-item">
-                      <span className="meta-lbl">Expected Return</span>
-                      <span className="meta-val text-orange font-bold">{activeSpecialCard.expected_return_time}</span>
-                    </div>
-                  </div>
-
-                  {activeSpecialCard.custom_note && (
-                    <div className="ticket-remarks-box">
-                      <strong>Remarks:</strong> {activeSpecialCard.custom_note}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Cutout Divider Line */}
-              <div className="ticket-cutout-divider">
-                <div className="cutout-circle left"></div>
-                <div className="cutout-dash-line"></div>
-                <div className="cutout-circle right"></div>
-              </div>
-
-              {/* Ticket Footer Action */}
-              <div className="ticket-footer-action">
-                <div className="ticket-footer-left">
-                  <p>Show this Special Digital Card to Security Guards at the SIH Arena Exit Gate.</p>
-                </div>
-                <div className="ticket-footer-btns">
-                  <button 
-                    className="btn-ticket-punch-return"
-                    onClick={() => handlePunchIn(activeSpecialCard.pass_id)}
-                  >
-                    <CheckCircle2 size={16} />
-                    <span>Punch Return to Arena</span>
-                  </button>
-                  <button 
-                    className="btn-ticket-close"
-                    onClick={() => setActiveSpecialCard(null)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -2599,7 +2600,6 @@ export default function InOutAttendancePortal({
             </div>
 
             <div className="inout-modal-body">
-              {/* Who is leaving? */}
               <div className="modal-section-group">
                 <label className="section-label">1. Who is leaving the SIH Arena?</label>
                 <div className="scope-toggle-buttons">
@@ -2643,7 +2643,6 @@ export default function InOutAttendancePortal({
                 )}
               </div>
 
-              {/* Reason for exit */}
               <div className="modal-section-group">
                 <label className="section-label">2. Select Reason for Exit:</label>
                 <div className="reasons-selection-grid">
@@ -2672,7 +2671,6 @@ export default function InOutAttendancePortal({
                 </div>
               </div>
 
-              {/* Time allowed adjustment */}
               <div className="modal-section-group">
                 <div className="time-allowance-row">
                   <label className="section-label">3. Time Allowed Outside:</label>
@@ -2688,7 +2686,6 @@ export default function InOutAttendancePortal({
                 </div>
               </div>
 
-              {/* Note / Remarks / Custom Reason */}
               <div className="modal-section-group">
                 <label className="section-label">
                   {selectedReason === 'other' ? 'Specify Your Custom Reason (Required):' : 'Optional Note / Destination Remark:'}
@@ -2702,7 +2699,6 @@ export default function InOutAttendancePortal({
                 />
               </div>
 
-              {/* Authorize Action Button */}
               <div className="modal-actions-bar">
                 <button className="btn-cancel-exit" onClick={() => setPendingExitTarget(null)}>
                   Cancel
