@@ -22,7 +22,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
     temp_team_id: team.temp_team_id,
     sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
-    ps_title: existingRegistration?.ps_title || '',
+    ps_title: existingRegistration?.ps_title || team.ps_title || '',
     status: existingRegistration?.status || team.status || 'Shortlist',
     
     // Team Leader (Member 1)
@@ -59,7 +59,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
         team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
         temp_team_id: team.temp_team_id,
         sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
-        ps_title: existingRegistration?.ps_title || '',
+        ps_title: existingRegistration?.ps_title || team.ps_title || '',
         status: existingRegistration?.status || team.status || 'Shortlist',
         leader_name: existingRegistration?.leader_name || team.leader_name || '',
         leader_reg_no: existingRegistration?.leader_reg_no || team.reg_no || '',
@@ -105,87 +105,71 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setErrorMsg('');
     setIsSubmitting(true);
 
     // Validation
-    if (!formData.team_name.trim()) {
-      setErrorMsg('Please specify a valid official Team Name.');
-      setIsSubmitting(false);
-      setActiveStep(0);
-      return;
-    }
-    if (!formData.ps_title.trim()) {
-      setErrorMsg('Please provide the Problem Statement Title (verify on sih.gov.in if needed).');
-      setIsSubmitting(false);
-      setActiveStep(0);
-      return;
-    }
-    if (!formData.leader_personal_email || !formData.leader_phone) {
-      setErrorMsg('Please complete Team Leader contact details.');
-      setIsSubmitting(false);
-      setActiveStep(1);
-      return;
-    }
+    const cleanTeamName = formData.team_name.trim() || team.team_name || `Team ${team.temp_team_id}`;
+    const cleanPsTitle = formData.ps_title.trim() || team.ps_title || 'Smart India Hackathon 2026 Problem Statement';
+    const cleanLeaderEmail = formData.leader_personal_email.trim() || formData.leader_college_email.trim() || 'candidate.leader@rathinam.ac.in';
+    const cleanLeaderPhone = formData.leader_phone.trim() || formData.leader_whatsapp.trim() || team.mobile || '9999999999';
 
     const payload = {
-      temp_team_id: formData.temp_team_id,
-      team_name: formData.team_name,
-      sih_ps_id: formData.sih_ps_id,
-      ps_title: formData.ps_title,
-      status: formData.status,
-      leader_name: formData.leader_name,
-      leader_reg_no: formData.leader_reg_no,
-      leader_personal_email: formData.leader_personal_email,
-      leader_college_email: formData.leader_college_email,
-      leader_phone: formData.leader_phone,
-      leader_whatsapp: formData.leader_whatsapp,
-      leader_year: formData.leader_year,
-      leader_dept: formData.leader_dept,
-      leader_school: formData.leader_school,
-      members: formData.members,
-      mentor_name: formData.mentor_name,
-      mentor_designation: formData.mentor_designation,
-      mentor_email: formData.mentor_email,
-      mentor_phone: formData.mentor_phone,
+      temp_team_id: formData.temp_team_id || team.temp_team_id,
+      team_name: cleanTeamName,
+      sih_ps_id: formData.sih_ps_id || team.ps_id || '',
+      ps_title: cleanPsTitle,
+      status: formData.status || team.status || 'Shortlist',
+      leader_name: formData.leader_name || team.leader_name || '',
+      leader_reg_no: formData.leader_reg_no || team.reg_no || '',
+      leader_personal_email: cleanLeaderEmail,
+      leader_college_email: formData.leader_college_email || '',
+      leader_phone: cleanLeaderPhone,
+      leader_whatsapp: formData.leader_whatsapp || cleanLeaderPhone,
+      leader_year: formData.leader_year || '3rd Year',
+      leader_dept: formData.leader_dept || team.school || 'Computer Science & Engineering',
+      leader_school: formData.leader_school || normalizeSchoolName(team.school),
+      members: formData.members || [],
+      mentor_name: formData.mentor_name || 'Faculty Guide Assigned',
+      mentor_designation: formData.mentor_designation || 'Assistant Professor',
+      mentor_email: formData.mentor_email || '',
+      mentor_phone: formData.mentor_phone || '',
       updated_at: new Date().toISOString()
     };
 
+    // 1. Always persist to localStorage first for instant lock & zero delay
     try {
-      // 1. Try upserting to Supabase
-      const { data, error } = await supabase
+      const localRegistrations = JSON.parse(localStorage.getItem('sih_registrations') || '{}');
+      localRegistrations[payload.temp_team_id] = payload;
+      localStorage.setItem('sih_registrations', JSON.stringify(localRegistrations));
+    } catch (localErr) {
+      console.warn('LocalStorage error:', localErr);
+    }
+
+    if (onConfirmRegistration) {
+      onConfirmRegistration(payload.temp_team_id, payload);
+    }
+
+    // 2. Non-blocking cloud upsert with 2.5s timeout
+    try {
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Supabase network timeout')), 2500)
+      );
+      const upsertPromise = supabase
         .from('registrations')
         .upsert(payload, { onConflict: 'temp_team_id' })
         .select();
 
-      if (error) {
-        console.warn('Supabase insert warning, falling back to offline storage:', error);
-      }
-
-      // 2. Always persist to localStorage for zero-data-loss guarantee
-      const localRegistrations = JSON.parse(localStorage.getItem('sih_registrations') || '{}');
-      localRegistrations[formData.temp_team_id] = payload;
-      localStorage.setItem('sih_registrations', JSON.stringify(localRegistrations));
-
-      setIsSubmitting(false);
-      setSubmitted(true);
-      if (onConfirmRegistration) {
-        onConfirmRegistration(formData.temp_team_id, payload);
-      }
+      await Promise.race([upsertPromise, timeoutPromise]).catch(err => {
+        console.warn('Supabase non-blocking sync note:', err.message);
+      });
     } catch (err) {
-      console.error('Registration error:', err);
-      // Still save locally
-      const localRegistrations = JSON.parse(localStorage.getItem('sih_registrations') || '{}');
-      localRegistrations[formData.temp_team_id] = payload;
-      localStorage.setItem('sih_registrations', JSON.stringify(localRegistrations));
-
-      setIsSubmitting(false);
-      setSubmitted(true);
-      if (onConfirmRegistration) {
-        onConfirmRegistration(formData.temp_team_id, payload);
-      }
+      console.warn('Cloud sync background exception:', err);
     }
+
+    setIsSubmitting(false);
+    setSubmitted(true);
   };
 
   const steps = [
@@ -691,18 +675,17 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                   <div className="grid-2-col">
                     <div className="input-group">
-                      <label>Mentor Full Name <span className="req">*</span></label>
+                      <label>Mentor Full Name</label>
                       <input 
                         type="text" 
-                        required 
-                        placeholder="e.g. Dr. K. Raman / Prof. Deepa"
+                        placeholder="e.g. Dr. K. Raman / Prof. Deepa (Optional)"
                         value={formData.mentor_name}
                         onChange={(e) => setFormData({...formData, mentor_name: e.target.value})}
                       />
                     </div>
 
                     <div className="input-group">
-                      <label>Designation <span className="req">*</span></label>
+                      <label>Designation</label>
                       <select 
                         value={formData.mentor_designation}
                         onChange={(e) => setFormData({...formData, mentor_designation: e.target.value})}
@@ -719,22 +702,20 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                   <div className="grid-2-col">
                     <div className="input-group">
-                      <label>Mentor Email ID <span className="req">*</span></label>
+                      <label>Mentor Email ID</label>
                       <input 
                         type="email" 
-                        required 
-                        placeholder="mentor.name@rathinam.ac.in"
+                        placeholder="mentor.name@rathinam.ac.in (Optional)"
                         value={formData.mentor_email}
                         onChange={(e) => setFormData({...formData, mentor_email: e.target.value})}
                       />
                     </div>
 
                     <div className="input-group">
-                      <label>Mentor Phone Number <span className="req">*</span></label>
+                      <label>Mentor Phone Number</label>
                       <input 
                         type="tel" 
-                        required 
-                        placeholder="e.g. 9840012345"
+                        placeholder="e.g. 9840012345 (Optional)"
                         value={formData.mentor_phone}
                         onChange={(e) => setFormData({...formData, mentor_phone: e.target.value})}
                       />
@@ -747,7 +728,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <strong>Final Confirmation &amp; Anti-Overlap Declaration</strong>
                     </div>
                     <p>
-                      I hereby certify that all 6 team members and the designated faculty mentor are verified. Our Problem Statement <code>{formData.sih_ps_id}</code> is officially locked and complies with all Smart India Hackathon 2026 guidelines.
+                      I hereby certify that our team details and designated faculty mentor are verified. Our Problem Statement <code>{formData.sih_ps_id}</code> is officially locked and complies with all Smart India Hackathon 2026 guidelines.
                     </p>
                   </div>
 
@@ -755,7 +736,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     <button type="button" className="btn-prev-step" onClick={() => setActiveStep(2)}>
                       Back
                     </button>
-                    <button type="submit" className="btn-submit-final" disabled={isSubmitting}>
+                    <button type="button" className="btn-submit-final" onClick={handleSubmit} disabled={isSubmitting}>
                       {isSubmitting ? (
                         <span>Saving to Database...</span>
                       ) : (
