@@ -1129,12 +1129,6 @@ export default function InOutAttendancePortal({
       <div className="candidate-minimal-screen">
         {/* Minimal Header */}
         <div className="candidate-minimal-header">
-          <div className="logos-minimal-row">
-            <img src="/logos/sih_moe_aicte_logo.png" alt="SIH" className="mini-hdr-logo" />
-            <div className="mini-hdr-divider"></div>
-            <img src="/logos/rathinam_rgu_logo.png" alt="RGU" className="mini-hdr-logo" />
-          </div>
-
           <div className="candidate-clock-wrap" style={{ margin: '12px 0', display: 'flex', justifyContent: 'center' }}>
             <LivePixelDigitalClock variant="mini" />
           </div>
