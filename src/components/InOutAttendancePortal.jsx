@@ -53,7 +53,9 @@ export default function InOutAttendancePortal({
 
   // Main Desk Tabs
   // 'morning_login' | 'scanner' | 'active_out' | 'evening_logout' | 'team_passes' | 'log' | 'master_admin'
-  const [activeTab, setActiveTab] = useState('morning_login'); 
+  const [activeTab, setActiveTab] = useState('stacks_board');
+  const [stacksSearch, setStacksSearch] = useState('');
+  const [stacksFilter, setStacksFilter] = useState('all'); // 'all' | 'not_active' | 'arena_in' | 'arena_out' 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReason, setSelectedReason] = useState('lunch');
   const [customMinutes, setCustomMinutes] = useState(60);
@@ -826,6 +828,17 @@ export default function InOutAttendancePortal({
 
     const lunchCount = movementLogs.filter(l => l.reason === 'lunch').length + activeOutsList.filter(o => o.reason === 'lunch').length;
 
+    let notActiveCount = 0;
+    let arenaInCount = 0;
+    let arenaOutCount = 0;
+
+    displayedTeams.forEach(team => {
+      const info = getTeamStatusInfo(team);
+      if (info.status === 'NOT_ACTIVE') notActiveCount++;
+      else if (info.status === 'ARENA_IN') arenaInCount++;
+      else if (info.status === 'ARENA_OUT') arenaOutCount++;
+    });
+
     return {
       totalTeams,
       teamsLoggedIn,
@@ -834,7 +847,10 @@ export default function InOutAttendancePortal({
       totalMembersAbsent,
       currentlyOutCount,
       overdueCount,
-      lunchCount
+      lunchCount,
+      notActiveCount,
+      arenaInCount,
+      arenaOutCount
     };
   }, [displayedTeams, teamSessions, memberAttendance, activeOuts, movementLogs]);
 
@@ -1462,53 +1478,57 @@ export default function InOutAttendancePortal({
         </div>
 
         <div className="inout-metrics-grid">
-          {/* Card 1: Inside Arena */}
+          {/* Card 1: Total Teams (Default Not Active) */}
+          <div className="inout-metric-card slate">
+            <div className="metric-icon-wrap slate">
+              <Users size={20} />
+            </div>
+            <div className="metric-details">
+              <span className="metric-lbl">Total Teams</span>
+              <div className="metric-num">
+                {metrics.totalTeams} <span className="sub-num">Teams</span>
+              </div>
+              <span className="metric-desc">{metrics.notActiveCount} Not Active (Awaiting Login)</span>
+            </div>
+          </div>
+
+          {/* Card 2: Arena In (Active Inside) */}
           <div className="inout-metric-card green">
             <div className="metric-icon-wrap emerald">
-              <Sun size={20} />
+              <LogIn size={20} />
             </div>
             <div className="metric-details">
-              <span className="metric-lbl">Stationed in Arena</span>
+              <span className="metric-lbl">Arena In (Active Inside)</span>
               <div className="metric-num">
-                {metrics.teamsLoggedIn} <span className="sub-num">/ {metrics.totalTeams} Teams</span>
+                {metrics.arenaInCount} <span className="sub-num">Teams</span>
               </div>
-              <span className="metric-desc">{metrics.totalMembersInArena} Members Inside</span>
+              <span className="metric-desc">{metrics.totalMembersInArena} Members In Arena</span>
             </div>
           </div>
 
-          {/* Card 2: Currently Outside on Break */}
+          {/* Card 3: Arena Out (Active Outside / Departed) */}
           <div className="inout-metric-card orange">
             <div className="metric-icon-wrap orange">
-              <DoorOpen size={20} />
+              <LogOut size={20} />
             </div>
             <div className="metric-details">
-              <span className="metric-lbl">On Break (Outside)</span>
-              <div className="metric-num">{metrics.currentlyOutCount}</div>
-              <span className="metric-desc">Active Exit Passes</span>
+              <span className="metric-lbl">Arena Out (Outside)</span>
+              <div className="metric-num">
+                {metrics.arenaOutCount} <span className="sub-num">Teams</span>
+              </div>
+              <span className="metric-desc">{metrics.currentlyOutCount} On Break Pass</span>
             </div>
           </div>
 
-          {/* Card 3: Overdue Returns */}
-          <div className="inout-metric-card red">
-            <div className="metric-icon-wrap red">
-              <AlertTriangle size={20} />
-            </div>
-            <div className="metric-details">
-              <span className="metric-lbl">Overdue Return</span>
-              <div className="metric-num">{metrics.overdueCount}</div>
-              <span className="metric-desc">Exceeded Pass Time Limit</span>
-            </div>
-          </div>
-
-          {/* Card 4: Evening Logouts / Absentees */}
+          {/* Card 4: Overdue & Audit Logs */}
           <div className="inout-metric-card indigo">
             <div className="metric-icon-wrap indigo">
-              <Moon size={20} />
+              <ShieldCheck size={20} />
             </div>
             <div className="metric-details">
-              <span className="metric-lbl">Logged Out / Departed</span>
-              <div className="metric-num">{metrics.teamsLoggedOut}</div>
-              <span className="metric-desc">{metrics.totalMembersAbsent} Absent Members</span>
+              <span className="metric-lbl">Movement Logs</span>
+              <div className="metric-num">{movementLogs.length}</div>
+              <span className="metric-desc">{metrics.overdueCount > 0 ? `${metrics.overdueCount} Overdue Alerts` : 'All Passes Within Limit'}</span>
             </div>
           </div>
         </div>
@@ -1517,11 +1537,20 @@ export default function InOutAttendancePortal({
       {/* Sub-Branch Navigation Tabs */}
       <div className="inout-nav-tabs">
         <button 
+          className={`inout-tab-btn flagship-tab ${activeTab === 'stacks_board' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stacks_board')}
+          title="3-Stack Live Arena Board: Total / Not Active | Arena In | Arena Out"
+        >
+          <LayoutDashboard size={16} />
+          <span>3-Stack Live Board (Total: {displayedTeams.length} • In: {metrics.arenaInCount} • Out: {metrics.arenaOutCount})</span>
+        </button>
+
+        <button 
           className={`inout-tab-btn ${activeTab === 'morning_login' ? 'active' : ''}`}
           onClick={() => setActiveTab('morning_login')}
         >
-          <LogIn size={16} />
-          <span>Morning Team Login ({metrics.teamsLoggedIn}/{metrics.totalTeams})</span>
+          <Sun size={16} />
+          <span>Morning Arrival Roster ({metrics.teamsLoggedIn}/{metrics.totalTeams})</span>
         </button>
 
         <button 
@@ -1575,6 +1604,346 @@ export default function InOutAttendancePortal({
           </button>
         )}
       </div>
+
+      {/* ================= TAB 0: 3-STACK LIVE ARENA BOARD (TOTAL | ARENA IN | ARENA OUT) ================= */}
+      {activeTab === 'stacks_board' && (() => {
+        // Filter teams based on search query
+        const filteredAll = displayedTeams.filter(team => {
+          if (!stacksSearch.trim()) return true;
+          const q = stacksSearch.toLowerCase();
+          return (
+            team.temp_team_id.toLowerCase().includes(q) ||
+            team.team_name.toLowerCase().includes(q) ||
+            team.leader_name.toLowerCase().includes(q) ||
+            team.reg_no.toLowerCase().includes(q) ||
+            (team.school && team.school.toLowerCase().includes(q))
+          );
+        });
+
+        const inactiveList = filteredAll.filter(t => getTeamStatusInfo(t).status === 'NOT_ACTIVE');
+        const arenaInList = filteredAll.filter(t => getTeamStatusInfo(t).status === 'ARENA_IN');
+        const arenaOutList = filteredAll.filter(t => getTeamStatusInfo(t).status === 'ARENA_OUT');
+
+        return (
+          <div className="inout-tab-pane">
+            <div className="stacks-board-view">
+              {/* Stacks Header & Controls Bar */}
+              <div className="stacks-controls-bar">
+                <div className="stacks-search-wrap">
+                  <Search size={16} className="search-icon" />
+                  <input 
+                    type="text"
+                    placeholder="Search any team in stacks (Name, Temp ID, Leader, Reg No, School)..."
+                    value={stacksSearch}
+                    onChange={e => setStacksSearch(e.target.value)}
+                    className="stacks-search-input"
+                  />
+                  {stacksSearch && (
+                    <button className="btn-clear-search" onClick={() => setStacksSearch('')}>✕ Clear</button>
+                  )}
+                </div>
+
+                {/* Stacks View Filter Tabs */}
+                <div className="stacks-filter-pills">
+                  <button 
+                    className={`stack-filter-pill ${stacksFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setStacksFilter('all')}
+                  >
+                    <span>All 3 Stacks Board</span>
+                    <span className="pill-count">{filteredAll.length}</span>
+                  </button>
+
+                  <button 
+                    className={`stack-filter-pill pill-not-active ${stacksFilter === 'not_active' ? 'active' : ''}`}
+                    onClick={() => setStacksFilter('not_active')}
+                  >
+                    <span className="dot gray"></span>
+                    <span>Total / Not Active</span>
+                    <span className="pill-count">{inactiveList.length}</span>
+                  </button>
+
+                  <button 
+                    className={`stack-filter-pill pill-arena-in ${stacksFilter === 'arena_in' ? 'active' : ''}`}
+                    onClick={() => setStacksFilter('arena_in')}
+                  >
+                    <span className="dot green pulsing"></span>
+                    <span>Arena In</span>
+                    <span className="pill-count">{arenaInList.length}</span>
+                  </button>
+
+                  <button 
+                    className={`stack-filter-pill pill-arena-out ${stacksFilter === 'arena_out' ? 'active' : ''}`}
+                    onClick={() => setStacksFilter('arena_out')}
+                  >
+                    <span className="dot orange"></span>
+                    <span>Arena Out</span>
+                    <span className="pill-count">{arenaOutList.length}</span>
+                  </button>
+                </div>
+
+                {/* Bulk Stacks Controls */}
+                <div className="stacks-bulk-actions">
+                  <button 
+                    className="btn-stack-bulk btn-bulk-login"
+                    onClick={handleBulkMorningLoginAll}
+                    title="Log in all displayed teams into Arena In"
+                  >
+                    <LogIn size={13} />
+                    <span>Bulk Log In All</span>
+                  </button>
+                  <button 
+                    className="btn-stack-bulk btn-bulk-logout"
+                    onClick={handleBulkEveningLogoutAll}
+                    title="Log out all displayed teams into Arena Out"
+                  >
+                    <LogOut size={13} />
+                    <span>Bulk Log Out All</span>
+                  </button>
+                  <button 
+                    className="btn-stack-bulk btn-bulk-reset"
+                    onClick={handleBulkResetAllNotActive}
+                    title="Reset all teams back to default Not Active state"
+                  >
+                    <RotateCcw size={13} />
+                    <span>Reset to Not Active</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3 Stacks Grid Columns Layout */}
+              <div className={`arena-stacks-grid ${stacksFilter !== 'all' ? 'single-stack-mode' : ''}`}>
+                
+                {/* ================= STACK 1: TOTAL TEAMS (NOT ACTIVE) ================= */}
+                {(stacksFilter === 'all' || stacksFilter === 'not_active') && (
+                  <div className="arena-stack-column stack-col-not-active">
+                    <div className="stack-column-header">
+                      <div className="header-left-title">
+                        <span className="stack-status-indicator gray"></span>
+                        <div className="title-texts">
+                          <h3>Total Teams (Not Active)</h3>
+                          <span className="stack-sub">Default State • Awaiting Check-In</span>
+                        </div>
+                      </div>
+                      <span className="stack-count-badge badge-gray">{inactiveList.length}</span>
+                    </div>
+
+                    <div className="stack-column-body">
+                      {inactiveList.length === 0 ? (
+                        <div className="stack-empty-state">
+                          <CheckCircle2 size={24} className="text-emerald" />
+                          <p>All teams have been activated into Arena In or Arena Out!</p>
+                        </div>
+                      ) : (
+                        inactiveList.map(team => {
+                          const roster = getTeamRoster(team);
+                          return (
+                            <div key={team.temp_team_id} className="stack-team-card card-not-active">
+                              <div className="stack-card-top">
+                                <span className="team-badge-id">{team.temp_team_id}</span>
+                                <span className="status-pill status-pill-not-active">
+                                  <span className="status-dot gray"></span>
+                                  <span>Not Active</span>
+                                </span>
+                              </div>
+
+                              <div className="stack-card-info">
+                                <h4 className="stack-team-name">{team.team_name}</h4>
+                                <div className="stack-leader-row">
+                                  <strong>Leader:</strong> {team.leader_name} <span className="reg-tag">({team.reg_no})</span>
+                                </div>
+                                <div className="stack-school-row">
+                                  {normalizeSchoolName(team.school)}
+                                </div>
+                                <div className="stack-roster-pill">
+                                  <Users size={12} />
+                                  <span>{roster.length} Verified Members</span>
+                                </div>
+                              </div>
+
+                              <div className="stack-card-action-bar">
+                                <button 
+                                  className="btn-stack-action-main btn-action-login"
+                                  onClick={() => handleQuickLogIn(team)}
+                                  title="Log In Team -> Move to Arena In"
+                                >
+                                  <LogIn size={15} />
+                                  <span>Log In</span>
+                                </button>
+                                <button 
+                                  className="btn-stack-action-secondary"
+                                  onClick={() => {
+                                    setPendingExitTarget(team);
+                                    setSelectedMemberName(team.leader_name);
+                                    setActiveTab('scanner');
+                                  }}
+                                  title="Issue Break Pass directly"
+                                >
+                                  <DoorOpen size={14} />
+                                  <span>Pass</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= STACK 2: ARENA IN (ACTIVE INSIDE) ================= */}
+                {(stacksFilter === 'all' || stacksFilter === 'arena_in') && (
+                  <div className="arena-stack-column stack-col-arena-in">
+                    <div className="stack-column-header">
+                      <div className="header-left-title">
+                        <span className="stack-status-indicator green pulsing"></span>
+                        <div className="title-texts">
+                          <h3>Arena In (Active Inside)</h3>
+                          <span className="stack-sub">Verified & Stationed in Arena</span>
+                        </div>
+                      </div>
+                      <span className="stack-count-badge badge-green">{arenaInList.length}</span>
+                    </div>
+
+                    <div className="stack-column-body">
+                      {arenaInList.length === 0 ? (
+                        <div className="stack-empty-state">
+                          <LogIn size={24} className="text-muted" />
+                          <p>No teams currently in Arena In. Click "Log In" on any team to activate.</p>
+                        </div>
+                      ) : (
+                        arenaInList.map(team => {
+                          const session = teamSessions[team.temp_team_id];
+                          const roster = getTeamRoster(team);
+                          return (
+                            <div key={team.temp_team_id} className="stack-team-card card-arena-in">
+                              <div className="stack-card-top">
+                                <span className="team-badge-id emerald-id">{team.temp_team_id}</span>
+                                <span className="status-pill status-pill-arena-in">
+                                  <span className="status-dot green pulsing"></span>
+                                  <span>Arena In (Active)</span>
+                                </span>
+                              </div>
+
+                              <div className="stack-card-info">
+                                <h4 className="stack-team-name">{team.team_name}</h4>
+                                <div className="stack-leader-row">
+                                  <strong>Leader:</strong> {team.leader_name}
+                                </div>
+                                <div className="stack-timestamp-row in-stamp">
+                                  <Clock size={12} />
+                                  <span>Logged In: <strong>{session?.morning_login_time || 'Present'}</strong></span>
+                                  <span className="sep">•</span>
+                                  <span>{session?.present_count || roster.length}/{roster.length} Present</span>
+                                </div>
+                              </div>
+
+                              <div className="stack-card-action-bar">
+                                <button 
+                                  className="btn-stack-action-main btn-action-logout"
+                                  onClick={() => handleQuickLogOut(team)}
+                                  title="Log Out Team -> Move to Arena Out"
+                                >
+                                  <LogOut size={15} />
+                                  <span>Log Out</span>
+                                </button>
+
+                                <button 
+                                  className="btn-stack-action-secondary"
+                                  onClick={() => {
+                                    setPendingExitTarget(team);
+                                    setSelectedMemberName(team.leader_name);
+                                    setActiveTab('scanner');
+                                  }}
+                                  title="Issue Temporary Break Pass"
+                                >
+                                  <DoorOpen size={14} />
+                                  <span>Break Pass</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= STACK 3: ARENA OUT (ACTIVE OUTSIDE) ================= */}
+                {(stacksFilter === 'all' || stacksFilter === 'arena_out') && (
+                  <div className="arena-stack-column stack-col-arena-out">
+                    <div className="stack-column-header">
+                      <div className="header-left-title">
+                        <span className="stack-status-indicator orange"></span>
+                        <div className="title-texts">
+                          <h3>Arena Out (Active Outside)</h3>
+                          <span className="stack-sub">On Break or Departed</span>
+                        </div>
+                      </div>
+                      <span className="stack-count-badge badge-orange">{arenaOutList.length}</span>
+                    </div>
+
+                    <div className="stack-column-body">
+                      {arenaOutList.length === 0 ? (
+                        <div className="stack-empty-state">
+                          <CheckCircle2 size={24} className="text-emerald" />
+                          <p>No teams currently marked in Arena Out.</p>
+                        </div>
+                      ) : (
+                        arenaOutList.map(team => {
+                          const info = getTeamStatusInfo(team);
+                          return (
+                            <div key={team.temp_team_id} className="stack-team-card card-arena-out">
+                              <div className="stack-card-top">
+                                <span className="team-badge-id orange-id">{team.temp_team_id}</span>
+                                <span className="status-pill status-pill-arena-out">
+                                  <span className="status-dot orange"></span>
+                                  <span>{info.label}</span>
+                                </span>
+                              </div>
+
+                              <div className="stack-card-info">
+                                <h4 className="stack-team-name">{team.team_name}</h4>
+                                <div className="stack-leader-row">
+                                  <strong>Leader:</strong> {team.leader_name}
+                                </div>
+                                <div className="stack-timestamp-row out-stamp">
+                                  <AlertCircle size={12} />
+                                  <span>{info.subLabel}</span>
+                                </div>
+                              </div>
+
+                              <div className="stack-card-action-bar">
+                                <button 
+                                  className="btn-stack-action-main btn-action-login"
+                                  onClick={() => handleQuickLogIn(team)}
+                                  title="Log In (Return) -> Move to Arena In"
+                                >
+                                  <LogIn size={15} />
+                                  <span>Log In (Return)</span>
+                                </button>
+
+                                <button 
+                                  className="btn-stack-action-secondary"
+                                  onClick={() => handleQuickResetInactive(team)}
+                                  title="Reset back to Not Active"
+                                >
+                                  <RotateCcw size={13} />
+                                  <span>Reset</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ================= TAB 1: MORNING TEAM LOGIN & ATTENDANCE ================= */}
       {activeTab === 'morning_login' && (
