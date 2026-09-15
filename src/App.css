@@ -12468,3 +12468,395 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================================
+   COMPREHENSIVE MOBILE UI/UX & RESPONSIVENESS OPTIMIZATIONS
+   ========================================================================= */
+
+/* Prevent iOS Safari input auto-zoom by ensuring 16px font-size on inputs */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="password"],
+  input[type="search"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* 1. Header & Logos Mobile Optimization */
+@media (max-width: 600px) {
+  .header-logos-bar {
+    padding: 8px 12px !important;
+  }
+
+  .logos-container {
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .logos-brand-combo {
+    gap: 10px !important;
+  }
+
+  .moe-img {
+    height: 28px !important;
+  }
+
+  .rgu-img {
+    height: 26px !important;
+  }
+
+  .logo-divider-line {
+    height: 22px !important;
+  }
+
+  .header-actions-group {
+    gap: 6px !important;
+  }
+
+  .btn-nav-admin {
+    padding: 5px 10px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .navbar-portal-status-btn {
+    padding: 5px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .meta-stats-pill {
+    display: none !important; /* Hide stats pill on extra narrow mobile to avoid header overflow */
+  }
+}
+
+/* 2. Sub-Branch Navigation Tabs - Smooth Horizontal Touch Scroll */
+@media (max-width: 900px) {
+  .inout-nav-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 8px !important;
+    padding: 6px 4px 10px 4px !important;
+  }
+
+  .inout-nav-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .inout-tab-btn {
+    flex-shrink: 0 !important;
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+  }
+
+  .inout-hero-banner {
+    padding: 18px 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .inout-hero-left h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .inout-hero-left p {
+    font-size: 0.82rem !important;
+  }
+
+  .inout-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-top: 16px !important;
+  }
+
+  .inout-metric-card {
+    padding: 12px 14px !important;
+  }
+
+  .metric-num {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .inout-metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 3. 3-Stack Live Arena Board Mobile Responsiveness */
+@media (max-width: 768px) {
+  .stacks-board-view {
+    gap: 14px !important;
+  }
+
+  .stacks-controls-bar {
+    padding: 12px 14px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .stacks-search-wrap {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .stacks-filter-pills {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 4px !important;
+    gap: 6px !important;
+  }
+
+  .stacks-filter-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .stack-filter-pill {
+    flex-shrink: 0 !important;
+    padding: 6px 10px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .stacks-bulk-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .btn-stack-bulk {
+    justify-content: center !important;
+    padding: 8px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .btn-stack-bulk.btn-bulk-reset {
+    grid-column: span 2 !important;
+  }
+
+  .arena-stacks-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .arena-stack-column {
+    border-radius: 14px !important;
+  }
+
+  .stack-column-header {
+    padding: 12px 14px !important;
+  }
+
+  .title-texts h3 {
+    font-size: 0.9rem !important;
+  }
+
+  .stack-column-body {
+    padding: 10px !important;
+    max-height: none !important;
+    gap: 10px !important;
+  }
+
+  .stack-team-card {
+    padding: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .stack-team-name {
+    font-size: 0.9rem !important;
+  }
+
+  .btn-stack-action-main,
+  .btn-stack-action-secondary {
+    min-height: 42px !important;
+    font-size: 0.82rem !important;
+  }
+}
+
+/* 4. Admin Gateway Modal Mobile Optimization */
+@media (max-width: 680px) {
+  .admin-gateway-modal {
+    width: 95vw !important;
+    max-height: 92vh !important;
+    border-radius: 16px !important;
+    margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .gateway-modal-body {
+    padding: 14px 16px !important;
+    gap: 14px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-height: calc(92vh - 65px) !important;
+  }
+
+  .gateway-intro-banner {
+    padding: 12px 14px !important;
+  }
+
+  .gateway-intro-left h3 {
+    font-size: 0.96rem !important;
+  }
+
+  .gateway-meta-pill {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .gateway-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .gateway-card {
+    padding: 14px 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .gateway-card-icon {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .gateway-card h4 {
+    font-size: 0.92rem !important;
+  }
+
+  .gateway-card p {
+    font-size: 0.78rem !important;
+  }
+
+  .card-bottom-action {
+    font-size: 0.78rem !important;
+    padding-top: 8px !important;
+  }
+
+  .gateway-bottom-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .btn-gateway-secondary,
+  .btn-gateway-logout {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 42px !important;
+    font-size: 0.82rem !important;
+  }
+}
+
+/* 5. Candidate Minimal Screen Mobile Touch Optimization */
+@media (max-width: 600px) {
+  .candidate-minimal-screen {
+    width: 96% !important;
+    max-width: 100% !important;
+    margin: 8px auto !important;
+    padding: 14px 12px !important;
+  }
+
+  .candidate-minimal-header {
+    margin-bottom: 14px !important;
+  }
+
+  .mini-hdr-logo {
+    height: 30px !important;
+  }
+
+  .minimal-main-title {
+    font-size: 1.25rem !important;
+  }
+
+  .minimal-subtitle {
+    font-size: 0.8rem !important;
+  }
+
+  .candidate-minimal-card {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .mini-scope-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .mini-scope-btn {
+    padding: 8px 4px !important;
+    font-size: 0.72rem !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+  }
+
+  .mini-reasons-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .mini-reason-card {
+    padding: 10px 12px !important;
+    min-height: 44px !important;
+  }
+
+  .mini-time-stepper-row {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    justify-content: space-between !important;
+  }
+
+  .btn-generate-minimal-pass {
+    min-height: 48px !important;
+    font-size: 0.94rem !important;
+    width: 100% !important;
+  }
+}
+
+/* 6. General Modals & Drawers Responsive Fixes */
+@media (max-width: 600px) {
+  .modal-dialog-box {
+    width: 95vw !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important;
+    margin: 12px auto !important;
+  }
+
+  .modal-top-bar {
+    padding: 14px 16px !important;
+  }
+
+  .modal-title-text {
+    font-size: 0.95rem !important;
+  }
+
+  .passcode-modal {
+    max-width: 92vw !important;
+  }
+
+  .passcode-modal-body {
+    padding: 20px 16px !important;
+  }
+
+  .btn-passcode-submit,
+  .btn-cancel-action {
+    min-height: 44px !important;
+    font-size: 0.88rem !important;
+  }
+}
