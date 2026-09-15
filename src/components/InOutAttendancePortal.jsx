@@ -966,7 +966,7 @@ export default function InOutAttendancePortal({
       setIsAuthModalOpen(false);
       setAdminPassError('');
       setViewMode('desk');
-      setActiveTab('master_admin');
+      setActiveTab('settings');
     } else {
       setAdminPassError('Incorrect Master Admin Passcode. Access Denied.');
       playBeep('error');
@@ -1556,25 +1556,6 @@ export default function InOutAttendancePortal({
         </div>
 
         <div className="inout-top-actions">
-          {/* Master Admin Trigger Button */}
-          {isMasterAdminAuthenticated ? (
-            <button 
-              className={`btn-master-admin-trigger ${activeTab === 'master_admin' ? 'active' : ''}`}
-              onClick={() => setActiveTab(activeTab === 'master_admin' ? 'morning_login' : 'master_admin')}
-            >
-              <ShieldAlert size={14} className="text-rose" />
-              <span>Master Admin Controls</span>
-            </button>
-          ) : (
-            <button 
-              className="btn-master-admin-trigger"
-              onClick={() => setIsAuthModalOpen(true)}
-            >
-              <Lock size={14} />
-              <span>Master Admin</span>
-            </button>
-          )}
-
           {/* Physical Poster Generator - OUT (Exit Gate) */}
           <button 
             className="btn-print-poster-trigger poster-trigger-out"
@@ -1787,15 +1768,14 @@ export default function InOutAttendancePortal({
           <span>Movement &amp; Attendance Log ({movementLogs.length})</span>
         </button>
 
-        {isMasterAdminAuthenticated && (
-          <button 
-            className={`inout-tab-btn admin-tab ${activeTab === 'master_admin' ? 'active' : ''}`}
-            onClick={() => setActiveTab('master_admin')}
-          >
-            <ShieldAlert size={16} />
-            <span>Master Admin Controls</span>
-          </button>
-        )}
+        <button 
+          className={`inout-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+          title="Arena Settings, DB Sync & System Controls"
+        >
+          <Settings size={16} />
+          <span>Arena Settings &amp; Controls</span>
+        </button>
       </div>
 
       {/* ================= TAB 0: 3-STACK LIVE ARENA BOARD (TOTAL | ARENA IN | ARENA OUT) ================= */}
@@ -2808,22 +2788,22 @@ export default function InOutAttendancePortal({
         </div>
       )}
 
-      {/* ================= TAB 7: MASTER ADMIN CONTROLS ================= */}
-      {activeTab === 'master_admin' && isMasterAdminAuthenticated && (
+      {/* ================= TAB 7: ARENA SETTINGS & SYSTEM CONTROLS ================= */}
+      {activeTab === 'settings' && (
         <div className="inout-tab-pane">
           <div className="master-admin-dashboard-card">
             <div className="admin-header-strip">
               <div className="admin-title-left">
-                <ShieldAlert size={22} className="text-rose" />
+                <Settings size={22} className="text-slate" />
                 <div>
-                  <h2>SIH Arena Master Gate Administration</h2>
-                  <p>Master override controls, bulk return protocols, and live Section 65B movement audit ledger</p>
+                  <h2>SIH Arena Settings &amp; Controls Panel</h2>
+                  <p>Database synchronization, bulk return protocols, reset actions, and Section 65B audit export</p>
                 </div>
               </div>
-              <button className="btn-admin-logout" onClick={handleAdminLogout}>
-                <Lock size={14} />
-                <span>Lock Admin Desk</span>
-              </button>
+              <div className="settings-status-pill">
+                <span className="pulsing-dot green"></span>
+                <span>System Operational</span>
+              </div>
             </div>
 
             <div className="admin-actions-grid">
