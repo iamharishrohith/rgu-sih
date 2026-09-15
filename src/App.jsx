@@ -24,7 +24,22 @@ const FINALIZED_MASTER_TEAMS = MASTER_TEAMS.filter(t =>
 );
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('inout_portal'); // 'inout_portal' | 'candidate_desk' | 'admin' | 'landing'
+  // Subbranch Routing:
+  // Root URL ('/') -> 'landing' (Official Shortlist & Selection Announcement Portal)
+  // '/arena' or '#arena' -> 'inout_portal' (SIH Arena In-Out Gate Pass & Movement Workplace)
+  // '/desk' or '#desk' -> 'candidate_desk'
+  // '/admin' or '#admin' -> 'admin'
+  const [currentView, setCurrentView] = useState(() => {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    if (path.includes('/arena') || hash.includes('arena')) {
+      return 'inout_portal';
+    }
+    if (path.includes('/desk') || hash.includes('desk')) {
+      return 'candidate_desk';
+    }
+    return 'landing';
+  });
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
   const [openTimerAfterAuth, setOpenTimerAfterAuth] = useState(false);
@@ -197,7 +212,7 @@ export default function App() {
   }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
 
   
-  // Secret keyboard listener (Ctrl + Shift + A) & Hash listener (#admin)
+  // Subbranch URL / Hash listener & Secret Keyboard Listener
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
@@ -206,22 +221,30 @@ export default function App() {
       }
     };
 
-    const handleHashChange = () => {
-      if (window.location.hash === '#admin') {
+    const syncRouteFromUrl = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path.includes('/arena') || hash.includes('arena')) {
+        setCurrentView('inout_portal');
+      } else if (hash === '#admin') {
         triggerSecretAdmin();
+      } else if (path.includes('/desk') || hash.includes('desk')) {
+        setCurrentView('candidate_desk');
+      } else if (path === '/' && !hash) {
+        setCurrentView(prev => prev === 'inout_portal' ? 'landing' : prev);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', syncRouteFromUrl);
+    window.addEventListener('popstate', syncRouteFromUrl);
 
-    if (window.location.hash === '#admin') {
-      triggerSecretAdmin();
-    }
+    syncRouteFromUrl();
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', syncRouteFromUrl);
+      window.removeEventListener('popstate', syncRouteFromUrl);
     };
   }, [isAdminLoggedIn]);
 
@@ -689,7 +712,10 @@ export default function App() {
         <InOutAttendancePortal
           allTeams={masterTeamsList}
           registrationsMap={registrationsMap}
-          onBackToMain={() => setCurrentView('candidate_desk')}
+          onBackToMain={() => {
+            window.history.pushState(null, '', '/');
+            setCurrentView('landing');
+          }}
         />
       ) : isPortalClosed && !isReadOnlyAfterClosure ? (
         /* PORTAL CLOSED VIEW (Active when portal is locked) */

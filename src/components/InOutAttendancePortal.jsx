@@ -81,8 +81,26 @@ export default function InOutAttendancePortal({
   // Special Generated Live Team Card Modal
   const [activeSpecialCard, setActiveSpecialCard] = useState(null);
 
-  // Printable Gate Poster Modal (For printing physical pasted paper QR)
+  // Printable Gate Poster Modal (Separate Dedicated Posters for OUT and IN)
   const [isPosterModalOpen, setIsPosterModalOpen] = useState(false);
+  const [posterMode, setPosterMode] = useState('out'); // 'out' | 'in'
+
+  // URL Query / Hash Action Listener (?action=out or ?action=in)
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      const hash = (window.location.hash || '').toLowerCase();
+      
+      if (action === 'out' || hash.includes('action=out')) {
+        setIsSelfPassModalOpen(true);
+      } else if (action === 'in' || hash.includes('action=in')) {
+        setActiveTab('active_out');
+      }
+    } catch (e) {
+      console.warn('URL action parse error:', e);
+    }
+  }, []);
 
   // Enlarge Team Pass Modal
   const [qrPassTeam, setQrPassTeam] = useState(null);
@@ -644,15 +662,41 @@ export default function InOutAttendancePortal({
     });
   }, [displayedTeams, galleryFilterTier, gallerySearch]);
 
-  const gatewayUrl = `${window.location.origin}/#sih-arena-pass`;
+  const gatewayUrl = `${window.location.origin}/arena`;
 
   return (
     <div className="inout-portal-container">
       {/* Top Header Navigation */}
       <div className="inout-top-strip">
-        <div className="inout-hall-badge">
-          <DoorOpen size={16} className="text-orange" />
-          <span>SIH ARENA • GATEWAY WORKPLACE</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {onBackToMain && (
+            <button 
+              onClick={onBackToMain}
+              className="btn-back-to-announcement"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 12px',
+                borderRadius: '7px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: '#0f172a',
+                color: '#ffffff',
+                border: 'none'
+              }}
+              title="Return to Main SIH Announcement Portal & Shortlist"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Shortlist</span>
+            </button>
+          )}
+
+          <div className="inout-hall-badge">
+            <DoorOpen size={16} className="text-orange" />
+            <span>SIH ARENA • GATEWAY WORKPLACE</span>
+          </div>
         </div>
 
         {/* Live Supabase Sync Status & Toggle */}
@@ -700,14 +744,30 @@ export default function InOutAttendancePortal({
             </button>
           )}
 
-          {/* Physical Poster Generator Button */}
+          {/* Physical Poster Generator - OUT (Exit Gate) */}
           <button 
-            className="btn-print-poster-trigger"
-            onClick={() => setIsPosterModalOpen(true)}
-            title="Print Physical Paper QR Poster to paste at SIH Arena Exit Doors"
+            className="btn-print-poster-trigger poster-trigger-out"
+            onClick={() => {
+              setPosterMode('out');
+              setIsPosterModalOpen(true);
+            }}
+            title="Print Physical Paper QR Poster to paste at SIH Arena EXIT Doors"
           >
-            <Printer size={14} />
-            <span>Pasted Gate QR Poster</span>
+            <DoorOpen size={14} />
+            <span>Exit (OUT) Poster</span>
+          </button>
+
+          {/* Physical Poster Generator - IN (Return Gate) */}
+          <button 
+            className="btn-print-poster-trigger poster-trigger-in"
+            onClick={() => {
+              setPosterMode('in');
+              setIsPosterModalOpen(true);
+            }}
+            title="Print Physical Paper QR Poster to paste at SIH Arena ENTRY Doors"
+          >
+            <DoorClosed size={14} />
+            <span>Return (IN) Poster</span>
           </button>
 
           {/* Self-Service Mobile Pass Generator */}
@@ -1590,76 +1650,153 @@ export default function InOutAttendancePortal({
         </div>
       )}
 
-      {/* ================= MODAL 1: PHYSICAL PASTED PAPER GATE POSTER ================= */}
+      {/* ================= MODAL 1: PHYSICAL PASTED PAPER GATE POSTERS (SEPARATE IN & OUT) ================= */}
       {isPosterModalOpen && (
         <div className="inout-modal-overlay" onClick={() => setIsPosterModalOpen(false)}>
           <div className="poster-modal-card" onClick={e => e.stopPropagation()}>
             <div className="poster-modal-toolbar">
-              <span className="toolbar-title">Physical Venue Gate Poster (Print &amp; Paste at Arena Doors)</span>
+              <div className="poster-mode-switcher-tabs">
+                <button 
+                  className={`poster-tab-btn tab-out ${posterMode === 'out' ? 'active-out' : ''}`}
+                  onClick={() => setPosterMode('out')}
+                >
+                  <DoorOpen size={15} />
+                  <span>Exit (OUT) Gate Poster</span>
+                </button>
+                <button 
+                  className={`poster-tab-btn tab-in ${posterMode === 'in' ? 'active-in' : ''}`}
+                  onClick={() => setPosterMode('in')}
+                >
+                  <DoorClosed size={15} />
+                  <span>Return (IN) Gate Poster</span>
+                </button>
+              </div>
+
               <div className="toolbar-btns">
                 <button className="btn-print-action" onClick={() => window.print()}>
                   <Printer size={15} />
-                  <span>Print Poster</span>
+                  <span>Print {posterMode === 'out' ? 'OUT' : 'IN'} Poster</span>
                 </button>
                 <button className="btn-close-modal" onClick={() => setIsPosterModalOpen(false)}>✕</button>
               </div>
             </div>
 
-            {/* The Printable Poster Canvas */}
-            <div className="printable-gate-poster">
-              <div className="poster-header-logos">
-                <img src="/logos/sih_moe_aicte_logo.png" alt="MoE AICTE SIH" className="poster-moe-logo" />
-                <div className="poster-divider"></div>
-                <img src="/logos/rathinam_rgu_logo.png" alt="Rathinam Global University" className="poster-rgu-logo" />
-              </div>
-
-              <div className="poster-badge-top">OFFICIAL SIH 2026 CENTRAL HACKATHON ARENA</div>
-              <h1 className="poster-headline">SIH ARENA GATE PASS &amp; ATTENDANCE TERMINAL</h1>
-              <p className="poster-subheadline">Common Venue Movement Tracking • Section 65B Electronic Proof Ledger</p>
-
-              <div className="poster-qr-container">
-                <QRCodeSVG 
-                  value={gatewayUrl}
-                  size={260} 
-                  level="H" 
-                  includeMargin={true} 
-                />
-                <div className="poster-scan-callout">
-                  <span>SCAN WITH ANY SMARTPHONE CAMERA</span>
+            {/* Poster Canvas: Dynamic based on posterMode */}
+            {posterMode === 'out' ? (
+              /* ================= DEDICATED OUT / EXIT POSTER ================= */
+              <div className="printable-gate-poster poster-mode-out">
+                <div className="poster-header-logos">
+                  <img src="/logos/sih_moe_aicte_logo.png" alt="MoE AICTE SIH" className="poster-moe-logo" />
+                  <div className="poster-divider"></div>
+                  <img src="/logos/rathinam_rgu_logo.png" alt="Rathinam Global University" className="poster-rgu-logo" />
                 </div>
-              </div>
 
-              <div className="poster-steps-grid">
-                <div className="poster-step-item">
-                  <div className="step-circle">1</div>
-                  <div className="step-text">
-                    <strong>Scan QR Code</strong>
-                    <span>Open the official Gate Pass portal on your phone</span>
+                <div className="poster-badge-top badge-out">OFFICIAL SIH 2026 ARENA • EXIT GATE TERMINAL</div>
+                <h1 className="poster-headline headline-out">SIH ARENA EXIT GATE PASS TERMINAL</h1>
+                <p className="poster-subheadline">Authorized Candidate Temporary Movement &amp; Break Pass Generation • Section 65B Electronic Proof Ledger</p>
+
+                <div className="poster-qr-container container-out">
+                  <QRCodeSVG 
+                    value={`${window.location.origin}/arena?action=out`}
+                    size={260} 
+                    level="H" 
+                    includeMargin={true} 
+                  />
+                  <div className="poster-scan-callout callout-out">
+                    <DoorOpen size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
+                    <span>SCAN TO GENERATE YOUR EXIT PASS</span>
                   </div>
                 </div>
 
-                <div className="poster-step-item">
-                  <div className="step-circle">2</div>
-                  <div className="step-text">
-                    <strong>Select Form-Filled Team</strong>
-                    <span>Choose Entire Team, Leader, or Specific Member</span>
+                <div className="poster-steps-grid">
+                  <div className="poster-step-item item-out">
+                    <div className="step-circle circle-out">1</div>
+                    <div className="step-text">
+                      <strong>Scan Exit QR Code</strong>
+                      <span>Open the Exit Pass Wizard on your smartphone camera</span>
+                    </div>
+                  </div>
+
+                  <div className="poster-step-item item-out">
+                    <div className="step-circle circle-out">2</div>
+                    <div className="step-text">
+                      <strong>Select Team &amp; Person</strong>
+                      <span>Choose Entire Team, Team Leader, or Specific Member</span>
+                    </div>
+                  </div>
+
+                  <div className="poster-step-item item-out">
+                    <div className="step-circle circle-out">3</div>
+                    <div className="step-text">
+                      <strong>Pick Reason &amp; Show Pass</strong>
+                      <span>Select Lunch, Tea, Restroom, Lab, Mentor, or Other &amp; show card to gate security</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="poster-step-item">
-                  <div className="step-circle">3</div>
-                  <div className="step-text">
-                    <strong>Pick Reason &amp; Show Card</strong>
-                    <span>Lunch, Tea, Restroom, Lab, Mentor, or Custom Reason</span>
-                  </div>
+                <div className="poster-footer-note note-out">
+                  <p>All candidates must show their generated Special Digital Team Card to Gate Security before stepping outside the SIH Arena.</p>
+                  <div className="poster-legal-stamp">Rathinam Global University • Campus Evaluation Authority • SIH Arena Gate Protocol</div>
                 </div>
               </div>
+            ) : (
+              /* ================= DEDICATED IN / RETURN POSTER ================= */
+              <div className="printable-gate-poster poster-mode-in">
+                <div className="poster-header-logos">
+                  <img src="/logos/sih_moe_aicte_logo.png" alt="MoE AICTE SIH" className="poster-moe-logo" />
+                  <div className="poster-divider"></div>
+                  <img src="/logos/rathinam_rgu_logo.png" alt="Rathinam Global University" className="poster-rgu-logo" />
+                </div>
 
-              <div className="poster-footer-note">
-                <p>All candidates must show their generated Special Digital Team Card at the physical gate and punch Return upon entering.</p>
-                <div className="poster-legal-stamp">Rathinam Global University • Campus Evaluation Authority</div>
+                <div className="poster-badge-top badge-in">OFFICIAL SIH 2026 ARENA • SAFE RETURN ENTRY TERMINAL</div>
+                <h1 className="poster-headline headline-in">SIH ARENA SAFE RETURN CHECK-IN</h1>
+                <p className="poster-subheadline">Instant Re-Entry Attendance Punch-In • Section 65B Electronic Movement Closure</p>
+
+                <div className="poster-qr-container container-in">
+                  <QRCodeSVG 
+                    value={`${window.location.origin}/arena?action=in`}
+                    size={260} 
+                    level="H" 
+                    includeMargin={true} 
+                  />
+                  <div className="poster-scan-callout callout-in">
+                    <DoorClosed size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />
+                    <span>SCAN UPON ENTERING TO LOG SAFE RETURN</span>
+                  </div>
+                </div>
+
+                <div className="poster-steps-grid">
+                  <div className="poster-step-item item-in">
+                    <div className="step-circle circle-in">1</div>
+                    <div className="step-text">
+                      <strong>Scan Return QR Code</strong>
+                      <span>Open the Return Check-In terminal immediately upon entering</span>
+                    </div>
+                  </div>
+
+                  <div className="poster-step-item item-in">
+                    <div className="step-circle circle-in">2</div>
+                    <div className="step-text">
+                      <strong>Locate Active Pass</strong>
+                      <span>Find your Team or Candidate pass in the Outside Active list</span>
+                    </div>
+                  </div>
+
+                  <div className="poster-step-item item-in">
+                    <div className="step-circle circle-in">3</div>
+                    <div className="step-text">
+                      <strong>Punch 'Return to Arena'</strong>
+                      <span>Close movement pass, record re-entry time, and restore venue attendance</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="poster-footer-note note-in">
+                  <p>Mandatory Re-Entry Protocol: Returning candidates must punch in immediately to prevent automated overdue violation alerts.</p>
+                  <div className="poster-legal-stamp">Rathinam Global University • Campus Evaluation Authority • SIH Arena Gate Protocol</div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
