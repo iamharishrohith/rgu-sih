@@ -1116,9 +1116,15 @@ export default function InOutAttendancePortal({
 
 
   // =========================================================================
-  // VIEW MODE 1 & 2: ULTRA-MINIMAL CANDIDATE QR SCANNER FORM BOX
+  // VIEW MODE 1 & 2: SMART CANDIDATE QR GATE FORM BOX (ROLL NO / ID VERIFICATION)
   // =========================================================================
   if (viewMode === 'candidate_out' || viewMode === 'candidate_in') {
+    // Check status of currently selected team
+    const currentSelectedStatus = selfPassSelectedTeam ? getTeamStatusInfo(selfPassSelectedTeam) : null;
+    const activeOutForSelected = selfPassSelectedTeam 
+      ? Object.entries(activeOuts).find(([k, o]) => o.team_id === selfPassSelectedTeam.temp_team_id)
+      : null;
+
     return (
       <div className="candidate-minimal-screen">
         {/* Minimal Header */}
@@ -1129,7 +1135,7 @@ export default function InOutAttendancePortal({
             <img src="/logos/rathinam_rgu_logo.png" alt="RGU" className="mini-hdr-logo" />
           </div>
 
-          <div className="candidate-clock-wrap" style={{ margin: '14px 0', display: 'flex', justifyContent: 'center' }}>
+          <div className="candidate-clock-wrap" style={{ margin: '12px 0', display: 'flex', justifyContent: 'center' }}>
             <LivePixelDigitalClock variant="mini" />
           </div>
 
@@ -1138,62 +1144,84 @@ export default function InOutAttendancePortal({
               {viewMode === 'candidate_out' ? (
                 <>
                   <DoorOpen size={14} />
-                  <span>SIH ARENA • CANDIDATE EXIT GATE PASS</span>
+                  <span>SIH ARENA • GATE EXIT DESK</span>
                 </>
               ) : (
                 <>
                   <DoorClosed size={14} />
-                  <span>SIH ARENA • SAFE RETURN CHECK-IN</span>
+                  <span>SIH ARENA • GATE ENTRY &amp; RETURN DESK</span>
                 </>
               )}
             </div>
             <h1 className="minimal-main-title">
-              {viewMode === 'candidate_out' ? 'Generate Your Exit Pass' : 'Punch Your Safe Return'}
+              {viewMode === 'candidate_out' ? 'Candidate Exit Pass & Movement' : 'Gate Check-In & Safe Return'}
             </h1>
             <p className="minimal-subtitle">
-              {viewMode === 'candidate_out' 
-                ? 'Select your registered team and who is leaving to get your live pass.' 
-                : 'Select your team to confirm return and close active break movement.'}
+              Enter your Roll No, Register No, or Team ID to authenticate and punch movement.
             </p>
           </div>
         </div>
 
         {/* Minimal Content Box */}
         <div className="candidate-minimal-card">
-          {viewMode === 'candidate_out' ? (
-            /* ================= CANDIDATE EXIT PASS FORM ================= */
+          {returnSuccessMsg ? (
+            <div className="mini-success-banner">
+              <CheckCircle2 size={38} className="text-emerald" />
+              <h3>Action Successfully Processed!</h3>
+              <p>{returnSuccessMsg}</p>
+              <button 
+                className="btn-done-minimal"
+                onClick={() => {
+                  setReturnSuccessMsg('');
+                  setSelfPassSelectedTeam(null);
+                  setSelfPassSearch('');
+                }}
+              >
+                Punch Another Movement
+              </button>
+            </div>
+          ) : (
             <div className="minimal-form-container">
-              {/* Step 1: Select Team */}
+              {/* STEP 1: Enter Roll No / Register No / Credential */}
               <div className="mini-step-group">
                 <label className="mini-step-label">
                   <span className="mini-num">1</span>
-                  <span>Select Your Team:</span>
+                  <span>Enter Roll No / Register No / Team ID:</span>
                 </label>
 
                 {selfPassSelectedTeam ? (
-                  <div className="mini-selected-team-pill">
+                  <div className="mini-selected-team-pill smart-selected-card">
                     <div className="team-text-details">
-                      <span className="team-code-tag">{selfPassSelectedTeam.temp_team_id}</span>
+                      <div className="smart-card-header-row">
+                        <span className="team-code-tag">{selfPassSelectedTeam.temp_team_id}</span>
+                        <span className={`status-pill ${currentSelectedStatus.badgeClass}`}>
+                          {currentSelectedStatus.label}
+                        </span>
+                      </div>
                       <strong className="team-name-strong">{selfPassSelectedTeam.team_name}</strong>
-                      <span className="team-ldr-tag">Leader: {selfPassSelectedTeam.leader_name} ({selfPassSelectedTeam.reg_no})</span>
+                      <span className="team-ldr-tag">Leader: <strong>{selfPassSelectedTeam.leader_name}</strong> ({selfPassSelectedTeam.reg_no})</span>
+                      <span className="team-school-tag">{normalizeSchoolName(selfPassSelectedTeam.school)}</span>
                     </div>
                     <button 
                       className="btn-mini-change"
-                      onClick={() => setSelfPassSelectedTeam(null)}
+                      onClick={() => {
+                        setSelfPassSelectedTeam(null);
+                        setSelfPassSearch('');
+                      }}
                     >
                       Change
                     </button>
                   </div>
                 ) : (
                   <div className="mini-team-search-box">
-                    <div className="mini-input-wrap">
-                      <Search size={16} className="search-ico" />
+                    <div className="mini-input-wrap smart-search-input-wrap">
+                      <Search size={18} className="search-ico" />
                       <input 
                         type="text" 
-                        placeholder="Search team name, temp ID (e.g. SIH26-TM-051), or leader..."
+                        placeholder="Enter Roll No (e.g. 23BCS041), Reg No, or Temp ID (SIH26-TM-051)..."
                         value={selfPassSearch}
                         onChange={e => setSelfPassSearch(e.target.value)}
-                        className="mini-text-input"
+                        className="mini-text-input smart-credential-input"
                         autoFocus
                       />
                       {selfPassSearch && (
@@ -1201,307 +1229,258 @@ export default function InOutAttendancePortal({
                       )}
                     </div>
 
-                    <div className="mini-team-dropdown-list">
+                    {/* Matched Teams List */}
+                    <div className="mini-team-dropdown-list smart-matched-list">
                       {displayedTeams
                         .filter(t => {
-                          if (!selfPassSearch.trim()) return true;
-                          const q = selfPassSearch.toLowerCase();
+                          if (!selfPassSearch.trim()) return false; // Only show when user begins typing
+                          const q = selfPassSearch.toLowerCase().trim();
+                          const roster = getTeamRoster(t);
+                          const memberMatch = roster.some(m => 
+                            (m.name && m.name.toLowerCase().includes(q)) || 
+                            (m.reg_no && m.reg_no.toLowerCase().includes(q))
+                          );
                           return (
                             t.temp_team_id.toLowerCase().includes(q) ||
                             t.team_name.toLowerCase().includes(q) ||
                             t.leader_name.toLowerCase().includes(q) ||
-                            t.reg_no.toLowerCase().includes(q)
+                            t.reg_no.toLowerCase().includes(q) ||
+                            (t.mobile && t.mobile.includes(q)) ||
+                            memberMatch
                           );
                         })
-                        .slice(0, 8)
+                        .slice(0, 6)
                         .map(team => {
                           const statusInfo = getTeamStatusInfo(team);
-                          const isEligibleForExit = statusInfo.status === 'ARENA_IN';
                           return (
                             <div 
                               key={team.temp_team_id}
-                              className={`mini-team-option-row ${!isEligibleForExit ? 'row-disabled' : ''}`}
+                              className="mini-team-option-row smart-team-match-row"
                               onClick={() => {
-                                if (!isEligibleForExit) {
-                                  if (statusInfo.status === 'NOT_ACTIVE') {
-                                    alert(`Team ${team.team_name} (${team.temp_team_id}) is NOT ACTIVE yet.\n\nPlease complete the First Team Login at the Entry Gate (Return/IN Gate) before generating an Exit Pass.`);
-                                  } else {
-                                    alert(`Team ${team.team_name} is already marked outside or departed.`);
-                                  }
-                                  return;
-                                }
                                 setSelfPassSelectedTeam(team);
                                 setSelectedMemberName(team.leader_name);
                                 setExitScope('team');
                               }}
                             >
                               <div className="opt-left">
-                                <span className="opt-code">{team.temp_team_id}</span>
-                                <span className="opt-name">{team.team_name}</span>
-                                <span className="opt-leader">{team.leader_name}</span>
+                                <div className="opt-top-line">
+                                  <span className="opt-code">{team.temp_team_id}</span>
+                                  <strong className="opt-name">{team.team_name}</strong>
+                                </div>
+                                <span className="opt-leader">Leader: {team.leader_name} ({team.reg_no})</span>
                               </div>
                               <span className={`opt-status-tag ${statusInfo.badgeClass}`}>
-                                {statusInfo.status === 'ARENA_IN' ? '✓ In Arena' : statusInfo.status === 'NOT_ACTIVE' ? '⚠️ Not Logged In' : 'Outside'}
+                                {statusInfo.status === 'ARENA_IN' ? '✓ In Arena' : statusInfo.status === 'NOT_ACTIVE' ? 'Not Active' : 'Outside (Break)'}
                               </span>
                             </div>
                           );
                         })}
+
+                      {selfPassSearch.trim() && displayedTeams.filter(t => {
+                        const q = selfPassSearch.toLowerCase().trim();
+                        const roster = getTeamRoster(t);
+                        return t.temp_team_id.toLowerCase().includes(q) || t.team_name.toLowerCase().includes(q) || t.leader_name.toLowerCase().includes(q) || t.reg_no.toLowerCase().includes(q) || roster.some(m => m.name.toLowerCase().includes(q) || m.reg_no.toLowerCase().includes(q));
+                      }).length === 0 && (
+                        <div className="smart-no-match-box">
+                          <AlertCircle size={16} className="text-amber" />
+                          <span>No registered team matches "{selfPassSearch}". Please verify your Register / Roll number.</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
 
-              {selfPassSelectedTeam && (
-                <>
-                  {/* Step 2: Who is Leaving? */}
-                  <div className="mini-step-group">
-                    <label className="mini-step-label">
-                      <span className="mini-num">2</span>
-                      <span>Who is leaving the arena?</span>
-                    </label>
-
-                    <div className="mini-scope-tabs">
-                      <button 
-                        className={`mini-scope-btn ${exitScope === 'team' ? 'active' : ''}`}
-                        onClick={() => setExitScope('team')}
-                      >
-                        <Users size={15} />
-                        <span>Entire Team</span>
-                      </button>
-
-                      <button 
-                        className={`mini-scope-btn ${exitScope === 'leader' ? 'active' : ''}`}
-                        onClick={() => {
-                          setExitScope('leader');
-                          setSelectedMemberName(selfPassSelectedTeam.leader_name);
-                        }}
-                      >
-                        <UserCheck size={15} />
-                        <span>Leader Only</span>
-                      </button>
-
-                      <button 
-                        className={`mini-scope-btn ${exitScope === 'member' ? 'active' : ''}`}
-                        onClick={() => setExitScope('member')}
-                      >
-                        <User size={15} />
-                        <span>Specific Member</span>
-                      </button>
-                    </div>
-
-                    {exitScope === 'member' && (
-                      <div className="mini-member-select-wrap">
-                        <label className="mini-sublabel">Select Candidate from Roster:</label>
-                        <div className="mini-member-chips-grid">
-                          {getTeamRoster(selfPassSelectedTeam).map((m, idx) => (
-                            <button 
-                              key={idx}
-                              className={`mini-mchip ${selectedMemberName === m.name ? 'selected' : ''}`}
-                              onClick={() => setSelectedMemberName(m.name)}
-                            >
-                              <span>{m.role}: <strong>{m.name}</strong></span>
-                            </button>
-                          ))}
+              {/* STEP 2: DYNAMIC SMART ACTION BASED ON CURRENT TEAM STATE */}
+              {selfPassSelectedTeam && currentSelectedStatus && (
+                <div className="smart-action-decision-container">
+                  
+                  {/* CASE A: TEAM IS NOT ACTIVE YET (FIRST TEAM LOGIN REQUIRED) */}
+                  {currentSelectedStatus.status === 'NOT_ACTIVE' && (
+                    <div className="smart-decision-card decision-login">
+                      <div className="decision-header">
+                        <div className="decision-icon-wrap emerald">
+                          <LogIn size={20} />
+                        </div>
+                        <div className="decision-text">
+                          <h4>Initial Arrival Check-In (First Team Login)</h4>
+                          <p>Team has arrived at SIH Arena. Click below to activate presence and start your hackathon session.</p>
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Step 3: Select Reason */}
-                  <div className="mini-step-group">
-                    <label className="mini-step-label">
-                      <span className="mini-num">3</span>
-                      <span>Select Authorized Reason:</span>
-                    </label>
+                      <button 
+                        className="btn-smart-primary btn-smart-login"
+                        onClick={() => {
+                          handleQuickLogIn(selfPassSelectedTeam);
+                          setReturnSuccessMsg(`First Team Login verified for ${selfPassSelectedTeam.team_name} (${selfPassSelectedTeam.temp_team_id})! Welcome to SIH Arena.`);
+                        }}
+                      >
+                        <LogIn size={18} />
+                        <span>Confirm Arrival &amp; Log In Team</span>
+                      </button>
+                    </div>
+                  )}
 
-                    <div className="mini-reasons-grid">
-                      {MOVEMENT_REASONS.map(r => {
-                        const IconC = r.icon;
-                        const isSel = selectedReason === r.id;
-                        return (
-                          <div 
-                            key={r.id}
-                            className={`mini-reason-card ${isSel ? 'selected' : ''}`}
+                  {/* CASE B: TEAM IS CURRENTLY OUTSIDE ON BREAK (SAFE RETURN OPTION) */}
+                  {currentSelectedStatus.status === 'ARENA_OUT' && (
+                    <div className="smart-decision-card decision-return">
+                      <div className="decision-header">
+                        <div className="decision-icon-wrap emerald">
+                          <DoorClosed size={20} />
+                        </div>
+                        <div className="decision-text">
+                          <h4>Safe Break Return Check-In</h4>
+                          <p>Currently marked outside: <strong>{currentSelectedStatus.subLabel}</strong></p>
+                        </div>
+                      </div>
+
+                      <div className="smart-return-actions-row">
+                        <button 
+                          className="btn-smart-primary btn-smart-return"
+                          onClick={() => {
+                            if (activeOutForSelected) {
+                              handlePunchIn(activeOutForSelected[0]);
+                            } else {
+                              handleQuickLogIn(selfPassSelectedTeam);
+                              setReturnSuccessMsg(`Safe return registered for ${selfPassSelectedTeam.team_name}! Status is now Active in Arena.`);
+                            }
+                          }}
+                        >
+                          <CheckCircle2 size={18} />
+                          <span>Punch Safe Return to Arena</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CASE C: TEAM IS ACTIVE IN ARENA (EXIT PASS OR LOGOUT OPTIONS) */}
+                  {currentSelectedStatus.status === 'ARENA_IN' && (
+                    <div className="smart-decision-card decision-exit">
+                      {/* Step 2.1: Who is leaving */}
+                      <div className="mini-step-group">
+                        <label className="mini-step-label">
+                          <span className="mini-num">2</span>
+                          <span>Who is leaving the arena?</span>
+                        </label>
+
+                        <div className="mini-scope-tabs">
+                          <button 
+                            className={`mini-scope-btn ${exitScope === 'team' ? 'active' : ''}`}
+                            onClick={() => setExitScope('team')}
+                          >
+                            <Users size={15} />
+                            <span>Entire Team</span>
+                          </button>
+
+                          <button 
+                            className={`mini-scope-btn ${exitScope === 'leader' ? 'active' : ''}`}
                             onClick={() => {
-                              setSelectedReason(r.id);
-                              setCustomMinutes(r.defaultMins);
+                              setExitScope('leader');
+                              setSelectedMemberName(selfPassSelectedTeam.leader_name);
                             }}
                           >
-                            <IconC size={18} style={{ color: r.color }} />
-                            <div className="mini-reason-text">
-                              <strong>{r.label.split('(')[0]}</strong>
-                              <span>{r.defaultMins} Mins</span>
+                            <UserCheck size={15} />
+                            <span>Leader Only</span>
+                          </button>
+
+                          <button 
+                            className={`mini-scope-btn ${exitScope === 'member' ? 'active' : ''}`}
+                            onClick={() => setExitScope('member')}
+                          >
+                            <User size={15} />
+                            <span>Specific Member</span>
+                          </button>
+                        </div>
+
+                        {exitScope === 'member' && (
+                          <div className="mini-member-select-wrap">
+                            <label className="mini-sublabel">Select Candidate from Roster:</label>
+                            <div className="mini-member-chips-grid">
+                              {getTeamRoster(selfPassSelectedTeam).map((m, idx) => (
+                                <button 
+                                  key={idx}
+                                  className={`mini-mchip ${selectedMemberName === m.name ? 'selected' : ''}`}
+                                  onClick={() => setSelectedMemberName(m.name)}
+                                >
+                                  <span>{m.role}: <strong>{m.name}</strong></span>
+                                </button>
+                              ))}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Time steppers */}
-                    <div className="mini-time-stepper-row">
-                      <span>Time Allowed:</span>
-                      <div className="mini-stepper">
-                        <button onClick={() => setCustomMinutes(m => Math.max(5, m - 5))}>-5m</button>
-                        <strong>{customMinutes} Mins</strong>
-                        <button onClick={() => setCustomMinutes(m => m + 5)}>+5m</button>
-                      </div>
-                      <span className="return-time-badge">
-                        Return Due: <strong>{new Date(Date.now() + customMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <button className="btn-generate-minimal-pass" onClick={handleAuthorizeExit}>
-                    <Sparkles size={18} />
-                    <span>Generate Live Exit Pass</span>
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            /* ================= CANDIDATE ENTRY & SAFE RETURN FORM ================= */
-            <div className="minimal-form-container">
-              {returnSuccessMsg ? (
-                <div className="mini-success-banner">
-                  <CheckCircle2 size={36} className="text-emerald" />
-                  <h3>Entry Verified Successfully!</h3>
-                  <p>{returnSuccessMsg}</p>
-                  <button 
-                    className="btn-done-minimal"
-                    onClick={() => {
-                      setReturnSuccessMsg('');
-                      setReturnSearch('');
-                    }}
-                  >
-                    Done
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Section A: Active Outside Break Return */}
-                  <div className="mini-step-group">
-                    <label className="mini-step-label">
-                      <span className="mini-num">1</span>
-                      <span>Break Return Check-In ({Object.keys(activeOuts).length} Outside):</span>
-                    </label>
-
-                    {Object.keys(activeOuts).length > 0 ? (
-                      <div className="mini-active-outs-list">
-                        {Object.entries(activeOuts).map(([passKey, out]) => {
-                          const nowMs = Date.now();
-                          const is30Over = nowMs > (out.expected_return_timestamp + 30 * 60 * 1000);
-                          return (
-                            <div key={passKey} className={`mini-out-item-card ${is30Over ? 'card-30-overdue' : ''}`}>
-                              <div className="out-item-left">
-                                <span className="out-code">{out.team_id}</span>
-                                <strong className="out-team">{out.team_name}</strong>
-                                <span className="out-member">{out.member_name} ({out.reason_label})</span>
-                                <span className="out-time">Left: {out.out_time} • Due: {out.expected_return_time}</span>
-                                {is30Over && (
-                                  <span className="overdue-30-badge">⚠️ Exceeded 30+ Mins (Auto Team Logout Due)</span>
-                                )}
-                              </div>
-                              <div className="out-item-actions">
-                                <button 
-                                  className="btn-mini-return-action"
-                                  onClick={() => handlePunchIn(passKey)}
-                                >
-                                  <CheckCircle2 size={16} />
-                                  <span>Punch Return</span>
-                                </button>
-                                {is30Over && (
-                                  <button 
-                                    className="btn-mini-logout-action"
-                                    onClick={() => {
-                                      const t = displayedTeams.find(item => item.temp_team_id === out.team_id);
-                                      if (t) handleQuickLogOut(t, 'Auto Team Logout (Exceeded 30m over)');
-                                    }}
-                                    title="Exceeded 30 mins over return limit -> Auto Logout Team"
-                                  >
-                                    <LogOut size={14} />
-                                    <span>Team Logout</span>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="mini-empty-outs-callout">
-                        <CheckCircle2 size={18} className="text-emerald" />
-                        <p>No candidates currently marked outside on break.</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Section B: First Team Login / Morning Arrival */}
-                  <div className="mini-step-group" style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-                    <label className="mini-step-label">
-                      <span className="mini-num">2</span>
-                      <span>First Team Arrival Login (Initial Entry Check-In):</span>
-                    </label>
-                    <p className="mini-helper-text">Arriving for the first time? Select your team to activate your initial Arena In login.</p>
-
-                    <div className="mini-team-search-box">
-                      <div className="mini-input-wrap">
-                        <Search size={16} className="search-ico" />
-                        <input 
-                          type="text" 
-                          placeholder="Search arriving team name or temp ID..."
-                          value={returnSearch}
-                          onChange={e => setReturnSearch(e.target.value)}
-                          className="mini-text-input"
-                        />
-                        {returnSearch && (
-                          <button className="btn-mini-clear" onClick={() => setReturnSearch('')}>✕</button>
                         )}
                       </div>
 
-                      <div className="mini-team-dropdown-list">
-                        {displayedTeams
-                          .filter(t => {
-                            const isNotActive = getTeamStatusInfo(t).status === 'NOT_ACTIVE';
-                            if (!returnSearch.trim()) return isNotActive;
-                            const q = returnSearch.toLowerCase();
-                            return isNotActive && (
-                              t.temp_team_id.toLowerCase().includes(q) ||
-                              t.team_name.toLowerCase().includes(q) ||
-                              t.leader_name.toLowerCase().includes(q) ||
-                              t.reg_no.toLowerCase().includes(q)
-                            );
-                          })
-                          .slice(0, 6)
-                          .map(team => (
-                            <div 
-                              key={team.temp_team_id}
-                              className="mini-team-option-row arrival-row"
-                              onClick={() => {
-                                handleQuickLogIn(team);
-                                setReturnSuccessMsg(`First Team Login confirmed for ${team.team_name} (${team.temp_team_id})! Status is now Active Arena In.`);
-                              }}
-                            >
-                              <div className="opt-left">
-                                <span className="opt-code emerald-id">{team.temp_team_id}</span>
-                                <span className="opt-name">{team.team_name}</span>
-                                <span className="opt-leader">{team.leader_name}</span>
+                      {/* Step 2.2: Reason & Stepper */}
+                      <div className="mini-step-group">
+                        <label className="mini-step-label">
+                          <span className="mini-num">3</span>
+                          <span>Select Authorized Reason:</span>
+                        </label>
+
+                        <div className="mini-reasons-grid">
+                          {MOVEMENT_REASONS.map(r => {
+                            const IconC = r.icon;
+                            const isSel = selectedReason === r.id;
+                            return (
+                              <div 
+                                key={r.id}
+                                className={`mini-reason-card ${isSel ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setSelectedReason(r.id);
+                                  setCustomMinutes(r.defaultMins);
+                                }}
+                              >
+                                <IconC size={18} style={{ color: r.color }} />
+                                <div className="mini-reason-text">
+                                  <strong>{r.label.split('(')[0]}</strong>
+                                  <span>{r.defaultMins} Mins</span>
+                                </div>
                               </div>
-                              <button className="btn-punch-first-in">
-                                <LogIn size={14} />
-                                <span>First Team Login</span>
-                              </button>
-                            </div>
-                          ))}
+                            );
+                          })}
+                        </div>
+
+                        <div className="mini-time-stepper-row">
+                          <span>Time Allowed:</span>
+                          <div className="mini-stepper">
+                            <button onClick={() => setCustomMinutes(m => Math.max(5, m - 5))}>-5m</button>
+                            <strong>{customMinutes} Mins</strong>
+                            <button onClick={() => setCustomMinutes(m => m + 5)}>+5m</button>
+                          </div>
+                          <span className="return-time-badge">
+                            Return Due: <strong>{new Date(Date.now() + customMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="smart-exit-buttons-row">
+                        <button className="btn-generate-minimal-pass" onClick={handleAuthorizeExit}>
+                          <DoorOpen size={18} />
+                          <span>Generate Live Break Exit Pass</span>
+                        </button>
+
+                        <button 
+                          className="btn-smart-logout-action"
+                          onClick={() => {
+                            if (window.confirm(`Mark Evening Departure (Logout) for ${selfPassSelectedTeam.team_name}?`)) {
+                              handleQuickLogOut(selfPassSelectedTeam, 'Evening Session Departure (Team Logout)');
+                              setReturnSuccessMsg(`Team Logout confirmed for ${selfPassSelectedTeam.team_name}. Session concluded.`);
+                            }
+                          }}
+                        >
+                          <LogOut size={16} />
+                          <span>Final Evening Logout</span>
+                        </button>
                       </div>
                     </div>
-                  </div>
-                </>
+                  )}
+
+                </div>
               )}
             </div>
           )}
         </div>
-
 
         {/* Live Digital Card Modal if generated */}
         {activeSpecialCard && (

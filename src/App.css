@@ -13929,3 +13929,207 @@ body {
 .btn-mini-logout-action:hover {
   background: #c2410c;
 }
+
+
+/* =========================================================================
+   SMART CANDIDATE CREDENTIAL MATCHING & DYNAMIC ACTION STYLES
+   ========================================================================= */
+
+.smart-selected-card {
+  background: #ffffff !important;
+  border: 1.5px solid #0284c7 !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12) !important;
+  padding: 16px !important;
+  border-radius: 14px !important;
+}
+
+.smart-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.team-school-tag {
+  font-size: 0.74rem;
+  color: #64748b;
+  display: block;
+  margin-top: 2px;
+}
+
+.smart-credential-input {
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  padding: 12px 38px 12px 42px !important;
+}
+
+.smart-matched-list {
+  margin-top: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.smart-team-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px !important;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.smart-team-match-row:hover {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  transform: translateY(-1px);
+}
+
+.opt-top-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.smart-no-match-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #92400e;
+  margin-top: 8px;
+}
+
+/* Decision Cards */
+.smart-action-decision-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1.5px solid #e2e8f0;
+}
+
+.smart-decision-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1.5px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.smart-decision-card.decision-login {
+  border-color: #a7f3d0;
+  background: #f0fdf4;
+}
+
+.smart-decision-card.decision-return {
+  border-color: #a7f3d0;
+  background: #f0fdf4;
+}
+
+.smart-decision-card.decision-exit {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.decision-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.decision-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.decision-icon-wrap.emerald {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.decision-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.decision-text p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.btn-smart-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  width: 100%;
+  min-height: 48px;
+}
+
+.btn-smart-login, .btn-smart-return {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.btn-smart-login:hover, .btn-smart-return:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.smart-exit-buttons-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-smart-logout-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s ease;
+}
+
+.btn-smart-logout-action:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+}
