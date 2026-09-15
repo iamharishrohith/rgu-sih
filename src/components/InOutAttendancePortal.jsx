@@ -1214,21 +1214,38 @@ export default function InOutAttendancePortal({
                           );
                         })
                         .slice(0, 8)
-                        .map(team => (
-                          <div 
-                            key={team.temp_team_id}
-                            className="mini-team-option-row"
-                            onClick={() => {
-                              setSelfPassSelectedTeam(team);
-                              setSelectedMemberName(team.leader_name);
-                              setExitScope('team');
-                            }}
-                          >
-                            <span className="opt-code">{team.temp_team_id}</span>
-                            <span className="opt-name">{team.team_name}</span>
-                            <span className="opt-leader">{team.leader_name}</span>
-                          </div>
-                        ))}
+                        .map(team => {
+                          const statusInfo = getTeamStatusInfo(team);
+                          const isEligibleForExit = statusInfo.status === 'ARENA_IN';
+                          return (
+                            <div 
+                              key={team.temp_team_id}
+                              className={`mini-team-option-row ${!isEligibleForExit ? 'row-disabled' : ''}`}
+                              onClick={() => {
+                                if (!isEligibleForExit) {
+                                  if (statusInfo.status === 'NOT_ACTIVE') {
+                                    alert(`Team ${team.team_name} (${team.temp_team_id}) is NOT ACTIVE yet.\n\nPlease complete the First Team Login at the Entry Gate (Return/IN Gate) before generating an Exit Pass.`);
+                                  } else {
+                                    alert(`Team ${team.team_name} is already marked outside or departed.`);
+                                  }
+                                  return;
+                                }
+                                setSelfPassSelectedTeam(team);
+                                setSelectedMemberName(team.leader_name);
+                                setExitScope('team');
+                              }}
+                            >
+                              <div className="opt-left">
+                                <span className="opt-code">{team.temp_team_id}</span>
+                                <span className="opt-name">{team.team_name}</span>
+                                <span className="opt-leader">{team.leader_name}</span>
+                              </div>
+                              <span className={`opt-status-tag ${statusInfo.badgeClass}`}>
+                                {statusInfo.status === 'ARENA_IN' ? '✓ In Arena' : statusInfo.status === 'NOT_ACTIVE' ? '⚠️ Not Logged In' : 'Outside'}
+                              </span>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 )}
@@ -1343,57 +1360,141 @@ export default function InOutAttendancePortal({
               )}
             </div>
           ) : (
-            /* ================= CANDIDATE SAFE RETURN FORM ================= */
+            /* ================= CANDIDATE ENTRY & SAFE RETURN FORM ================= */
             <div className="minimal-form-container">
               {returnSuccessMsg ? (
                 <div className="mini-success-banner">
                   <CheckCircle2 size={36} className="text-emerald" />
-                  <h3>Safe Return Confirmed!</h3>
+                  <h3>Entry Verified Successfully!</h3>
                   <p>{returnSuccessMsg}</p>
                   <button 
                     className="btn-done-minimal"
                     onClick={() => {
                       setReturnSuccessMsg('');
-                      setViewMode('candidate_out');
+                      setReturnSearch('');
                     }}
                   >
-                    Generate Another Pass
+                    Done
                   </button>
                 </div>
               ) : (
                 <>
+                  {/* Section A: Active Outside Break Return */}
                   <div className="mini-step-group">
                     <label className="mini-step-label">
                       <span className="mini-num">1</span>
-                      <span>Select Your Active Outside Pass to Return:</span>
+                      <span>Break Return Check-In ({Object.keys(activeOuts).length} Outside):</span>
                     </label>
 
-                    {Object.keys(activeOuts).length === 0 ? (
-                      <div className="mini-empty-outs-callout">
-                        <CheckCircle2 size={24} className="text-emerald" />
-                        <p>No teams currently marked outside. All candidates are inside SIH Arena.</p>
+                    {Object.keys(activeOuts).length > 0 ? (
+                      <div className="mini-active-outs-list">
+                        {Object.entries(activeOuts).map(([passKey, out]) => {
+                          const nowMs = Date.now();
+                          const is30Over = nowMs > (out.expected_return_timestamp + 30 * 60 * 1000);
+                          return (
+                            <div key={passKey} className={`mini-out-item-card ${is30Over ? 'card-30-overdue' : ''}`}>
+                              <div className="out-item-left">
+                                <span className="out-code">{out.team_id}</span>
+                                <strong className="out-team">{out.team_name}</strong>
+                                <span className="out-member">{out.member_name} ({out.reason_label})</span>
+                                <span className="out-time">Left: {out.out_time} • Due: {out.expected_return_time}</span>
+                                {is30Over && (
+                                  <span className="overdue-30-badge">⚠️ Exceeded 30+ Mins (Auto Team Logout Due)</span>
+                                )}
+                              </div>
+                              <div className="out-item-actions">
+                                <button 
+                                  className="btn-mini-return-action"
+                                  onClick={() => handlePunchIn(passKey)}
+                                >
+                                  <CheckCircle2 size={16} />
+                                  <span>Punch Return</span>
+                                </button>
+                                {is30Over && (
+                                  <button 
+                                    className="btn-mini-logout-action"
+                                    onClick={() => {
+                                      const t = displayedTeams.find(item => item.temp_team_id === out.team_id);
+                                      if (t) handleQuickLogOut(t, 'Auto Team Logout (Exceeded 30m over)');
+                                    }}
+                                    title="Exceeded 30 mins over return limit -> Auto Logout Team"
+                                  >
+                                    <LogOut size={14} />
+                                    <span>Team Logout</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
-                      <div className="mini-active-outs-list">
-                        {Object.entries(activeOuts).map(([passKey, out]) => (
-                          <div key={passKey} className="mini-out-item-card">
-                            <div className="out-item-left">
-                              <span className="out-code">{out.team_id}</span>
-                              <strong className="out-team">{out.team_name}</strong>
-                              <span className="out-member">{out.member_name} ({out.reason_label})</span>
-                              <span className="out-time">Left: {out.out_time} • Due: {out.expected_return_time}</span>
-                            </div>
-                            <button 
-                              className="btn-mini-return-action"
-                              onClick={() => handlePunchIn(passKey)}
-                            >
-                              <CheckCircle2 size={16} />
-                              <span>Punch Return</span>
-                            </button>
-                          </div>
-                        ))}
+                      <div className="mini-empty-outs-callout">
+                        <CheckCircle2 size={18} className="text-emerald" />
+                        <p>No candidates currently marked outside on break.</p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Section B: First Team Login / Morning Arrival */}
+                  <div className="mini-step-group" style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+                    <label className="mini-step-label">
+                      <span className="mini-num">2</span>
+                      <span>First Team Arrival Login (Initial Entry Check-In):</span>
+                    </label>
+                    <p className="mini-helper-text">Arriving for the first time? Select your team to activate your initial Arena In login.</p>
+
+                    <div className="mini-team-search-box">
+                      <div className="mini-input-wrap">
+                        <Search size={16} className="search-ico" />
+                        <input 
+                          type="text" 
+                          placeholder="Search arriving team name or temp ID..."
+                          value={returnSearch}
+                          onChange={e => setReturnSearch(e.target.value)}
+                          className="mini-text-input"
+                        />
+                        {returnSearch && (
+                          <button className="btn-mini-clear" onClick={() => setReturnSearch('')}>✕</button>
+                        )}
+                      </div>
+
+                      <div className="mini-team-dropdown-list">
+                        {displayedTeams
+                          .filter(t => {
+                            const isNotActive = getTeamStatusInfo(t).status === 'NOT_ACTIVE';
+                            if (!returnSearch.trim()) return isNotActive;
+                            const q = returnSearch.toLowerCase();
+                            return isNotActive && (
+                              t.temp_team_id.toLowerCase().includes(q) ||
+                              t.team_name.toLowerCase().includes(q) ||
+                              t.leader_name.toLowerCase().includes(q) ||
+                              t.reg_no.toLowerCase().includes(q)
+                            );
+                          })
+                          .slice(0, 6)
+                          .map(team => (
+                            <div 
+                              key={team.temp_team_id}
+                              className="mini-team-option-row arrival-row"
+                              onClick={() => {
+                                handleQuickLogIn(team);
+                                setReturnSuccessMsg(`First Team Login confirmed for ${team.team_name} (${team.temp_team_id})! Status is now Active Arena In.`);
+                              }}
+                            >
+                              <div className="opt-left">
+                                <span className="opt-code emerald-id">{team.temp_team_id}</span>
+                                <span className="opt-name">{team.team_name}</span>
+                                <span className="opt-leader">{team.leader_name}</span>
+                              </div>
+                              <button className="btn-punch-first-in">
+                                <LogIn size={14} />
+                                <span>First Team Login</span>
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
                   </div>
                 </>
               )}

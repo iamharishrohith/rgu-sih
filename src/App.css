@@ -13830,3 +13830,102 @@ body {
   font-weight: 700;
   border: 1px solid #a7f3d0;
 }
+
+
+/* =========================================================================
+   FIRST TEAM LOGIN & 30-MIN OVERDUE LOGOUT STYLING
+   ========================================================================= */
+
+.mini-team-option-row.row-disabled {
+  background: #f8fafc;
+  opacity: 0.75;
+}
+
+.mini-team-option-row.row-disabled:hover {
+  background: #f1f5f9;
+}
+
+.opt-status-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.mini-helper-text {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0 0 10px 0;
+}
+
+.arrival-row {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.arrival-row:hover {
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.btn-punch-first-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #059669;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  transition: all 0.2s ease;
+}
+.btn-punch-first-in:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.card-30-overdue {
+  border: 1.5px solid #f87171 !important;
+  background: #fff5f5 !important;
+}
+
+.overdue-30-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.out-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-mini-logout-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #ea580c;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-mini-logout-action:hover {
+  background: #c2410c;
+}
