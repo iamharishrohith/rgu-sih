@@ -45,90 +45,66 @@ export default function Navbar({
       {/* Top Institutional & Hackathon Dual Banners */}
       <div className="header-logos-bar">
         <div className="logos-container">
-          <div 
-            className="logo-item moe-sih-banner" 
-            onClick={handleLogoClick}
-            style={{ cursor: 'pointer' }}
-            title="Smart India Hackathon 2026 (Triple-click for Admin Access)"
-          >
-            <img 
-              src="/logos/sih_moe_aicte_logo.png" 
-              alt="Ministry of Education, AICTE, MoE Innovation Cell, Smart India Hackathon 2026" 
-              className="banner-img moe-img"
-            />
-          </div>
-
-          <div className="logo-divider-line"></div>
-
-          <div 
-            className="logo-item rathinam-banner"
-            onClick={handleRathinamLogoClick}
-            style={{ cursor: 'pointer' }}
-            title="Rathinam Global University"
-          >
-            <img 
-              src="/logos/rathinam_rgu_logo.png" 
-              alt="Rathinam Global University - NAAC A++ Grade, 1st in Tamil Nadu" 
-              className="banner-img rgu-img"
-            />
-          </div>
-
-          <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-
-            <button 
-              className={`btn-nav-view ${currentView === 'candidate_desk' || currentView === 'landing' ? 'active' : ''}`}
-              onClick={onOpenCandidateDesk}
-              title="Candidate Registry & Selection Roster"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 13px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                background: currentView === 'candidate_desk' || currentView === 'landing' ? '#0f172a' : '#f8fafc',
-                color: currentView === 'candidate_desk' || currentView === 'landing' ? '#ffffff' : '#334155',
-                border: '1px solid ' + (currentView === 'candidate_desk' || currentView === 'landing' ? '#0f172a' : '#cbd5e1'),
-                transition: 'all 0.2s ease'
-              }}
+          <div className="logos-brand-combo" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <div 
+              className="logo-item moe-sih-banner" 
+              onClick={handleLogoClick}
+              style={{ cursor: 'pointer' }}
+              title="Smart India Hackathon 2026 (Triple-click for Admin Access)"
             >
-              <UserCheck size={15} />
-              <span>Candidate Roster</span>
-            </button>
+              <img 
+                src="/logos/sih_moe_aicte_logo.png" 
+                alt="Ministry of Education, AICTE, MoE Innovation Cell, Smart India Hackathon 2026" 
+                className="banner-img moe-img"
+              />
+            </div>
 
-            {/* Admin Navigation Button appears ONLY when already authenticated */}
-            {isAdminLoggedIn && (
-              <>
-                <button 
-                  className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
-                  onClick={onOpenTimerModal}
-                  title="Manage Registration Window & Timer"
-                >
-                  {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
-                  <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
-                </button>
+            <div className="logo-divider-line"></div>
 
-                <div className="meta-stats-pill">
-                  <CheckCircle2 size={15} className="text-emerald" />
-                  <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
-                </div>
-
-                {currentView === 'admin' ? (
-                  <button className="btn-nav-view active" onClick={onOpenCandidateDesk}>
-                    <UserCheck size={16} />
-                    <span>Exit Admin</span>
-                  </button>
-                ) : (
-                  <button className="btn-nav-admin active-admin" onClick={onSecretAdminTrigger}>
-                    <LayoutDashboard size={16} />
-                    <span>Admin Desk</span>
-                  </button>
-                )}
-              </>
-            )}
+            <div 
+              className="logo-item rathinam-banner"
+              onClick={handleRathinamLogoClick}
+              style={{ cursor: 'pointer' }}
+              title="Rathinam Global University"
+            >
+              <img 
+                src="/logos/rathinam_rgu_logo.png" 
+                alt="Rathinam Global University - NAAC A++ Grade, 1st in Tamil Nadu" 
+                className="banner-img rgu-img"
+              />
+            </div>
           </div>
+
+          {/* Admin Navigation Controls appear ONLY when authenticated */}
+          {isAdminLoggedIn && (
+            <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
+                onClick={onOpenTimerModal}
+                title="Manage Registration Window & Timer"
+              >
+                {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
+                <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
+              </button>
+
+              <div className="meta-stats-pill">
+                <CheckCircle2 size={15} className="text-emerald" />
+                <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
+              </div>
+
+              {currentView === 'admin' ? (
+                <button className="btn-nav-view active" onClick={onOpenCandidateDesk}>
+                  <UserCheck size={16} />
+                  <span>Exit Admin</span>
+                </button>
+              ) : (
+                <button className="btn-nav-admin active-admin" onClick={onSecretAdminTrigger}>
+                  <LayoutDashboard size={16} />
+                  <span>Admin Desk</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

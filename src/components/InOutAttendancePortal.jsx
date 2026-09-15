@@ -1192,24 +1192,6 @@ export default function InOutAttendancePortal({
           )}
         </div>
 
-        {/* Minimal Footer Switcher */}
-        <div className="candidate-minimal-footer">
-          <div className="mini-footer-links">
-            <button 
-              className="footer-link-btn"
-              onClick={() => setViewMode(viewMode === 'candidate_out' ? 'candidate_in' : 'candidate_out')}
-            >
-              {viewMode === 'candidate_out' ? 'Returning to Arena? Switch to Check-In' : 'Leaving Arena? Switch to Exit Pass'}
-            </button>
-            <span className="divider-dot">•</span>
-            <button 
-              className="footer-link-btn text-muted"
-              onClick={() => setViewMode('desk')}
-            >
-              Switch to Arena Desk Dashboard
-            </button>
-          </div>
-        </div>
 
         {/* Live Digital Card Modal if generated */}
         {activeSpecialCard && (
