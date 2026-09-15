@@ -16,9 +16,9 @@ export default function GrandLandingShowcase({
   const [searchedTeam, setSearchedTeam] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const shortlistCount = allTeams.filter(t => t.status === 'Shortlist').length || 82;
-  const benchCount = allTeams.filter(t => t.status === 'Bench').length || 10;
-  const waitlistCount = allTeams.filter(t => t.status === 'Waitlist').length || 17;
+  const shortlistCount = allTeams.filter(t => t.status === 'Shortlist').length;
+  const benchCount = allTeams.filter(t => t.status === 'Bench').length;
+  const waitlistCount = allTeams.filter(t => t.status === 'Waitlist').length;
   const totalCount = shortlistCount + benchCount + waitlistCount;
 
   const handleInstantLookup = (e) => {
@@ -87,7 +87,7 @@ export default function GrandLandingShowcase({
                 <div className="stat-icon-badge emerald">
                   <ShieldCheck size={22} />
                 </div>
-                <span className="stat-number-big">80</span>
+                <span className="stat-number-big">{shortlistCount}</span>
               </div>
               <div className="stat-card-title">Shortlisted Finalists</div>
               <p className="stat-card-sub">100% Unique Problem Statements with Zero Overlap</p>
@@ -102,7 +102,7 @@ export default function GrandLandingShowcase({
                 <div className="stat-icon-badge amber">
                   <Award size={22} />
                 </div>
-                <span className="stat-number-big">10</span>
+                <span className="stat-number-big">{benchCount}</span>
               </div>
               <div className="stat-card-title">Bench Standby Teams</div>
               <p className="stat-card-sub">Tier-1 Immediate Standby Pool for National Portal</p>

@@ -271,7 +271,7 @@ export default function InOutAttendancePortal({
 
   const displayedTeams = useMemo(() => {
     if (onlySubmittedForms) {
-      return formSubmittedTeams.length > 0 ? formSubmittedTeams : allTeams;
+      return formSubmittedTeams;
     }
     return allTeams;
   }, [onlySubmittedForms, formSubmittedTeams, allTeams]);
@@ -325,7 +325,7 @@ export default function InOutAttendancePortal({
     }
   };
 
-  // Helper to extract full team roster (Leader + 5 members)
+  // Helper to extract verified team roster from real Supabase / form data (0% mock)
   const getTeamRoster = (team) => {
     if (!team) return [];
     const reg = activeRegistrationsMap[team.temp_team_id] || team.registration_data;
@@ -339,30 +339,18 @@ export default function InOutAttendancePortal({
       isLeader: true
     });
 
-    // Members 2 to 6
+    // Members 2 to 6 (Only genuine verified members from database)
     if (reg?.members && Array.isArray(reg.members)) {
       reg.members.forEach((m, idx) => {
-        if (m.name && m.name.trim()) {
+        if (m && m.name && m.name.trim()) {
           members.push({
             role: `Member ${idx + 2}`,
-            name: m.name,
+            name: m.name.trim(),
             reg_no: m.reg_no || `RCAS-${team.temp_team_id}-${idx + 2}`,
             isLeader: false
           });
         }
       });
-    }
-
-    if (members.length === 1) {
-      for (let i = 2; i <= 6; i++) {
-        members.push({
-          role: `Member ${i}`,
-          name: `Team Member ${i}`,
-          reg_no: `Roster Slot #${i}`,
-          isPlaceholder: true,
-          isLeader: false
-        });
-      }
     }
 
     return members;
