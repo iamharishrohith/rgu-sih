@@ -69,15 +69,6 @@ export default function GrandLandingShowcase({
               <ArrowRight size={18} />
             </button>
 
-            <button 
-              className="btn-grand-secondary-cta" 
-              onClick={onOpenInOutPortal}
-              style={{ background: '#ea580c', color: '#ffffff', borderColor: '#ea580c', boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)' }}
-            >
-              <DoorOpen size={18} />
-              <span>Gate Pass (In-Out Tracking)</span>
-            </button>
-
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />
               <span>Bench Standby Pool ({benchCount})</span>

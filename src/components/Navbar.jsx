@@ -13,11 +13,12 @@ export default function Navbar({
   isPortalClosed,
   onOpenTimerModal
 }) {
-  const [clickCount, setClickCount] = useState(0);
+  const [adminClickCount, setAdminClickCount] = useState(0);
+  const [arenaClickCount, setArenaClickCount] = useState(0);
 
   // Secret triple-click on banner logo to trigger admin
   const handleLogoClick = () => {
-    setClickCount(prev => {
+    setAdminClickCount(prev => {
       const next = prev + 1;
       if (next >= 3) {
         onSecretAdminTrigger();
@@ -25,7 +26,18 @@ export default function Navbar({
       }
       return next;
     });
-    if (onOpenInOutPortal) onOpenInOutPortal();
+  };
+
+  // Secret 4-click on Rathinam logo for hidden SIH Arena access
+  const handleRathinamLogoClick = () => {
+    setArenaClickCount(prev => {
+      const next = prev + 1;
+      if (next >= 4) {
+        if (onOpenInOutPortal) onOpenInOutPortal();
+        return 0;
+      }
+      return next;
+    });
   };
 
   return (
@@ -50,7 +62,7 @@ export default function Navbar({
 
           <div 
             className="logo-item rathinam-banner"
-            onClick={onOpenInOutPortal || onOpenLandingView}
+            onClick={handleRathinamLogoClick}
             style={{ cursor: 'pointer' }}
             title="Rathinam Global University"
           >
@@ -62,28 +74,6 @@ export default function Navbar({
           </div>
 
           <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button 
-              className={`btn-nav-view ${currentView === 'inout_portal' ? 'active' : ''}`}
-              onClick={onOpenInOutPortal}
-              title="SIH Main Arena - Live QR Gate Pass & Attendance Movement Workplace"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                background: currentView === 'inout_portal' ? '#ea580c' : '#fff7ed',
-                color: currentView === 'inout_portal' ? '#ffffff' : '#c2410c',
-                border: '1px solid ' + (currentView === 'inout_portal' ? '#ea580c' : '#fed7aa'),
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <DoorOpen size={15} />
-              <span>Gate Pass Workplace</span>
-            </button>
 
             <button 
               className={`btn-nav-view ${currentView === 'candidate_desk' || currentView === 'landing' ? 'active' : ''}`}

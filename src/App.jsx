@@ -218,6 +218,10 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
         e.preventDefault();
         triggerSecretAdmin();
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
+        e.preventDefault();
+        window.history.pushState(null, '', '/arena');
+        setCurrentView('inout_portal');
       }
     };
 
