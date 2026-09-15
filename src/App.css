@@ -11501,3 +11501,140 @@ body {
   color: #64748b;
   font-size: 0.85rem;
 }
+
+
+/* ==========================================================================
+   LIVE PIXEL DIGITAL CLOCK (GLOWING LED RETRO-FUTURISTIC LCD SCREEN)
+   ========================================================================== */
+
+.pixel-clock-unit {
+  display: inline-flex;
+  flex-direction: column;
+  background: #080c14;
+  border: 1.5px solid #1e293b;
+  border-radius: 12px;
+  padding: 6px 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono, monospace);
+  user-select: none;
+}
+
+.pixel-clock-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pixel-clock-top-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.62rem;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 3px;
+  margin-bottom: 2px;
+}
+
+.pixel-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pixel-green-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 1.2s infinite;
+}
+
+.pixel-live-text {
+  color: #10b981;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.pixel-date-text {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.pixel-digits-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pixel-digit-box {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 4px;
+  padding: 1px 5px;
+  line-height: 1.1;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+}
+
+.pixel-digit-box.pixel-sec {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.25);
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.7);
+}
+
+.pixel-colon {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #fbbf24;
+  text-shadow: 0 0 8px #fbbf24;
+  animation: blinkColon 1s infinite;
+  margin: 0 1px;
+}
+
+@keyframes blinkColon {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.15; }
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+.pixel-ampm-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-left: 5px;
+}
+
+.pixel-ampm-tag {
+  font-size: 0.52rem;
+  font-weight: 800;
+  color: #334155;
+  line-height: 1;
+}
+
+.pixel-ampm-tag.active {
+  color: #f59e0b;
+  text-shadow: 0 0 6px #f59e0b;
+}
+
+/* Variant Tweaks */
+.pixel-clock-mini {
+  max-width: 320px;
+}
+
+.pixel-clock-ticker {
+  padding: 4px 10px;
+}
+
+.pixel-clock-ticker .pixel-digit-box {
+  font-size: 1.15rem;
+}

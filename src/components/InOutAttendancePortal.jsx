@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { normalizeSchoolName } from '../data/sihMasterData';
+import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
 
 const COMMON_BREAK_WINDOWS = [
   { id: 'morning_tea', label: 'Morning Tea / Refreshment Break', startHour: 10, startMin: 50, endHour: 11, endMin: 10, durationMins: 20, timeStr: '10:50 AM - 11:10 AM', icon: Coffee },
@@ -919,6 +920,10 @@ export default function InOutAttendancePortal({
             <img src="/logos/rathinam_rgu_logo.png" alt="RGU" className="mini-hdr-logo" />
           </div>
 
+          <div className="candidate-clock-wrap" style={{ margin: '14px 0', display: 'flex', justifyContent: 'center' }}>
+            <LivePixelDigitalClock variant="mini" />
+          </div>
+
           <div className="candidate-title-block">
             <div className={`minimal-badge ${viewMode === 'candidate_out' ? 'badge-exit' : 'badge-return'}`}>
               {viewMode === 'candidate_out' ? (
@@ -1457,7 +1462,7 @@ export default function InOutAttendancePortal({
             <span className={`pulse-dot ${activeBreakInfo.isActive ? 'amber' : 'green'}`}></span>
             <span>{activeBreakInfo.statusText}</span>
           </span>
-          <span className="ticker-clock-display">{currentTimeStr}</span>
+          <LivePixelDigitalClock variant="ticker" />
         </div>
       </div>
 
