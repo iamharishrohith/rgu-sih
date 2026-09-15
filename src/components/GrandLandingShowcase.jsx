@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { 
   Sparkles, ShieldCheck, Award, Filter, ArrowRight, Search, CheckCircle2, 
-  Trophy, Star, Users, ExternalLink, Zap, ChevronRight, UserCheck, Flame
+  Trophy, Star, Users, ExternalLink, Zap, ChevronRight, UserCheck, Flame, DoorOpen
 } from 'lucide-react';
 
 export default function GrandLandingShowcase({ 
   onExploreShortlist, 
   onExploreBench, 
   onExploreWaitlist, 
+  onOpenInOutPortal,
   allTeams,
   onOpenTeamRegistration
 }) {
@@ -15,9 +16,9 @@ export default function GrandLandingShowcase({
   const [searchedTeam, setSearchedTeam] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const shortlistCount = allTeams.filter(t => t.status === 'Shortlist').length || 80;
+  const shortlistCount = allTeams.filter(t => t.status === 'Shortlist').length || 82;
   const benchCount = allTeams.filter(t => t.status === 'Bench').length || 10;
-  const waitlistCount = allTeams.filter(t => t.status === 'Waitlist').length || 23;
+  const waitlistCount = allTeams.filter(t => t.status === 'Waitlist').length || 17;
   const totalCount = shortlistCount + benchCount + waitlistCount;
 
   const handleInstantLookup = (e) => {
@@ -40,8 +41,6 @@ export default function GrandLandingShowcase({
     <div className="grand-landing-viewport">
       {/* Hero Grand Announcement Section */}
       <section className="grand-hero-section">
-        
-
         <div className="grand-hero-container">
           {/* Official Badge & Live Status */}
           <div className="grand-announcement-badge-row">
@@ -60,19 +59,28 @@ export default function GrandLandingShowcase({
           </div>
 
           <p className="grand-hero-description">
-            Congratulations to all student innovators! Rathinam Global University proudly presents the finalized candidate selections. <strong>80 primary finalists</strong> with <strong>100% unique problem statements</strong>, accompanied by top-tier bench standby and waitlisted teams.
+            Congratulations to all student innovators! Rathinam Global University proudly presents the finalized candidate selections. <strong>{shortlistCount} primary finalists</strong> with <strong>100% unique problem statements</strong>, accompanied by top-tier bench standby and waitlisted teams.
           </p>
 
           {/* Interactive Fast CTAs */}
           <div className="grand-cta-actions-row">
             <button className="btn-grand-primary-cta" onClick={() => onExploreShortlist('shortlist')}>
-              <span>View 80 Finalists Shortlist</span>
+              <span>View {shortlistCount} Finalists Shortlist</span>
               <ArrowRight size={18} />
+            </button>
+
+            <button 
+              className="btn-grand-secondary-cta" 
+              onClick={onOpenInOutPortal}
+              style={{ background: '#ea580c', color: '#ffffff', borderColor: '#ea580c', boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)' }}
+            >
+              <DoorOpen size={18} />
+              <span>Gate Pass (In-Out Tracking)</span>
             </button>
 
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />
-              <span>Bench Standby Pool (10)</span>
+              <span>Bench Standby Pool ({benchCount})</span>
             </button>
 
             <button className="btn-grand-secondary-cta" onClick={() => onExploreWaitlist('waitlist')}>

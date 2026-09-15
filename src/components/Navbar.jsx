@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, UserCheck, LayoutDashboard, Lock, Unlock, Clock } from 'lucide-react';
+import { CheckCircle2, UserCheck, LayoutDashboard, Lock, Unlock, Clock, DoorOpen } from 'lucide-react';
 
 export default function Navbar({ 
   registeredCount, 
@@ -8,6 +8,7 @@ export default function Navbar({
   isAdminLoggedIn, 
   onOpenLandingView,
   onOpenCandidateDesk, 
+  onOpenInOutPortal,
   currentView,
   isPortalClosed,
   onOpenTimerModal
@@ -24,7 +25,7 @@ export default function Navbar({
       }
       return next;
     });
-    if (onOpenLandingView) onOpenLandingView();
+    if (onOpenInOutPortal) onOpenInOutPortal();
   };
 
   return (
@@ -49,7 +50,7 @@ export default function Navbar({
 
           <div 
             className="logo-item rathinam-banner"
-            onClick={onOpenLandingView}
+            onClick={onOpenInOutPortal || onOpenLandingView}
             style={{ cursor: 'pointer' }}
             title="Rathinam Global University"
           >
@@ -60,36 +61,84 @@ export default function Navbar({
             />
           </div>
 
-          {/* Admin Navigation Button appears ONLY when already authenticated */}
-          {isAdminLoggedIn && (
-            <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <button 
-                className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
-                onClick={onOpenTimerModal}
-                title="Manage Registration Window & Timer"
-              >
-                {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
-                <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
-              </button>
+          <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              className={`btn-nav-view ${currentView === 'inout_portal' ? 'active' : ''}`}
+              onClick={onOpenInOutPortal}
+              title="SIH Main Arena - Live QR Gate Pass & Attendance Movement Workplace"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: currentView === 'inout_portal' ? '#ea580c' : '#fff7ed',
+                color: currentView === 'inout_portal' ? '#ffffff' : '#c2410c',
+                border: '1px solid ' + (currentView === 'inout_portal' ? '#ea580c' : '#fed7aa'),
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <DoorOpen size={15} />
+              <span>Gate Pass Workplace</span>
+            </button>
 
-              <div className="meta-stats-pill">
-                <CheckCircle2 size={15} className="text-emerald" />
-                <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
-              </div>
+            <button 
+              className={`btn-nav-view ${currentView === 'candidate_desk' || currentView === 'landing' ? 'active' : ''}`}
+              onClick={onOpenCandidateDesk}
+              title="Candidate Registry & Selection Roster"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 13px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: currentView === 'candidate_desk' || currentView === 'landing' ? '#0f172a' : '#f8fafc',
+                color: currentView === 'candidate_desk' || currentView === 'landing' ? '#ffffff' : '#334155',
+                border: '1px solid ' + (currentView === 'candidate_desk' || currentView === 'landing' ? '#0f172a' : '#cbd5e1'),
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <UserCheck size={15} />
+              <span>Candidate Roster</span>
+            </button>
 
-              {currentView === 'admin' ? (
-                <button className="btn-nav-view active" onClick={onOpenCandidateDesk}>
-                  <UserCheck size={16} />
-                  <span>Exit Admin</span>
+            {/* Admin Navigation Button appears ONLY when already authenticated */}
+            {isAdminLoggedIn && (
+              <>
+                <button 
+                  className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
+                  onClick={onOpenTimerModal}
+                  title="Manage Registration Window & Timer"
+                >
+                  {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
+                  <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
                 </button>
-              ) : (
-                <button className="btn-nav-admin active-admin" onClick={onSecretAdminTrigger}>
-                  <LayoutDashboard size={16} />
-                  <span>Admin Desk</span>
-                </button>
-              )}
-            </div>
-          )}
+
+                <div className="meta-stats-pill">
+                  <CheckCircle2 size={15} className="text-emerald" />
+                  <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
+                </div>
+
+                {currentView === 'admin' ? (
+                  <button className="btn-nav-view active" onClick={onOpenCandidateDesk}>
+                    <UserCheck size={16} />
+                    <span>Exit Admin</span>
+                  </button>
+                ) : (
+                  <button className="btn-nav-admin active-admin" onClick={onSecretAdminTrigger}>
+                    <LayoutDashboard size={16} />
+                    <span>Admin Desk</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>

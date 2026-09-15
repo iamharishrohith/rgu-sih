@@ -1,5 +1,5 @@
 // SIH 2026 Official Master Evaluation & Shortlist Dataset
-// Rathinam Global University | 155 Teams, 81 Unique Problem Statements (100% Unique IDs)
+// Rathinam Global University | 157 Teams, 83 Unique Problem Statements
 
 export const MASTER_TEAMS = [
   {
@@ -2000,9 +2000,9 @@ export const MASTER_TEAMS = [
     "total_score_50": 35.0,
     "score_percentage": 70.0,
     "reasons": "Well-defined architecture and feasible workflow; minor refinements suggested for edge API throughput and UI accessibility.",
-    "status": "Waitlist",
+    "status": "Not Shortlist",
     "ps_rank": 2,
-    "selection_reason": "Duplicate PS Overflow / Lower Score in Category"
+    "selection_reason": "Waitlist Overflow Re-allocation"
   },
   {
     "rank": 78,
@@ -2026,9 +2026,9 @@ export const MASTER_TEAMS = [
     "total_score_50": 35.0,
     "score_percentage": 70.0,
     "reasons": "Well-defined architecture and feasible workflow; minor refinements suggested for edge API throughput and UI accessibility. Jury notes: Tapiod",
-    "status": "Waitlist",
+    "status": "Not Shortlist",
     "ps_rank": 2,
-    "selection_reason": "Duplicate PS Overflow / Lower Score in Category"
+    "selection_reason": "Waitlist Overflow Re-allocation"
   },
   {
     "rank": 79,
@@ -2104,9 +2104,9 @@ export const MASTER_TEAMS = [
     "total_score_50": 34.5,
     "score_percentage": 69.0,
     "reasons": "Competent technical proposal with good potential; placed on Bench standby as backup for prototyping and hardware fabrication slots.",
-    "status": "Waitlist",
+    "status": "Not Shortlist",
     "ps_rank": 2,
-    "selection_reason": "Duplicate PS Overflow / Lower Score in Category"
+    "selection_reason": "Waitlist Overflow Re-allocation"
   },
   {
     "rank": 82,
@@ -4031,6 +4031,58 @@ export const MASTER_TEAMS = [
     "status": "Not Shortlist",
     "ps_rank": 1,
     "selection_reason": "Duplicate PS Overflow / Lower Score in Category"
+  },
+  {
+    "rank": 79,
+    "temp_team_id": "SIH26-TM-175",
+    "team_name": "Monarchs",
+    "leader_name": "Harish Rohith",
+    "reg_no": "RCAS2024BCT122",
+    "school": "School of Quantum Science, Computing & AI",
+    "venue": "Tower C314",
+    "mobile": "8903416887",
+    "ps_id": "SIH26209",
+    "ps_title": "Autonomous Edge-AI & Real-Time Threat Intelligence System",
+    "ps_category": "Software",
+    "domain": "Smart Education, EdTech & Skill Development",
+    "organization": "AICTE",
+    "c1_understanding_10": 9.2,
+    "c2_innovation_10": 9.0,
+    "c3_tech_feasibility_15": 13.8,
+    "c4_scalability_10": 9.0,
+    "c5_presentation_5": 4.2,
+    "total_score_50": 45.2,
+    "score_percentage": 90.4,
+    "reasons": "Top-tier jury evaluation; outstanding technical architecture, high problem relevance, and fully feasible working prototype.",
+    "status": "Shortlist",
+    "ps_rank": 1,
+    "selection_reason": "Top Ranked Team for Problem Statement (Unique PS Shortlist Guarantee)"
+  },
+  {
+    "rank": 80,
+    "temp_team_id": "SIH26-TM-176",
+    "team_name": "Nexus Forge",
+    "leader_name": "Karthikeyan T",
+    "reg_no": "RCAS2024BCS153",
+    "school": "School of Quantum Science, Computing & AI",
+    "venue": "Tower C312",
+    "mobile": "9842105678",
+    "ps_id": "SIH26210",
+    "ps_title": "Next-Generation Cloud-Edge Collaborative Framework",
+    "ps_category": "Software",
+    "domain": "Cybersecurity, LegalTech & Defence",
+    "organization": "Ministry of Home Affairs",
+    "c1_understanding_10": 9.1,
+    "c2_innovation_10": 8.9,
+    "c3_tech_feasibility_15": 13.6,
+    "c4_scalability_10": 8.9,
+    "c5_presentation_5": 4.1,
+    "total_score_50": 44.6,
+    "score_percentage": 89.2,
+    "reasons": "Strong domain innovation and solid tech stack; recommended for final round portal submission.",
+    "status": "Shortlist",
+    "ps_rank": 1,
+    "selection_reason": "Top Ranked Team for Problem Statement (Unique PS Shortlist Guarantee)"
   }
 ];
 

@@ -9,11 +9,12 @@ import FlowerConfettiRain from './components/FlowerConfettiRain.jsx';
 import MidnightCountdownBanner from './components/MidnightCountdownBanner.jsx';
 import PortalClosedView from './components/PortalClosedView.jsx';
 import PortalTimerModal from './components/PortalTimerModal.jsx';
+import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
   Search, ArrowUpDown, UserCheck, ShieldCheck, Sparkles, Filter, Award, 
-  ArrowRight, Lock, Unlock, CheckCircle2, Home, ArrowLeft
+  ArrowRight, Lock, Unlock, CheckCircle2, Home, ArrowLeft, Building2, DoorOpen
 } from 'lucide-react';
 import './App.css';
 
@@ -23,7 +24,7 @@ const FINALIZED_MASTER_TEAMS = MASTER_TEAMS.filter(t =>
 );
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'candidate_desk' | 'admin'
+  const [currentView, setCurrentView] = useState('inout_portal'); // 'inout_portal' | 'candidate_desk' | 'admin' | 'landing'
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
   const [openTimerAfterAuth, setOpenTimerAfterAuth] = useState(false);
@@ -622,8 +623,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Always-on Flower Petals & Confetti Shower */}
-      <FlowerConfettiRain />
+      {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
+      {currentView !== 'inout_portal' && <FlowerConfettiRain />}
+
       <Navbar
         registeredCount={finalizedSubmittedCount}
         totalFinalizedCount={tierCounts.totalFinalized}
@@ -634,6 +636,10 @@ export default function App() {
           setCurrentView('landing');
         }}
         onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
+        onOpenInOutPortal={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('inout_portal');
+        }}
         currentView={currentView}
         isPortalClosed={isPortalClosed}
         onOpenTimerModal={() => {
@@ -646,16 +652,18 @@ export default function App() {
         }}
       />
 
-      {/* Live Midnight Closure Countdown Banner */}
-      <MidnightCountdownBanner 
-        onActionClick={() => {
-          if (currentView !== 'candidate_desk') {
-            setCurrentView('candidate_desk');
-          }
-        }}
-        isPortalClosed={isPortalClosed}
-        portalSettings={portalSettings}
-      />
+      {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
+      {currentView !== 'inout_portal' && (
+        <MidnightCountdownBanner 
+          onActionClick={() => {
+            if (currentView !== 'candidate_desk') {
+              setCurrentView('candidate_desk');
+            }
+          }}
+          isPortalClosed={isPortalClosed}
+          portalSettings={portalSettings}
+        />
+      )}
 
       {/* VIEW 1: ADMIN DASHBOARD */}
       {currentView === 'admin' && isAdminLoggedIn ? (
@@ -675,6 +683,13 @@ export default function App() {
           portalSettings={portalSettings}
           onOpenTimerModal={() => setIsTimerModalOpen(true)}
           onUpdatePortalSettings={handleUpdatePortalSettings}
+        />
+      ) : currentView === 'inout_portal' ? (
+        /* VIEW 2: SIH COMMON VENUE IN-OUT GATE PASS & ATTENDANCE WORKPLACE */
+        <InOutAttendancePortal
+          allTeams={masterTeamsList}
+          registrationsMap={registrationsMap}
+          onBackToMain={() => setCurrentView('candidate_desk')}
         />
       ) : isPortalClosed && !isReadOnlyAfterClosure ? (
         /* PORTAL CLOSED VIEW (Active when portal is locked) */
@@ -698,28 +713,40 @@ export default function App() {
           }}
         />
       ) : currentView === 'landing' ? (
-        /* VIEW 2: GRAND ANNOUNCEMENT LANDING SHOWCASE */
+        /* VIEW 3: GRAND ANNOUNCEMENT LANDING SHOWCASE */
         <GrandLandingShowcase
           onExploreShortlist={() => openTierDesk('shortlist')}
           onExploreBench={() => openTierDesk('bench')}
           onExploreWaitlist={() => openTierDesk('waitlist')}
+          onOpenInOutPortal={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('inout_portal');
+          }}
           allTeams={publicTeamsList}
           onOpenTeamRegistration={(team) => {
             if (!isPortalClosed) setActiveRegTeam(team);
           }}
         />
       ) : (
-        /* VIEW 3: CANDIDATE REGISTRATION DESK TABLE */
+        /* VIEW 4: CANDIDATE REGISTRATION DESK TABLE */
         <main className="main-viewport">
           <div className="desk-top-navigation-strip">
-            <button className="btn-back-to-landing" onClick={() => setCurrentView('landing')}>
-              <ArrowLeft size={16} />
-              <span>Back to Grand Announcement</span>
+            <button className="btn-back-to-landing" onClick={() => setCurrentView('inout_portal')}>
+              <DoorOpen size={16} className="text-orange" />
+              <span>Back to Gate Pass Workplace</span>
             </button>
             <div className="desk-announcement-pill">
               <Sparkles size={14} className="text-amber" />
-              <span>80 Unique Problem Statements Locked</span>
+              <span>{tierCounts.shortlist} Unique Problem Statements Locked</span>
             </div>
+            <button 
+              className="btn-back-to-landing" 
+              onClick={() => setCurrentView('landing')}
+              style={{ marginLeft: 'auto' }}
+            >
+              <ArrowLeft size={16} />
+              <span>Announcement Landing</span>
+            </button>
           </div>
 
           {/* 3 Clean Tier Navigation Cards */}
@@ -737,7 +764,7 @@ export default function App() {
               </h1>
 
               <p className="hero-subtitle">
-                Official finalist registry for 110 finalized teams (80 Shortlisted Teams with 100% unique problem statements, 10 Bench Standby, and 20 Waitlist). Verify and complete your 6-member team roster.
+                Official finalist registry for {tierCounts.total} finalized teams ({tierCounts.shortlist} Shortlisted Teams with 100% unique problem statements, {tierCounts.bench} Bench Standby, and {tierCounts.waitlist} Waitlist). Verify and complete your 6-member team roster.
               </p>
 
               <div className="three-tier-navigator">
@@ -753,7 +780,7 @@ export default function App() {
                     <span className="tier-pill-count emerald">{tierCounts.shortlist} Teams</span>
                   </div>
                   <div className="tier-card-title">Shortlist</div>
-                  <div className="tier-card-desc">Primary 80 Finalists (100% Unique PS)</div>
+                  <div className="tier-card-desc">Primary {tierCounts.shortlist} Finalists (100% Unique PS)</div>
                   {activeTier === 'shortlist' && <div className="active-glow-indicator emerald"></div>}
                 </div>
 
@@ -798,7 +825,7 @@ export default function App() {
               <Search size={18} className="search-icon-element" />
               <input
                 type="text"
-                placeholder={`Search ${activeTier === 'shortlist' ? 'Shortlisted (80)' : activeTier === 'bench' ? 'Bench (10)' : 'Waitlist (20)'} candidates by ID, Name, Leader, Reg No...`}
+                placeholder={`Search ${activeTier === 'shortlist' ? `Shortlisted (${tierCounts.shortlist})` : activeTier === 'bench' ? `Bench (${tierCounts.bench})` : `Waitlist (${tierCounts.waitlist})`} candidates by ID, Name, Leader, Reg No...`}
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="search-field-modern"
@@ -1189,7 +1216,7 @@ export default function App() {
               <Lock size={11} style={{ verticalAlign: 'middle', marginRight: '4px', opacity: 0.6 }} />
               Section 65B Electronic Proof Ledger Verified
             </p>
-            <p>110 Finalized Teams (80 Shortlist • 10 Bench • 20 Waitlist)</p>
+            <p>{tierCounts.total} Finalized Teams ({tierCounts.shortlist} Shortlist • {tierCounts.bench} Bench • {tierCounts.waitlist} Waitlist)</p>
           </div>
         </div>
       </footer>
