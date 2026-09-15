@@ -48,7 +48,7 @@ export default function Navbar({
       {/* Top Institutional & Hackathon Dual Banners */}
       <div className="header-logos-bar">
         <div className="logos-container">
-          <div className="logos-brand-combo" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div className="logos-brand-combo">
             <div 
               className="logo-item moe-sih-banner" 
               onClick={handleLogoClick}

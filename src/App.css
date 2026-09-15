@@ -90,9 +90,17 @@ body {
   flex-wrap: wrap;
 }
 
+.logos-brand-combo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
 .logo-item {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .moe-img {
@@ -111,13 +119,7 @@ body {
   height: 36px;
   width: 1px;
   background-color: #e2e8f0;
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .logo-divider-line {
-    display: block;
-  }
+  display: block;
 }
 
 .header-inner {
