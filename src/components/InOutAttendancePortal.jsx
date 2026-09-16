@@ -161,107 +161,77 @@ export default function InOutAttendancePortal({
     }
   });
 
-  // Sync with parent props if provided
+  // Helper wrappers that update local state, localStorage, and parent callbacks cleanly
+  const updateTeamSessions = (updater) => {
+    setTeamSessions(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('sih_arena_team_sessions', JSON.stringify(next));
+      } catch (e) {}
+      if (onUpdateSessions) onUpdateSessions(next);
+      return next;
+    });
+  };
+
+  const updateActiveOuts = (updater) => {
+    setActiveOuts(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('sih_inout_active_outs', JSON.stringify(next));
+      } catch (e) {}
+      if (onUpdateActiveOuts) onUpdateActiveOuts(next);
+      return next;
+    });
+  };
+
+  const updateMovementLogs = (updater) => {
+    setMovementLogs(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('sih_inout_logs', JSON.stringify(next));
+      } catch (e) {}
+      if (onUpdateLogs) onUpdateLogs(next);
+      return next;
+    });
+  };
+
+  const updateMemberAttendance = (updater) => {
+    setMemberAttendance(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('sih_arena_member_attendance', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  // Sync with parent props strictly when JSON content differs (zero loop bounce)
   useEffect(() => {
-    if (parentSessions && Object.keys(parentSessions).length > 0) {
-      setTeamSessions(prev => ({ ...prev, ...parentSessions }));
+    if (parentSessions) {
+      setTeamSessions(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(parentSessions)) return prev;
+        return parentSessions;
+      });
     }
   }, [parentSessions]);
 
   useEffect(() => {
     if (parentActiveOuts) {
-      setActiveOuts(parentActiveOuts);
+      setActiveOuts(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(parentActiveOuts)) return prev;
+        return parentActiveOuts;
+      });
     }
   }, [parentActiveOuts]);
 
   useEffect(() => {
-    if (parentMovementLogs && parentMovementLogs.length > 0) {
-      setMovementLogs(parentMovementLogs);
+    if (parentMovementLogs) {
+      setMovementLogs(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(parentMovementLogs)) return prev;
+        return parentMovementLogs;
+      });
     }
   }, [parentMovementLogs]);
-
-  // Cloud helper to sync directly to Supabase app_settings
-  const pushToSupabase = async (key, value) => {
-    try {
-      await supabase
-        .from('app_settings')
-        .upsert([{ 
-          key, 
-          value, 
-          updated_at: new Date().toISOString() 
-        }], { onConflict: 'key' });
-    } catch (e) {
-      console.warn(`Supabase ${key} push warning:`, e);
-    }
-  };
-
-  // Save to LocalStorage and Cloud whenever state changes
-  useEffect(() => {
-    try {
-      localStorage.setItem('sih_arena_team_sessions', JSON.stringify(teamSessions));
-      if (onUpdateSessions) onUpdateSessions(teamSessions);
-      pushToSupabase('arena_team_sessions', teamSessions);
-    } catch (e) { console.warn('Failed to save team sessions', e); }
-  }, [teamSessions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sih_arena_member_attendance', JSON.stringify(memberAttendance));
-    } catch (e) { console.warn('Failed to save member attendance', e); }
-  }, [memberAttendance]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sih_inout_active_outs', JSON.stringify(activeOuts));
-      if (onUpdateActiveOuts) onUpdateActiveOuts(activeOuts);
-      pushToSupabase('arena_active_outs', activeOuts);
-    } catch (e) { console.warn('Failed to save active outs', e); }
-  }, [activeOuts]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sih_inout_logs', JSON.stringify(movementLogs));
-      if (onUpdateLogs) onUpdateLogs(movementLogs);
-      pushToSupabase('arena_movement_logs', movementLogs);
-    } catch (e) { console.warn('Failed to save movement logs', e); }
-  }, [movementLogs]);
-
-  // Background Cloud Polling for Real-Time Multi-Device Sync (Students on Phones <-> Desk)
-  useEffect(() => {
-    const pollArenaCloud = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('key, value')
-          .in('key', ['arena_team_sessions', 'arena_active_outs', 'arena_movement_logs']);
-
-        if (!error && data) {
-          data.forEach(item => {
-            if (item.key === 'arena_team_sessions' && item.value) {
-              setTeamSessions(prev => ({ ...prev, ...item.value }));
-            } else if (item.key === 'arena_active_outs' && item.value) {
-              setActiveOuts(item.value);
-            } else if (item.key === 'arena_movement_logs' && Array.isArray(item.value)) {
-              setMovementLogs(prev => {
-                const existingSet = new Set(prev.map(l => `${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
-                const incomingNew = item.value.filter(l => !existingSet.has(`${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
-                if (incomingNew.length > 0) {
-                  return [...incomingNew, ...prev];
-                }
-                return prev;
-              });
-            }
-          });
-        }
-      } catch (err) {
-        console.warn('Arena poll note:', err);
-      }
-    };
-
-    pollArenaCloud();
-    const interval = setInterval(pollArenaCloud, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   // URL Listener to sync viewMode (?action=out or ?action=in)
   useEffect(() => {
@@ -518,7 +488,7 @@ export default function InOutAttendancePortal({
     // Clear any active break pass if this team had one
     const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
     if (activePasses.length > 0) {
-      setActiveOuts(prev => {
+      updateActiveOuts(prev => {
         const copy = { ...prev };
         activePasses.forEach(k => delete copy[k]);
         return copy;
@@ -526,7 +496,7 @@ export default function InOutAttendancePortal({
     }
 
     // Update session
-    setTeamSessions(prev => ({
+    updateTeamSessions(prev => ({
       ...prev,
       [teamId]: {
         ...prev[teamId],
@@ -544,7 +514,7 @@ export default function InOutAttendancePortal({
     roster.forEach(m => {
       teamAtt[m.name] = { is_present: true, marked_at: timeStr };
     });
-    setMemberAttendance(prev => ({
+    updateMemberAttendance(prev => ({
       ...prev,
       [teamId]: { ...(prev[teamId] || {}), ...teamAtt }
     }));
@@ -565,7 +535,7 @@ export default function InOutAttendancePortal({
       status: 'ARENA_IN',
       log_type: 'TEAM_LOGIN'
     };
-    setMovementLogs(prev => [logEntry, ...prev]);
+    updateMovementLogs(prev => [logEntry, ...prev]);
 
     playBeep('login');
   };
@@ -579,7 +549,7 @@ export default function InOutAttendancePortal({
     // Clear any active break pass
     const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
     if (activePasses.length > 0) {
-      setActiveOuts(prev => {
+      updateActiveOuts(prev => {
         const copy = { ...prev };
         activePasses.forEach(k => delete copy[k]);
         return copy;
@@ -587,7 +557,7 @@ export default function InOutAttendancePortal({
     }
 
     // Update session
-    setTeamSessions(prev => ({
+    updateTeamSessions(prev => ({
       ...prev,
       [teamId]: {
         ...prev[teamId],
@@ -613,7 +583,7 @@ export default function InOutAttendancePortal({
       status: 'ARENA_OUT',
       log_type: 'TEAM_LOGOUT'
     };
-    setMovementLogs(prev => [logEntry, ...prev]);
+    updateMovementLogs(prev => [logEntry, ...prev]);
 
     playBeep('return');
   };
@@ -625,7 +595,7 @@ export default function InOutAttendancePortal({
     // Clear any active break pass
     const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
     if (activePasses.length > 0) {
-      setActiveOuts(prev => {
+      updateActiveOuts(prev => {
         const copy = { ...prev };
         activePasses.forEach(k => delete copy[k]);
         return copy;
@@ -633,14 +603,14 @@ export default function InOutAttendancePortal({
     }
 
     // Reset session
-    setTeamSessions(prev => {
+    updateTeamSessions(prev => {
       const copy = { ...prev };
       delete copy[teamId];
       return copy;
     });
 
     // Reset member attendance
-    setMemberAttendance(prev => {
+    updateMemberAttendance(prev => {
       const copy = { ...prev };
       delete copy[teamId];
       return copy;
@@ -652,9 +622,9 @@ export default function InOutAttendancePortal({
   // Bulk Reset All Teams to Default Not Active State
   const handleBulkResetAllNotActive = () => {
     if (!window.confirm('Reset ALL teams back to Default "Not Active" state? This clears current active session flags.')) return;
-    setTeamSessions({});
-    setMemberAttendance({});
-    setActiveOuts({});
+    updateTeamSessions({});
+    updateMemberAttendance({});
+    updateActiveOuts({});
     playBeep('return');
   };
 
@@ -676,7 +646,7 @@ export default function InOutAttendancePortal({
 
     const presentCount = Object.values(newTeamAttendance).filter(v => v.is_present).length;
 
-    setTeamSessions(prev => ({
+    updateTeamSessions(prev => ({
       ...prev,
       [teamId]: {
         ...prev[teamId],
@@ -689,7 +659,7 @@ export default function InOutAttendancePortal({
       }
     }));
 
-    setMemberAttendance(prev => ({
+    updateMemberAttendance(prev => ({
       ...prev,
       [teamId]: newTeamAttendance
     }));
@@ -709,7 +679,7 @@ export default function InOutAttendancePortal({
       status: 'LOGGED_IN',
       log_type: 'MORNING_LOGIN'
     };
-    setMovementLogs(prev => [logEntry, ...prev]);
+    updateMovementLogs(prev => [logEntry, ...prev]);
 
     playBeep('login');
   };
@@ -734,12 +704,12 @@ export default function InOutAttendancePortal({
       return ex ? ex.is_present : (teamSessions[teamId]?.is_logged_in ?? false);
     });
 
-    setMemberAttendance(prev => ({
+    updateMemberAttendance(prev => ({
       ...prev,
       [teamId]: updatedTeamAtt
     }));
 
-    setTeamSessions(prev => ({
+    updateTeamSessions(prev => ({
       ...prev,
       [teamId]: {
         ...prev[teamId],
@@ -797,9 +767,9 @@ export default function InOutAttendancePortal({
       });
     });
 
-    setTeamSessions(newSessions);
-    setMemberAttendance(newAtt);
-    setMovementLogs(prev => [...newLogs, ...prev]);
+    updateTeamSessions(newSessions);
+    updateMemberAttendance(newAtt);
+    updateMovementLogs(prev => [...newLogs, ...prev]);
     playBeep('login');
   };
 
@@ -811,14 +781,14 @@ export default function InOutAttendancePortal({
 
     const activePasses = Object.keys(activeOuts).filter(k => activeOuts[k].team_id === teamId);
     if (activePasses.length > 0) {
-      setActiveOuts(prev => {
+      updateActiveOuts(prev => {
         const copy = { ...prev };
         activePasses.forEach(k => delete copy[k]);
         return copy;
       });
     }
 
-    setTeamSessions(prev => ({
+    updateTeamSessions(prev => ({
       ...prev,
       [teamId]: {
         ...prev[teamId],
@@ -843,7 +813,7 @@ export default function InOutAttendancePortal({
       status: 'LOGGED_OUT',
       log_type: 'EVENING_LOGOUT'
     };
-    setMovementLogs(prev => [logEntry, ...prev]);
+    updateMovementLogs(prev => [logEntry, ...prev]);
 
     playBeep('return');
   };
@@ -882,9 +852,9 @@ export default function InOutAttendancePortal({
       });
     });
 
-    setActiveOuts({});
-    setTeamSessions(newSessions);
-    setMovementLogs(prev => [...newLogs, ...prev]);
+    updateActiveOuts({});
+    updateTeamSessions(newSessions);
+    updateMovementLogs(prev => [...newLogs, ...prev]);
     playBeep('return');
   };
 
@@ -945,7 +915,7 @@ export default function InOutAttendancePortal({
       status: 'OUT'
     };
 
-    setActiveOuts(prev => ({
+    updateActiveOuts(prev => ({
       ...prev,
       [passKey]: outRecord
     }));
@@ -979,13 +949,13 @@ export default function InOutAttendancePortal({
       log_type: 'BREAK_RETURN'
     };
 
-    setActiveOuts(prev => {
+    updateActiveOuts(prev => {
       const copy = { ...prev };
       delete copy[passKey];
       return copy;
     });
 
-    setMovementLogs(prev => [completedLog, ...prev]);
+    updateMovementLogs(prev => [completedLog, ...prev]);
 
     if (activeSpecialCard && activeSpecialCard.pass_id === passKey) {
       setActiveSpecialCard(null);
@@ -1018,8 +988,8 @@ export default function InOutAttendancePortal({
       });
     });
 
-    setActiveOuts({});
-    setMovementLogs(prev => [...newLogs, ...prev]);
+    updateActiveOuts({});
+    updateMovementLogs(prev => [...newLogs, ...prev]);
     playBeep('return');
   };
 
@@ -1031,7 +1001,7 @@ export default function InOutAttendancePortal({
     const newExpectedMs = existing.expected_return_timestamp + addMins * 60000;
     const newExpectedStr = new Date(newExpectedMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    setActiveOuts(prev => ({
+    updateActiveOuts(prev => ({
       ...prev,
       [passKey]: {
         ...existing,
@@ -3014,7 +2984,7 @@ export default function InOutAttendancePortal({
                   className="btn-admin-danger"
                   onClick={() => {
                     if (window.confirm('Clear all active outs cache? (History logs will remain intact)')) {
-                      setActiveOuts({});
+                      updateActiveOuts({});
                       playBeep('return');
                     }
                   }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Navbar from './components/Navbar.jsx';
 import RegistrationModal from './components/RegistrationModal.jsx';
 import PasscodeModal from './components/PasscodeModal.jsx';
@@ -201,17 +201,34 @@ export default function App() {
     }
   });
 
-  const syncArenaToSupabase = async (key, value) => {
+  const syncTimersRef = useRef({});
+  const lastSyncedJsonRef = useRef({});
+
+  const syncArenaToSupabase = (key, value) => {
     try {
-      await supabase
-        .from('app_settings')
-        .upsert([{ 
-          key, 
-          value, 
-          updated_at: new Date().toISOString() 
-        }], { onConflict: 'key' });
-    } catch (err) {
-      console.warn(`Supabase ${key} sync warning:`, err);
+      const jsonStr = JSON.stringify(value);
+      if (lastSyncedJsonRef.current[key] === jsonStr) return; // Skip duplicate payload sync
+
+      if (syncTimersRef.current[key]) {
+        clearTimeout(syncTimersRef.current[key]);
+      }
+
+      syncTimersRef.current[key] = setTimeout(async () => {
+        try {
+          lastSyncedJsonRef.current[key] = jsonStr;
+          await supabase
+            .from('app_settings')
+            .upsert([{ 
+              key, 
+              value, 
+              updated_at: new Date().toISOString() 
+            }], { onConflict: 'key' });
+        } catch (err) {
+          console.warn(`Supabase ${key} sync warning:`, err);
+        }
+      }, 400); // 400ms debounce prevents socket exhaustion
+    } catch (e) {
+      console.warn('syncArenaToSupabase error:', e);
     }
   };
 
@@ -444,7 +461,7 @@ export default function App() {
 
     loadData();
 
-    // Background Polling Loop for Multi-Device Arena Sync (every 3 seconds)
+    // Background Polling Loop for Multi-Device Arena Sync (every 5 seconds, JSON-diff guarded)
     const arenaInterval = setInterval(async () => {
       try {
         const { data, error } = await supabase
@@ -455,17 +472,28 @@ export default function App() {
         if (!error && data) {
           data.forEach(item => {
             if (item.key === 'arena_team_sessions' && item.value) {
-              setArenaTeamSessions(prev => ({ ...prev, ...item.value }));
+              const incoming = JSON.stringify(item.value);
+              setArenaTeamSessions(prev => {
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_arena_team_sessions', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['arena_team_sessions'] = incoming;
+                return item.value;
+              });
             } else if (item.key === 'arena_active_outs' && item.value) {
-              setArenaActiveOuts(item.value);
+              const incoming = JSON.stringify(item.value);
+              setArenaActiveOuts(prev => {
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_inout_active_outs', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['arena_active_outs'] = incoming;
+                return item.value;
+              });
             } else if (item.key === 'arena_movement_logs' && Array.isArray(item.value)) {
+              const incoming = JSON.stringify(item.value);
               setArenaMovementLogs(prev => {
-                const existingSet = new Set(prev.map(l => `${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
-                const incoming = item.value.filter(l => !existingSet.has(`${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
-                if (incoming.length > 0) {
-                  return [...incoming, ...prev];
-                }
-                return prev;
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_inout_logs', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['arena_movement_logs'] = incoming;
+                return item.value;
               });
             }
           });
@@ -473,7 +501,7 @@ export default function App() {
       } catch (e) {
         console.warn('Arena background polling error:', e);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(arenaInterval);
   }, []);
