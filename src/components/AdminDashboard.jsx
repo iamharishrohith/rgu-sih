@@ -1017,6 +1017,19 @@ export default function AdminDashboard({
                   <Download size={14} />
                   <span>Export Logs (CSV)</span>
                 </button>
+                <button 
+                  className="btn-admin-action-reset" 
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '6px 12px', fontSize: '0.8rem', borderRadius: '6px' }}
+                  onClick={() => {
+                    if (window.confirm('Clear all movement and check-in audit logs?')) {
+                      if (onUpdateArenaMovementLogs) onUpdateArenaMovementLogs([]);
+                    }
+                  }}
+                  title="Clear all recorded movement audit logs"
+                >
+                  <RotateCcw size={13} />
+                  <span>Reset Logs</span>
+                </button>
               </div>
             </div>
 
