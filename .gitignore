@@ -4,3 +4,5 @@ dist
 .env
 whatsapp_broadcast_log.csv
 whatsapp_user_session/
+__pycache__/
+*.pyc
