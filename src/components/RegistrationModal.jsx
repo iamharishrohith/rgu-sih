@@ -86,7 +86,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     }
   }, [team, existingRegistration]);
 
+  // Active member tab in Step 2
   const [activeMemberTab, setActiveMemberTab] = useState(0);
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Helper to update member details
   const updateMember = (index, field, value) => {
@@ -95,6 +97,13 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       updatedMembers[index] = { ...updatedMembers[index], [field]: value };
       return { ...prev, members: updatedMembers };
     });
+    if (validationErrors[`member_${index}_${field}`]) {
+      setValidationErrors(prev => {
+        const copy = { ...prev };
+        delete copy[`member_${index}_${field}`];
+        return copy;
+      });
+    }
   };
 
   // Quick copy leader school/dept to member
@@ -104,16 +113,81 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     updateMember(index, 'year', formData.leader_year);
   };
 
+  // Step-by-Step Validation Checker
+  const validateStep = (stepIdx) => {
+    const errors = {};
+    if (stepIdx === 0) {
+      if (!formData.team_name.trim()) errors.team_name = 'Official Team Name is required';
+      if (!formData.sih_ps_id.trim()) errors.sih_ps_id = 'Problem Statement ID is required';
+      if (!formData.ps_title.trim()) errors.ps_title = 'Problem Statement Title is required';
+    } else if (stepIdx === 1) {
+      if (!formData.leader_name.trim()) errors.leader_name = 'Leader Name is required';
+      if (!formData.leader_reg_no.trim()) errors.leader_reg_no = 'Leader Register Number is required';
+      if (!formData.leader_personal_email.trim() || !formData.leader_personal_email.includes('@')) {
+        errors.leader_personal_email = 'Valid personal email (with @) is required';
+      }
+      const phoneDigits = (formData.leader_phone || '').replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        errors.leader_phone = 'Valid 10-digit calling phone number is required';
+      }
+    } else if (stepIdx === 2) {
+      // Check members
+      formData.members.forEach((m, idx) => {
+        if (m.name && !m.reg_no) {
+          errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number missing`;
+        }
+      });
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNextStep = (targetStep) => {
+    setErrorMsg('');
+    if (validateStep(activeStep)) {
+      setActiveStep(targetStep);
+    } else {
+      setErrorMsg('Please correct the highlighted errors before continuing.');
+    }
+  };
+
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMsg('');
+    setValidationErrors({});
+
+    // Comprehensive Full Form Validation
+    const errors = {};
+    if (!formData.team_name.trim()) errors.team_name = 'Official Team Name is required';
+    if (!formData.sih_ps_id.trim()) errors.sih_ps_id = 'Problem Statement ID is required';
+    if (!formData.ps_title.trim()) errors.ps_title = 'Problem Statement Title is required';
+    if (!formData.leader_name.trim()) errors.leader_name = 'Leader Name is required';
+    if (!formData.leader_reg_no.trim()) errors.leader_reg_no = 'Leader Register Number is required';
+    if (!formData.leader_personal_email.trim() || !formData.leader_personal_email.includes('@')) {
+      errors.leader_personal_email = 'Valid Leader personal email is required';
+    }
+    const phoneDigits = (formData.leader_phone || '').replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      errors.leader_phone = 'Valid 10-digit Leader phone number is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setErrorMsg('Form contains incomplete required fields. Please review the highlighted steps.');
+      if (errors.team_name || errors.sih_ps_id || errors.ps_title) {
+        setActiveStep(0);
+      } else if (errors.leader_name || errors.leader_reg_no || errors.leader_personal_email || errors.leader_phone) {
+        setActiveStep(1);
+      }
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Validation
-    const cleanTeamName = formData.team_name.trim() || team.team_name || `Team ${team.temp_team_id}`;
-    const cleanPsTitle = formData.ps_title.trim() || team.ps_title || 'Smart India Hackathon 2026 Problem Statement';
-    const cleanLeaderEmail = formData.leader_personal_email.trim() || formData.leader_college_email.trim() || 'candidate.leader@rathinam.ac.in';
-    const cleanLeaderPhone = formData.leader_phone.trim() || formData.leader_whatsapp.trim() || team.mobile || '9999999999';
+    const cleanTeamName = formData.team_name.trim();
+    const cleanPsTitle = formData.ps_title.trim();
+    const cleanLeaderEmail = formData.leader_personal_email.trim();
+    const cleanLeaderPhone = formData.leader_phone.trim();
 
     const payload = {
       temp_team_id: formData.temp_team_id || team.temp_team_id,
@@ -316,11 +390,17 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     <label>Official Team Name <span className="req">*</span></label>
                     <input 
                       type="text" 
-                      required 
                       placeholder="e.g. AgriGuard, CyberKnights, EcoVision (No human names)"
                       value={formData.team_name}
-                      onChange={(e) => setFormData({...formData, team_name: e.target.value})}
+                      onChange={(e) => {
+                        setFormData({...formData, team_name: e.target.value});
+                        if (validationErrors.team_name) {
+                          setValidationErrors(prev => { const c = {...prev}; delete c.team_name; return c; });
+                        }
+                      }}
+                      className={validationErrors.team_name ? 'input-error-field' : ''}
                     />
+                    {validationErrors.team_name && <span className="field-err-msg">{validationErrors.team_name}</span>}
                     <span className="input-helper">Please provide a proper innovative team name (not a personal name).</span>
                   </div>
 
@@ -330,9 +410,16 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <input 
                         type="text" 
                         value={formData.sih_ps_id} 
-                        onChange={(e) => setFormData({...formData, sih_ps_id: e.target.value})}
+                        onChange={(e) => {
+                          setFormData({...formData, sih_ps_id: e.target.value});
+                          if (validationErrors.sih_ps_id) {
+                            setValidationErrors(prev => { const c = {...prev}; delete c.sih_ps_id; return c; });
+                          }
+                        }}
                         placeholder="e.g. SIH26131, SIH26001"
+                        className={validationErrors.sih_ps_id ? 'input-error-field' : ''}
                       />
+                      {validationErrors.sih_ps_id && <span className="field-err-msg">{validationErrors.sih_ps_id}</span>}
                     </div>
 
                     <div className="input-group helper-box-container">
@@ -353,11 +440,17 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     <label>Problem Statement Title <span className="req">*</span></label>
                     <textarea 
                       rows={2}
-                      required
                       placeholder="e.g. AI-driven Real-Time Automated Crop Disease Diagnostic and Advisory System"
                       value={formData.ps_title}
-                      onChange={(e) => setFormData({...formData, ps_title: e.target.value})}
+                      onChange={(e) => {
+                        setFormData({...formData, ps_title: e.target.value});
+                        if (validationErrors.ps_title) {
+                          setValidationErrors(prev => { const c = {...prev}; delete c.ps_title; return c; });
+                        }
+                      }}
+                      className={validationErrors.ps_title ? 'input-error-field' : ''}
                     />
+                    {validationErrors.ps_title && <span className="field-err-msg">{validationErrors.ps_title}</span>}
                     <span className="input-helper">
                       If unknown, look up <strong>{formData.sih_ps_id}</strong> on the official <a href="https://sih.gov.in" target="_blank" rel="noreferrer">sih.gov.in</a> portal and paste title here.
                     </span>
@@ -365,7 +458,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                   <div className="step-footer-actions">
                     <div></div>
-                    <button type="button" className="btn-next-step" onClick={() => setActiveStep(1)}>
+                    <button type="button" className="btn-next-step" onClick={() => handleNextStep(1)}>
                       <span>Next: Team Leader Info</span>
                       <ChevronRight size={16} />
                     </button>
@@ -386,20 +479,32 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <label>Team Leader Name <span className="req">*</span></label>
                       <input 
                         type="text" 
-                        required 
                         value={formData.leader_name}
-                        onChange={(e) => setFormData({...formData, leader_name: e.target.value})}
+                        onChange={(e) => {
+                          setFormData({...formData, leader_name: e.target.value});
+                          if (validationErrors.leader_name) {
+                            setValidationErrors(prev => { const c = {...prev}; delete c.leader_name; return c; });
+                          }
+                        }}
+                        className={validationErrors.leader_name ? 'input-error-field' : ''}
                       />
+                      {validationErrors.leader_name && <span className="field-err-msg">{validationErrors.leader_name}</span>}
                     </div>
 
                     <div className="input-group">
                       <label>Register Number <span className="req">*</span></label>
                       <input 
                         type="text" 
-                        required 
                         value={formData.leader_reg_no}
-                        onChange={(e) => setFormData({...formData, leader_reg_no: e.target.value})}
+                        onChange={(e) => {
+                          setFormData({...formData, leader_reg_no: e.target.value});
+                          if (validationErrors.leader_reg_no) {
+                            setValidationErrors(prev => { const c = {...prev}; delete c.leader_reg_no; return c; });
+                          }
+                        }}
+                        className={validationErrors.leader_reg_no ? 'input-error-field' : ''}
                       />
+                      {validationErrors.leader_reg_no && <span className="field-err-msg">{validationErrors.leader_reg_no}</span>}
                     </div>
                   </div>
 
@@ -408,18 +513,23 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <label>Personal Email ID <span className="req">*</span></label>
                       <input 
                         type="email" 
-                        required 
                         placeholder="leader.personal@gmail.com"
                         value={formData.leader_personal_email}
-                        onChange={(e) => setFormData({...formData, leader_personal_email: e.target.value})}
+                        onChange={(e) => {
+                          setFormData({...formData, leader_personal_email: e.target.value});
+                          if (validationErrors.leader_personal_email) {
+                            setValidationErrors(prev => { const c = {...prev}; delete c.leader_personal_email; return c; });
+                          }
+                        }}
+                        className={validationErrors.leader_personal_email ? 'input-error-field' : ''}
                       />
+                      {validationErrors.leader_personal_email && <span className="field-err-msg">{validationErrors.leader_personal_email}</span>}
                     </div>
 
                     <div className="input-group">
-                      <label>College Official Email ID <span className="req">*</span></label>
+                      <label>College Official Email ID</label>
                       <input 
                         type="email" 
-                        required 
                         placeholder="leader.regno@rathinam.ac.in"
                         value={formData.leader_college_email}
                         onChange={(e) => setFormData({...formData, leader_college_email: e.target.value})}
@@ -432,18 +542,23 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <label>Phone Calling Number <span className="req">*</span></label>
                       <input 
                         type="tel" 
-                        required 
                         placeholder="e.g. 9876543210"
                         value={formData.leader_phone}
-                        onChange={(e) => setFormData({...formData, leader_phone: e.target.value})}
+                        onChange={(e) => {
+                          setFormData({...formData, leader_phone: e.target.value});
+                          if (validationErrors.leader_phone) {
+                            setValidationErrors(prev => { const c = {...prev}; delete c.leader_phone; return c; });
+                          }
+                        }}
+                        className={validationErrors.leader_phone ? 'input-error-field' : ''}
                       />
+                      {validationErrors.leader_phone && <span className="field-err-msg">{validationErrors.leader_phone}</span>}
                     </div>
 
                     <div className="input-group">
-                      <label>WhatsApp Number <span className="req">*</span></label>
+                      <label>WhatsApp Number</label>
                       <input 
                         type="tel" 
-                        required 
                         placeholder="e.g. 9876543210"
                         value={formData.leader_whatsapp}
                         onChange={(e) => setFormData({...formData, leader_whatsapp: e.target.value})}
@@ -470,7 +585,6 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <label>Department <span className="req">*</span></label>
                       <input 
                         type="text" 
-                        required 
                         placeholder="e.g. CSE, AI & DS, IT, ECE"
                         value={formData.leader_dept}
                         onChange={(e) => setFormData({...formData, leader_dept: e.target.value})}
@@ -494,7 +608,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     <button type="button" className="btn-prev-step" onClick={() => setActiveStep(0)}>
                       Back
                     </button>
-                    <button type="button" className="btn-next-step" onClick={() => setActiveStep(2)}>
+                    <button type="button" className="btn-next-step" onClick={() => handleNextStep(2)}>
                       <span>Next: 5 Team Members</span>
                       <ChevronRight size={16} />
                     </button>
@@ -543,10 +657,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                     <div className="grid-2-col">
                       <div className="input-group">
-                        <label>Member Full Name <span className="req">*</span></label>
+                        <label>Member Full Name</label>
                         <input 
                           type="text" 
-                          required 
                           placeholder="e.g. Priya S"
                           value={formData.members[activeMemberTab].name}
                           onChange={(e) => updateMember(activeMemberTab, 'name', e.target.value)}
@@ -554,10 +667,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       </div>
 
                       <div className="input-group">
-                        <label>Register Number <span className="req">*</span></label>
+                        <label>Register Number</label>
                         <input 
                           type="text" 
-                          required 
                           placeholder="e.g. 21BCSE045"
                           value={formData.members[activeMemberTab].reg_no}
                           onChange={(e) => updateMember(activeMemberTab, 'reg_no', e.target.value)}
@@ -567,10 +679,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                     <div className="grid-2-col">
                       <div className="input-group">
-                        <label>Personal Email ID <span className="req">*</span></label>
+                        <label>Personal Email ID</label>
                         <input 
                           type="email" 
-                          required 
                           placeholder="member.personal@gmail.com"
                           value={formData.members[activeMemberTab].personal_email}
                           onChange={(e) => updateMember(activeMemberTab, 'personal_email', e.target.value)}
@@ -578,10 +689,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       </div>
 
                       <div className="input-group">
-                        <label>College Official Email ID <span className="req">*</span></label>
+                        <label>College Official Email ID</label>
                         <input 
                           type="email" 
-                          required 
                           placeholder="member.regno@rathinam.ac.in"
                           value={formData.members[activeMemberTab].college_email}
                           onChange={(e) => updateMember(activeMemberTab, 'college_email', e.target.value)}
@@ -591,10 +701,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                     <div className="grid-2-col">
                       <div className="input-group">
-                        <label>Phone Calling Number <span className="req">*</span></label>
+                        <label>Phone Calling Number</label>
                         <input 
                           type="tel" 
-                          required 
                           placeholder="e.g. 9876543211"
                           value={formData.members[activeMemberTab].phone}
                           onChange={(e) => updateMember(activeMemberTab, 'phone', e.target.value)}
@@ -602,10 +711,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       </div>
 
                       <div className="input-group">
-                        <label>WhatsApp Number <span className="req">*</span></label>
+                        <label>WhatsApp Number</label>
                         <input 
                           type="tel" 
-                          required 
                           placeholder="e.g. 9876543211"
                           value={formData.members[activeMemberTab].whatsapp}
                           onChange={(e) => updateMember(activeMemberTab, 'whatsapp', e.target.value)}
@@ -615,7 +723,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                     <div className="grid-3-col">
                       <div className="input-group">
-                        <label>Year of Study <span className="req">*</span></label>
+                        <label>Year of Study</label>
                         <select 
                           value={formData.members[activeMemberTab].year}
                           onChange={(e) => updateMember(activeMemberTab, 'year', e.target.value)}
@@ -629,10 +737,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       </div>
 
                       <div className="input-group">
-                        <label>Department <span className="req">*</span></label>
+                        <label>Department</label>
                         <input 
                           type="text" 
-                          required 
                           placeholder="e.g. CSE, IT, ECE"
                           value={formData.members[activeMemberTab].dept}
                           onChange={(e) => updateMember(activeMemberTab, 'dept', e.target.value)}
@@ -640,7 +747,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       </div>
 
                       <div className="input-group">
-                        <label>School / Faculty <span className="req">*</span></label>
+                        <label>School / Faculty</label>
                         <select 
                           value={formData.members[activeMemberTab].school}
                           onChange={(e) => updateMember(activeMemberTab, 'school', e.target.value)}
@@ -657,7 +764,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     <button type="button" className="btn-prev-step" onClick={() => setActiveStep(1)}>
                       Back
                     </button>
-                    <button type="button" className="btn-next-step" onClick={() => setActiveStep(3)}>
+                    <button type="button" className="btn-next-step" onClick={() => handleNextStep(3)}>
                       <span>Next: Mentor &amp; Submit</span>
                       <ChevronRight size={16} />
                     </button>

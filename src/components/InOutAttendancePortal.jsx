@@ -35,6 +35,12 @@ const MASTER_ADMIN_PASSCODE = 'SIH2026ADMIN';
 export default function InOutAttendancePortal({ 
   allTeams = [], 
   registrationsMap = {},
+  parentSessions,
+  parentActiveOuts,
+  parentMovementLogs,
+  onUpdateSessions,
+  onUpdateActiveOuts,
+  onUpdateLogs,
   onBackToMain
 }) {
   // Mode: If opened via QR code (?action=out or ?action=in), show dedicated minimal mobile form box!
@@ -114,6 +120,7 @@ export default function InOutAttendancePortal({
 
   // ================= PERSISTENT STATE 1: TEAM SESSIONS =================
   const [teamSessions, setTeamSessions] = useState(() => {
+    if (parentSessions && Object.keys(parentSessions).length > 0) return parentSessions;
     try {
       const saved = localStorage.getItem('sih_arena_team_sessions');
       return saved ? JSON.parse(saved) : {};
@@ -134,6 +141,7 @@ export default function InOutAttendancePortal({
 
   // ================= PERSISTENT STATE 3: ACTIVE OUT BREAK PASSES =================
   const [activeOuts, setActiveOuts] = useState(() => {
+    if (parentActiveOuts && Object.keys(parentActiveOuts).length > 0) return parentActiveOuts;
     try {
       const saved = localStorage.getItem('sih_inout_active_outs');
       return saved ? JSON.parse(saved) : {};
@@ -144,6 +152,7 @@ export default function InOutAttendancePortal({
 
   // ================= PERSISTENT STATE 4: MOVEMENT HISTORY AUDIT LOGS =================
   const [movementLogs, setMovementLogs] = useState(() => {
+    if (parentMovementLogs && parentMovementLogs.length > 0) return parentMovementLogs;
     try {
       const saved = localStorage.getItem('sih_inout_logs');
       return saved ? JSON.parse(saved) : [];
@@ -152,10 +161,46 @@ export default function InOutAttendancePortal({
     }
   });
 
-  // Save to LocalStorage whenever state changes
+  // Sync with parent props if provided
+  useEffect(() => {
+    if (parentSessions && Object.keys(parentSessions).length > 0) {
+      setTeamSessions(prev => ({ ...prev, ...parentSessions }));
+    }
+  }, [parentSessions]);
+
+  useEffect(() => {
+    if (parentActiveOuts) {
+      setActiveOuts(parentActiveOuts);
+    }
+  }, [parentActiveOuts]);
+
+  useEffect(() => {
+    if (parentMovementLogs && parentMovementLogs.length > 0) {
+      setMovementLogs(parentMovementLogs);
+    }
+  }, [parentMovementLogs]);
+
+  // Cloud helper to sync directly to Supabase app_settings
+  const pushToSupabase = async (key, value) => {
+    try {
+      await supabase
+        .from('app_settings')
+        .upsert([{ 
+          key, 
+          value, 
+          updated_at: new Date().toISOString() 
+        }], { onConflict: 'key' });
+    } catch (e) {
+      console.warn(`Supabase ${key} push warning:`, e);
+    }
+  };
+
+  // Save to LocalStorage and Cloud whenever state changes
   useEffect(() => {
     try {
       localStorage.setItem('sih_arena_team_sessions', JSON.stringify(teamSessions));
+      if (onUpdateSessions) onUpdateSessions(teamSessions);
+      pushToSupabase('arena_team_sessions', teamSessions);
     } catch (e) { console.warn('Failed to save team sessions', e); }
   }, [teamSessions]);
 
@@ -168,14 +213,55 @@ export default function InOutAttendancePortal({
   useEffect(() => {
     try {
       localStorage.setItem('sih_inout_active_outs', JSON.stringify(activeOuts));
+      if (onUpdateActiveOuts) onUpdateActiveOuts(activeOuts);
+      pushToSupabase('arena_active_outs', activeOuts);
     } catch (e) { console.warn('Failed to save active outs', e); }
   }, [activeOuts]);
 
   useEffect(() => {
     try {
       localStorage.setItem('sih_inout_logs', JSON.stringify(movementLogs));
+      if (onUpdateLogs) onUpdateLogs(movementLogs);
+      pushToSupabase('arena_movement_logs', movementLogs);
     } catch (e) { console.warn('Failed to save movement logs', e); }
   }, [movementLogs]);
+
+  // Background Cloud Polling for Real-Time Multi-Device Sync (Students on Phones <-> Desk)
+  useEffect(() => {
+    const pollArenaCloud = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('key, value')
+          .in('key', ['arena_team_sessions', 'arena_active_outs', 'arena_movement_logs']);
+
+        if (!error && data) {
+          data.forEach(item => {
+            if (item.key === 'arena_team_sessions' && item.value) {
+              setTeamSessions(prev => ({ ...prev, ...item.value }));
+            } else if (item.key === 'arena_active_outs' && item.value) {
+              setActiveOuts(item.value);
+            } else if (item.key === 'arena_movement_logs' && Array.isArray(item.value)) {
+              setMovementLogs(prev => {
+                const existingSet = new Set(prev.map(l => `${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
+                const incomingNew = item.value.filter(l => !existingSet.has(`${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
+                if (incomingNew.length > 0) {
+                  return [...incomingNew, ...prev];
+                }
+                return prev;
+              });
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Arena poll note:', err);
+      }
+    };
+
+    pollArenaCloud();
+    const interval = setInterval(pollArenaCloud, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // URL Listener to sync viewMode (?action=out or ?action=in)
   useEffect(() => {

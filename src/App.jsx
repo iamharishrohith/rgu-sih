@@ -178,6 +178,67 @@ export default function App() {
   const [sortBy, setSortBy] = useState('rank');
   const [sortOrder, setSortOrder] = useState('asc');
 
+  // Real-Time Arena Presence, Active Passes, and Movement Audit Logs State
+  const [arenaTeamSessions, setArenaTeamSessions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_arena_team_sessions') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [arenaActiveOuts, setArenaActiveOuts] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_inout_active_outs') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [arenaMovementLogs, setArenaMovementLogs] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_inout_logs') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const syncArenaToSupabase = async (key, value) => {
+    try {
+      await supabase
+        .from('app_settings')
+        .upsert([{ 
+          key, 
+          value, 
+          updated_at: new Date().toISOString() 
+        }], { onConflict: 'key' });
+    } catch (err) {
+      console.warn(`Supabase ${key} sync warning:`, err);
+    }
+  };
+
+  const handleUpdateArenaSessions = (newSessions) => {
+    setArenaTeamSessions(newSessions);
+    try {
+      localStorage.setItem('sih_arena_team_sessions', JSON.stringify(newSessions));
+    } catch (e) {}
+    syncArenaToSupabase('arena_team_sessions', newSessions);
+  };
+
+  const handleUpdateArenaActiveOuts = (newActiveOuts) => {
+    setArenaActiveOuts(newActiveOuts);
+    try {
+      localStorage.setItem('sih_inout_active_outs', JSON.stringify(newActiveOuts));
+    } catch (e) {}
+    syncArenaToSupabase('arena_active_outs', newActiveOuts);
+  };
+
+  const handleUpdateArenaMovementLogs = (newLogs) => {
+    setArenaMovementLogs(newLogs);
+    try {
+      localStorage.setItem('sih_inout_logs', JSON.stringify(newLogs));
+    } catch (e) {}
+    syncArenaToSupabase('arena_movement_logs', newLogs);
+  };
+
   // Combined Active Finalized Master Teams (Merged with latest submitted form details)
   const masterTeamsList = useMemo(() => {
     const mergeWithReg = (teamObj) => {
@@ -351,6 +412,30 @@ export default function App() {
             setPortalSettings(liveSettings);
             localStorage.setItem('sih_portal_settings', JSON.stringify(liveSettings));
           }
+
+          // Hydrate Arena Team Sessions, Active Outs, Movement Logs
+          const arenaSessionsEntry = settingsData.find(s => s.key === 'arena_team_sessions');
+          if (arenaSessionsEntry && arenaSessionsEntry.value) {
+            setArenaTeamSessions(prev => ({ ...prev, ...arenaSessionsEntry.value }));
+            localStorage.setItem('sih_arena_team_sessions', JSON.stringify(arenaSessionsEntry.value));
+          }
+
+          const arenaOutsEntry = settingsData.find(s => s.key === 'arena_active_outs');
+          if (arenaOutsEntry && arenaOutsEntry.value) {
+            setArenaActiveOuts(arenaOutsEntry.value);
+            localStorage.setItem('sih_inout_active_outs', JSON.stringify(arenaOutsEntry.value));
+          }
+
+          const arenaLogsEntry = settingsData.find(s => s.key === 'arena_movement_logs');
+          if (arenaLogsEntry && Array.isArray(arenaLogsEntry.value)) {
+            setArenaMovementLogs(prev => {
+              const existingSet = new Set(prev.map(l => `${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
+              const incoming = arenaLogsEntry.value.filter(l => !existingSet.has(`${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
+              const merged = [...incoming, ...prev];
+              localStorage.setItem('sih_inout_logs', JSON.stringify(merged));
+              return merged;
+            });
+          }
         }
       } catch (err) {
         console.warn('Supabase fetch error, running on cached dataset:', err);
@@ -358,6 +443,39 @@ export default function App() {
     }
 
     loadData();
+
+    // Background Polling Loop for Multi-Device Arena Sync (every 3 seconds)
+    const arenaInterval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('key, value')
+          .in('key', ['arena_team_sessions', 'arena_active_outs', 'arena_movement_logs']);
+
+        if (!error && data) {
+          data.forEach(item => {
+            if (item.key === 'arena_team_sessions' && item.value) {
+              setArenaTeamSessions(prev => ({ ...prev, ...item.value }));
+            } else if (item.key === 'arena_active_outs' && item.value) {
+              setArenaActiveOuts(item.value);
+            } else if (item.key === 'arena_movement_logs' && Array.isArray(item.value)) {
+              setArenaMovementLogs(prev => {
+                const existingSet = new Set(prev.map(l => `${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
+                const incoming = item.value.filter(l => !existingSet.has(`${l.team_id}-${l.out_time}-${l.in_time}-${l.log_type}`));
+                if (incoming.length > 0) {
+                  return [...incoming, ...prev];
+                }
+                return prev;
+              });
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Arena background polling error:', e);
+      }
+    }, 3000);
+
+    return () => clearInterval(arenaInterval);
   }, []);
 
   // Per-Team Visibility Toggle Handler (Supabase & LocalStorage)
@@ -700,6 +818,12 @@ export default function App() {
           allMasterTeams={masterTeamsList}
           registrationsMap={registrationsMap}
           teamContactsMap={teamContactsMap}
+          arenaTeamSessions={arenaTeamSessions}
+          arenaActiveOuts={arenaActiveOuts}
+          arenaMovementLogs={arenaMovementLogs}
+          onUpdateArenaSessions={handleUpdateArenaSessions}
+          onUpdateArenaActiveOuts={handleUpdateArenaActiveOuts}
+          onUpdateArenaMovementLogs={handleUpdateArenaMovementLogs}
           onUpdateContact={handleUpdateContact}
           onLogout={handleAdminLogout}
           onViewTeamDetails={(team) => setActiveDetailsTeam(team)}
@@ -718,6 +842,12 @@ export default function App() {
         <InOutAttendancePortal
           allTeams={masterTeamsList}
           registrationsMap={registrationsMap}
+          parentSessions={arenaTeamSessions}
+          parentActiveOuts={arenaActiveOuts}
+          parentMovementLogs={arenaMovementLogs}
+          onUpdateSessions={handleUpdateArenaSessions}
+          onUpdateActiveOuts={handleUpdateArenaActiveOuts}
+          onUpdateLogs={handleUpdateArenaMovementLogs}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');

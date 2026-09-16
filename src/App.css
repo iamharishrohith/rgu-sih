@@ -14135,3 +14135,193 @@ body {
   background: #ffe4e6;
   border-color: #fda4af;
 }
+
+
+/* ==========================================================================
+   Form Error Validation & Field Highlighting
+   ========================================================================== */
+.input-error-field {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.field-err-msg {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   Admin Arena Live Presence & Movement Logs Dashboard
+   ========================================================================== */
+.admin-arena-view-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-arena-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #ffffff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.arena-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arena-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-light);
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.arena-pill-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.arena-pill-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.arena-pill-btn.pill-in.active {
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+.arena-pill-btn.pill-out.active {
+  background: #d97706;
+  border-color: #d97706;
+  color: #ffffff;
+}
+
+.arena-pill-btn.pill-not-active.active {
+  background: #64748b;
+  border-color: #64748b;
+  color: #ffffff;
+}
+
+.arena-search-wrap {
+  position: relative;
+  min-width: 280px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.admin-search-input-small {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  font-size: 0.82rem;
+  min-width: 220px;
+}
+
+.admin-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-admin-action-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-admin-action-login:hover {
+  background: #059669;
+  color: #ffffff;
+}
+
+.btn-admin-action-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-admin-action-logout:hover {
+  background: #e11d48;
+  color: #ffffff;
+}
+
+.btn-admin-action-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-admin-action-reset:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.badge-reason-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.break-info-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-size: 0.78rem;
+}

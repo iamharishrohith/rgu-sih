@@ -3,7 +3,8 @@ import {
   Users, CheckCircle2, Clock, Phone, MessageSquare, Download, Upload, Plus, Trash2, EyeOff, 
   Search, Filter, ShieldCheck, UserCheck, Eye, Edit3, Save, X, ExternalLink,
   LogOut, RefreshCw, Layers, BarChart3, PieChart, Award, FileText, Send, Check,
-  Lock, Unlock, Hourglass, Zap, Calendar
+  Lock, Unlock, Hourglass, Zap, Calendar, DoorOpen, DoorClosed, ArrowRight, LogIn,
+  RotateCcw, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { sanitizeCSVField } from '../crypto_security';
@@ -16,6 +17,12 @@ export default function AdminDashboard({
   allMasterTeams, 
   registrationsMap, 
   teamContactsMap,
+  arenaTeamSessions = {},
+  arenaActiveOuts = {},
+  arenaMovementLogs = [],
+  onUpdateArenaSessions,
+  onUpdateArenaActiveOuts,
+  onUpdateArenaMovementLogs,
   onUpdateContact, 
   onLogout,
   onViewTeamDetails,
@@ -29,9 +36,11 @@ export default function AdminDashboard({
   onOpenTimerModal,
   onUpdatePortalSettings
 }) {
-  // Navigation Tabs: 'analytics' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload'
+  // Navigation Tabs: 'analytics' | 'arena' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload' | 'whatsapp'
   const [activeTab, setActiveTab] = useState('analytics'); 
   const [searchTerm, setSearchTerm] = useState('');
+  const [arenaFilter, setArenaFilter] = useState('all'); // 'all' | 'arena_in' | 'arena_out' | 'not_active'
+  const [arenaLogSearch, setArenaLogSearch] = useState('');
   const [selectedSchoolFilter, setSelectedSchoolFilter] = useState('all');
   const [uploadText, setUploadText] = useState('');
   const [uploadFeedback, setUploadFeedback] = useState(null);
@@ -139,6 +148,163 @@ export default function AdminDashboard({
       schoolMap
     };
   }, [teamRecords]);
+
+
+  // Arena Live Status Analytics
+  const arenaStats = useMemo(() => {
+    let inCount = 0;
+    let outCount = 0;
+    let notActiveCount = 0;
+
+    teamRecords.forEach(t => {
+      const teamId = t.temp_team_id;
+      const activePasses = Object.values(arenaActiveOuts || {}).filter(o => o.team_id === teamId);
+      const isOutOnBreak = activePasses.length > 0;
+      const session = arenaTeamSessions?.[teamId];
+
+      if (isOutOnBreak) {
+        outCount++;
+      } else if (session?.is_logged_in && !session?.is_logged_out) {
+        inCount++;
+      } else if (session?.is_logged_out) {
+        outCount++;
+      } else {
+        notActiveCount++;
+      }
+    });
+
+    return {
+      inCount,
+      outCount,
+      notActiveCount,
+      totalLogs: (arenaMovementLogs || []).length
+    };
+  }, [teamRecords, arenaTeamSessions, arenaActiveOuts, arenaMovementLogs]);
+
+  // Admin Quick Action: Force Log In Team
+  const handleAdminLogIn = (team) => {
+    const teamId = team.temp_team_id;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Clear active pass
+    const newOuts = { ...arenaActiveOuts };
+    Object.keys(newOuts).forEach(k => {
+      if (newOuts[k].team_id === teamId) delete newOuts[k];
+    });
+    if (onUpdateArenaActiveOuts) onUpdateArenaActiveOuts(newOuts);
+
+    const newSessions = {
+      ...arenaTeamSessions,
+      [teamId]: {
+        ...(arenaTeamSessions[teamId] || {}),
+        is_logged_in: true,
+        is_logged_out: false,
+        morning_login_time: arenaTeamSessions[teamId]?.morning_login_time || timeStr,
+        morning_timestamp: arenaTeamSessions[teamId]?.morning_timestamp || now.getTime()
+      }
+    };
+    if (onUpdateArenaSessions) onUpdateArenaSessions(newSessions);
+
+    const logEntry = {
+      team_id: teamId,
+      team_name: team.team_name,
+      leader_name: team.leader_name,
+      reg_no: team.reg_no,
+      venue: 'SIH Arena',
+      out_time: '---',
+      in_time: timeStr,
+      duration_minutes: 0,
+      reason_label: 'Admin Check-In (Arena In)',
+      member_name: `Full Team (${team.team_name})`,
+      custom_note: `Team checked in via Admin Dashboard at ${timeStr}.`,
+      status: 'ARENA_IN',
+      log_type: 'TEAM_LOGIN'
+    };
+    if (onUpdateArenaMovementLogs) onUpdateArenaMovementLogs([logEntry, ...(arenaMovementLogs || [])]);
+  };
+
+  // Admin Quick Action: Force Log Out Team
+  const handleAdminLogOut = (team) => {
+    const teamId = team.temp_team_id;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const newOuts = { ...arenaActiveOuts };
+    Object.keys(newOuts).forEach(k => {
+      if (newOuts[k].team_id === teamId) delete newOuts[k];
+    });
+    if (onUpdateArenaActiveOuts) onUpdateArenaActiveOuts(newOuts);
+
+    const newSessions = {
+      ...arenaTeamSessions,
+      [teamId]: {
+        ...(arenaTeamSessions[teamId] || {}),
+        is_logged_out: true,
+        evening_logout_time: timeStr,
+        evening_timestamp: now.getTime()
+      }
+    };
+    if (onUpdateArenaSessions) onUpdateArenaSessions(newSessions);
+
+    const logEntry = {
+      team_id: teamId,
+      team_name: team.team_name,
+      leader_name: team.leader_name,
+      reg_no: team.reg_no,
+      venue: 'SIH Arena',
+      out_time: timeStr,
+      in_time: '---',
+      duration_minutes: 0,
+      reason_label: 'Admin Departure (Arena Out)',
+      member_name: `Team Logout (${team.team_name})`,
+      custom_note: `Team logged out via Admin Dashboard at ${timeStr}.`,
+      status: 'ARENA_OUT',
+      log_type: 'TEAM_LOGOUT'
+    };
+    if (onUpdateArenaMovementLogs) onUpdateArenaMovementLogs([logEntry, ...(arenaMovementLogs || [])]);
+  };
+
+  // Admin Quick Action: Reset Team Session
+  const handleAdminReset = (team) => {
+    const teamId = team.temp_team_id;
+    const newOuts = { ...arenaActiveOuts };
+    Object.keys(newOuts).forEach(k => {
+      if (newOuts[k].team_id === teamId) delete newOuts[k];
+    });
+    if (onUpdateArenaActiveOuts) onUpdateArenaActiveOuts(newOuts);
+
+    const newSessions = { ...arenaTeamSessions };
+    delete newSessions[teamId];
+    if (onUpdateArenaSessions) onUpdateArenaSessions(newSessions);
+  };
+
+  // Export Arena Movement Logs CSV
+  const handleExportArenaLogsCSV = () => {
+    const headers = ['Team ID', 'Team Name', 'Leader Name', 'Reg No', 'Log Type', 'Reason', 'Member', 'Out Time', 'In Time', 'Duration (Mins)', 'Status', 'Note'];
+    const rows = (arenaMovementLogs || []).map(l => [
+      sanitizeCSVField(l.team_id || ''),
+      sanitizeCSVField(l.team_name || ''),
+      sanitizeCSVField(l.leader_name || ''),
+      sanitizeCSVField(l.reg_no || ''),
+      sanitizeCSVField(l.log_type || ''),
+      sanitizeCSVField(l.reason_label || l.reason || ''),
+      sanitizeCSVField(l.member_name || ''),
+      sanitizeCSVField(l.out_time || ''),
+      sanitizeCSVField(l.in_time || ''),
+      sanitizeCSVField(l.duration_minutes || 0),
+      sanitizeCSVField(l.status || ''),
+      sanitizeCSVField(l.custom_note || '')
+    ].join(','));
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', `SIH2026_Arena_Movement_Logs_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // List of distinct schools for filtering
   const distinctSchools = useMemo(() => {
@@ -315,6 +481,17 @@ export default function AdminDashboard({
         >
           <BarChart3 size={16} />
           <span>Master Analytics</span>
+        </button>
+
+        
+        <button 
+          className={`admin-mod-tab ${activeTab === 'arena' ? 'active' : ''}`}
+          onClick={() => setActiveTab('arena')}
+          style={{ background: activeTab === 'arena' ? '#059669' : 'transparent', color: activeTab === 'arena' ? '#ffffff' : 'inherit' }}
+        >
+          <DoorOpen size={16} className={activeTab === 'arena' ? 'text-white' : 'text-emerald'} />
+          <span>Arena Live Presence ({arenaStats.inCount})</span>
+          <span className="mod-tab-sub-count">{arenaStats.outCount} outside</span>
         </button>
 
         <button 
@@ -558,6 +735,348 @@ export default function AdminDashboard({
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      
+      {/* =========================================================================
+          VIEW 1.5: ARENA LIVE PRESENCE & MOVEMENT AUDIT LOGS VIEW
+          ========================================================================= */}
+      {activeTab === 'arena' && (
+        <div className="admin-arena-view-wrapper">
+          {/* Top Metric Cards */}
+          <div className="admin-analytics-kpi-grid">
+            <div className="analytics-kpi-card highlight-green">
+              <div className="kpi-icon-badge emerald">
+                <DoorOpen size={24} />
+              </div>
+              <div className="kpi-data-box">
+                <span className="kpi-number">{arenaStats.inCount}</span>
+                <span className="kpi-title">Present in SIH Arena</span>
+                <span className="kpi-subtext">Active Teams inside hackathon venue</span>
+              </div>
+            </div>
+
+            <div className="analytics-kpi-card highlight-amber">
+              <div className="kpi-icon-badge amber">
+                <DoorClosed size={24} />
+              </div>
+              <div className="kpi-data-box">
+                <span className="kpi-number">{arenaStats.outCount}</span>
+                <span className="kpi-title">Outside on Break / Logout</span>
+                <span className="kpi-subtext">Active break passes &amp; departures</span>
+              </div>
+            </div>
+
+            <div className="analytics-kpi-card">
+              <div className="kpi-icon-badge slate">
+                <Clock size={24} />
+              </div>
+              <div className="kpi-data-box">
+                <span className="kpi-number">{arenaStats.notActiveCount}</span>
+                <span className="kpi-title">Not Checked In Yet</span>
+                <span className="kpi-subtext">Awaiting First Team Arrival Login</span>
+              </div>
+            </div>
+
+            <div className="analytics-kpi-card">
+              <div className="kpi-icon-badge indigo">
+                <Layers size={24} />
+              </div>
+              <div className="kpi-data-box">
+                <span className="kpi-number">{arenaStats.totalLogs}</span>
+                <span className="kpi-title">Live Audit Entries</span>
+                <span className="kpi-subtext">Real-time Movement &amp; Check-in Logs</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stacks Filter Controls */}
+          <div className="admin-arena-controls-bar">
+            <div className="arena-filter-pills">
+              <button 
+                className={`arena-pill-btn ${arenaFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setArenaFilter('all')}
+              >
+                <span>All Teams ({teamRecords.length})</span>
+              </button>
+              <button 
+                className={`arena-pill-btn pill-in ${arenaFilter === 'arena_in' ? 'active' : ''}`}
+                onClick={() => setArenaFilter('arena_in')}
+              >
+                <DoorOpen size={14} />
+                <span>Inside Arena ({arenaStats.inCount})</span>
+              </button>
+              <button 
+                className={`arena-pill-btn pill-out ${arenaFilter === 'arena_out' ? 'active' : ''}`}
+                onClick={() => setArenaFilter('arena_out')}
+              >
+                <DoorClosed size={14} />
+                <span>Outside on Break ({arenaStats.outCount})</span>
+              </button>
+              <button 
+                className={`arena-pill-btn pill-not-active ${arenaFilter === 'not_active' ? 'active' : ''}`}
+                onClick={() => setArenaFilter('not_active')}
+              >
+                <Clock size={14} />
+                <span>Not Checked In ({arenaStats.notActiveCount})</span>
+              </button>
+            </div>
+
+            <div className="arena-search-wrap">
+              <Search size={16} className="search-icon-input" />
+              <input 
+                type="text" 
+                placeholder="Search team, leader, roll no, or venue..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="admin-search-input"
+              />
+            </div>
+          </div>
+
+          {/* Live Teams Arena Table */}
+          <div className="admin-table-card">
+            <div className="table-card-header">
+              <div className="table-title-group">
+                <h3>Live Team Arena Presence Status</h3>
+                <span className="table-count-badge">
+                  Real-time multi-device synchronization active
+                </span>
+              </div>
+            </div>
+
+            <table className="admin-master-table">
+              <thead>
+                <tr>
+                  <th>Rank &amp; ID</th>
+                  <th>Team &amp; Problem Statement</th>
+                  <th>Leader &amp; School</th>
+                  <th>Arena Status</th>
+                  <th>Arrival Check-In</th>
+                  <th>Break / Exit Status</th>
+                  <th>Admin Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teamRecords
+                  .filter(t => {
+                    const teamId = t.temp_team_id;
+                    const activePasses = Object.values(arenaActiveOuts || {}).filter(o => o.team_id === teamId);
+                    const isOut = activePasses.length > 0;
+                    const session = arenaTeamSessions?.[teamId];
+                    const isIn = !isOut && session?.is_logged_in && !session?.is_logged_out;
+                    const isLoggedOut = !isOut && session?.is_logged_out;
+                    const isNotActive = !session?.is_logged_in && !isOut;
+
+                    if (arenaFilter === 'arena_in' && !isIn) return false;
+                    if (arenaFilter === 'arena_out' && (!isOut && !isLoggedOut)) return false;
+                    if (arenaFilter === 'not_active' && !isNotActive) return false;
+
+                    if (searchTerm.trim()) {
+                      const q = searchTerm.toLowerCase();
+                      return (
+                        t.temp_team_id.toLowerCase().includes(q) ||
+                        t.team_name.toLowerCase().includes(q) ||
+                        t.leader_name.toLowerCase().includes(q) ||
+                        t.reg_no.toLowerCase().includes(q) ||
+                        t.ps_id.toLowerCase().includes(q) ||
+                        t.school.toLowerCase().includes(q)
+                      );
+                    }
+                    return true;
+                  })
+                  .map(team => {
+                    const teamId = team.temp_team_id;
+                    const activePasses = Object.values(arenaActiveOuts || {}).filter(o => o.team_id === teamId);
+                    const isOut = activePasses.length > 0;
+                    const session = arenaTeamSessions?.[teamId];
+                    const isIn = !isOut && session?.is_logged_in && !session?.is_logged_out;
+                    const isLoggedOut = !isOut && session?.is_logged_out;
+                    const isNotActive = !session?.is_logged_in && !isOut;
+
+                    return (
+                      <tr key={teamId} className={`table-row ${isIn ? 'row-arena-in' : isOut ? 'row-arena-out' : ''}`}>
+                        <td className="col-id">
+                          <span className="rank-badge">#{team.rank}</span>
+                          <strong className="font-mono text-primary">{teamId}</strong>
+                        </td>
+
+                        <td className="col-team">
+                          <div className="team-name-strong">{team.team_name}</div>
+                          <div className="ps-info-sub">
+                            <span className="ps-id-tag">{team.ps_id}</span>
+                            {team.ps_title && <span className="ps-title-tag">• {team.ps_title}</span>}
+                          </div>
+                        </td>
+
+                        <td className="col-leader">
+                          <div className="leader-name-bold">{team.leader_name}</div>
+                          <div className="school-name-sub">{team.school}</div>
+                          <span className="reg-no-mono">{team.reg_no}</span>
+                        </td>
+
+                        <td className="col-arena-status">
+                          {isIn ? (
+                            <span className="status-badge status-present">
+                              <DoorOpen size={13} /> Present in Arena
+                            </span>
+                          ) : isOut ? (
+                            <span className="status-badge status-out">
+                              <DoorClosed size={13} /> On Break: {activePasses[0]?.reason_label || 'Outside'}
+                            </span>
+                          ) : isLoggedOut ? (
+                            <span className="status-badge status-out">
+                              <LogOut size={13} /> Logged Out
+                            </span>
+                          ) : (
+                            <span className="status-badge status-not-active">
+                              <Clock size={13} /> Not Checked In
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="col-time">
+                          {session?.morning_login_time ? (
+                            <span className="time-badge in">
+                              <CheckCircle2 size={12} className="text-emerald" />
+                              {session.morning_login_time}
+                            </span>
+                          ) : (
+                            <span className="text-muted">Awaiting arrival</span>
+                          )}
+                        </td>
+
+                        <td className="col-break">
+                          {isOut ? (
+                            <div className="break-info-pill">
+                              <span>Due: <strong>{activePasses[0]?.expected_return_time}</strong></span>
+                            </div>
+                          ) : (
+                            <span className="text-muted">---</span>
+                          )}
+                        </td>
+
+                        <td className="col-actions">
+                          <div className="admin-actions-cell">
+                            {!isIn ? (
+                              <button 
+                                className="btn-admin-action-login" 
+                                onClick={() => handleAdminLogIn(team)}
+                                title="Force Mark Team as Present in Arena"
+                              >
+                                <LogIn size={13} />
+                                <span>Check-In</span>
+                              </button>
+                            ) : (
+                              <button 
+                                className="btn-admin-action-logout" 
+                                onClick={() => handleAdminLogOut(team)}
+                                title="Force Mark Team as Logged Out"
+                              >
+                                <LogOut size={13} />
+                                <span>Check-Out</span>
+                              </button>
+                            )}
+
+                            {(isIn || isOut || session?.is_logged_in) && (
+                              <button 
+                                className="btn-admin-action-reset" 
+                                onClick={() => handleAdminReset(team)}
+                                title="Reset Team back to Not Checked In"
+                              >
+                                <RotateCcw size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Real-Time Movement Logs Table */}
+          <div className="admin-table-card" style={{ marginTop: '24px' }}>
+            <div className="table-card-header">
+              <div className="table-title-group">
+                <h3>Live Movement &amp; Attendance Audit Log</h3>
+                <span className="table-count-badge">{(arenaMovementLogs || []).length} Recorded Entries</span>
+              </div>
+              <div className="table-actions-right">
+                <input 
+                  type="text" 
+                  placeholder="Filter movement logs..."
+                  value={arenaLogSearch}
+                  onChange={(e) => setArenaLogSearch(e.target.value)}
+                  className="admin-search-input-small"
+                />
+                <button className="btn-export-csv" onClick={handleExportArenaLogsCSV}>
+                  <Download size={14} />
+                  <span>Export Logs (CSV)</span>
+                </button>
+              </div>
+            </div>
+
+            <table className="admin-master-table">
+              <thead>
+                <tr>
+                  <th>Timestamp / Time</th>
+                  <th>Team &amp; ID</th>
+                  <th>Candidate / Scope</th>
+                  <th>Activity / Reason</th>
+                  <th>Out Time</th>
+                  <th>In Time</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(arenaMovementLogs || [])
+                  .filter(l => {
+                    if (!arenaLogSearch.trim()) return true;
+                    const q = arenaLogSearch.toLowerCase();
+                    return (
+                      (l.team_id || '').toLowerCase().includes(q) ||
+                      (l.team_name || '').toLowerCase().includes(q) ||
+                      (l.leader_name || '').toLowerCase().includes(q) ||
+                      (l.member_name || '').toLowerCase().includes(q) ||
+                      (l.reason_label || '').toLowerCase().includes(q)
+                    );
+                  })
+                  .slice(0, 100)
+                  .map((log, idx) => (
+                    <tr key={idx} className="table-row">
+                      <td className="col-time font-mono">{log.in_time !== '---' ? log.in_time : log.out_time}</td>
+                      <td className="col-team">
+                        <strong>{log.team_name}</strong>
+                        <span className="font-mono text-muted" style={{ marginLeft: '6px', fontSize: '0.8rem' }}>({log.team_id})</span>
+                      </td>
+                      <td>{log.member_name}</td>
+                      <td>
+                        <span className="badge-reason-tag">{log.reason_label || log.reason || log.log_type}</span>
+                      </td>
+                      <td className="font-mono">{log.out_time}</td>
+                      <td className="font-mono">{log.in_time}</td>
+                      <td>{log.duration_minutes > 0 ? `${log.duration_minutes} mins` : '---'}</td>
+                      <td>
+                        <span className={`status-badge ${log.status === 'ARENA_IN' ? 'status-present' : 'status-out'}`}>
+                          {log.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                {(arenaMovementLogs || []).length === 0 && (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
+                      No movement or check-in events recorded yet. Events from student QR scans and portal actions will appear here live.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
