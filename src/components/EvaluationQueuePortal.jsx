@@ -788,38 +788,6 @@ export default function EvaluationQueuePortal({
                           <span>• {currentSession.school}</span>
                         </div>
                       </div>
-
-                      {isAdminLoggedIn && (
-                        <div className='panel-admin-action-bar'>
-                          <button 
-                            type='button'
-                            className={`btn-panel-ctrl ${timing.isPaused ? 'btn-resume' : 'btn-pause'}`}
-                            onClick={() => handleToggleTimerPause(panel.id)}
-                            title={timing.isPaused ? 'Resume Timer' : 'Pause Timer'}
-                          >
-                            {timing.isPaused ? <Play size={13} /> : <Pause size={13} />}
-                            <span>{timing.isPaused ? 'Resume' : 'Pause'}</span>
-                          </button>
-                          <button 
-                            type='button'
-                            className='btn-panel-ctrl btn-grace'
-                            onClick={() => handleExtendSession(panel.id, 5)}
-                            title='Add 5 minutes grace time'
-                          >
-                            <Plus size={13} />
-                            <span>+5m</span>
-                          </button>
-                          <button 
-                            type='button'
-                            className='btn-panel-ctrl btn-conclude'
-                            onClick={() => handleConcludeSession(panel.id)}
-                            title='Conclude and log to Section 65B Ledger'
-                          >
-                            <CheckCircle2 size={13} />
-                            <span>Conclude &amp; Log</span>
-                          </button>
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <div className='panel-idle-eval-box'>
@@ -828,16 +796,6 @@ export default function EvaluationQueuePortal({
                       </div>
                       <h4>Panel Ready &amp; Standing By</h4>
                       <p>Jury is awaiting next assigned team from the digital queue.</p>
-                      {isAdminLoggedIn && queuedTeams.length > 0 && (
-                        <button 
-                          type='button'
-                          className='btn-admin-call-next'
-                          onClick={() => handleStartPanelEvaluation(panel, queuedTeams[0])}
-                        >
-                          <Play size={14} />
-                          <span>Call Next ({queuedTeams[0].tokenNumber})</span>
-                        </button>
-                      )}
                     </div>
                   )}
 
@@ -860,16 +818,6 @@ export default function EvaluationQueuePortal({
                                 <span className='q-lead-sub'>{item.leaderName} ({item.teamId})</span>
                               </div>
                             </div>
-                            {isAdminLoggedIn && !currentSession && (
-                              <button 
-                                type='button'
-                                className='btn-q-start-team'
-                                onClick={() => handleStartPanelEvaluation(panel, item)}
-                                title='Start evaluation session for this team'
-                              >
-                                <Play size={12} />
-                              </button>
-                            )}
                           </div>
                         ))}
                       </div>
