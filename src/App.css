@@ -22199,9 +22199,42 @@ body {
     gap: 4px !important;
   }
 
-  /* Student Flow Mobile Wizard Optimizations */
+  /* Student Flow Mobile Wizard & Countdown Optimizations */
   .student-booking-card {
     padding: 16px !important;
+  }
+
+  .booking-countdown-deck {
+    padding: 14px 10px !important;
+    gap: 6px !important;
+    margin: 16px 0 !important;
+  }
+
+  .countdown-dial-unit {
+    min-width: 60px !important;
+  }
+
+  .countdown-dial-unit .dial-digits {
+    font-size: 2.2rem !important;
+  }
+
+  .countdown-dial-unit .dial-unit-lbl {
+    font-size: 0.62rem !important;
+    margin-top: 4px !important;
+  }
+
+  .booking-countdown-deck .dial-sep {
+    font-size: 1.8rem !important;
+    margin-top: -6px !important;
+  }
+
+  .countdown-gate-header h2 {
+    font-size: 1.35rem !important;
+  }
+
+  .countdown-info-chips-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
   }
 
   .student-wizard-stepper {
@@ -22232,6 +22265,129 @@ body {
     justify-content: center !important;
   }
 
+  /* Bento Grid Jury Station Mobile Optimizations */
+  .jury-bento-workspace {
+    gap: 14px !important;
+  }
+
+  .bento-row-top {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .bento-row-bottom {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .bento-card {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .bento-timer-center-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+
+  .bento-clock-dial .bento-digits {
+    font-size: 2.4rem !important;
+  }
+
+  .bento-timer-controls-col {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .btn-bento-timer-ctrl {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-height: 42px !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+  }
+
+  .bento-parameters-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .bento-score-buttons-row {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .bento-score-btn {
+    min-height: 40px !important;
+    font-size: 1rem !important;
+    border-radius: 8px !important;
+  }
+
+  .bento-preset-strip {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .btn-bento-preset {
+    flex: 1 1 calc(50% - 6px) !important;
+    text-align: center !important;
+  }
+
+  .bento-submit-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .btn-bento-submit-primary,
+  .btn-bento-submit-secondary {
+    width: 100% !important;
+    min-height: 48px !important;
+    justify-content: center !important;
+  }
+
+  /* AI Question Copilot Modal Mobile Drawer */
+  .ai-copilot-modal-container {
+    width: 95% !important;
+    max-height: 92vh !important;
+    margin: 10px auto !important;
+    border-radius: 16px !important;
+  }
+
+  .ai-copilot-categories-bar {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding-bottom: 6px !important;
+  }
+
+  .ai-category-pill {
+    flex-shrink: 0 !important;
+  }
+
+  /* Token Card Mobile Optimizations */
+  .student-token-success-box {
+    padding: 16px !important;
+  }
+
+  .token-number-hero {
+    font-size: 2.2rem !important;
+  }
+
+  .token-action-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .btn-token-action {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
   /* Master Analytics Mobile Optimizations */
   .analytics-kpis-grid {
     grid-template-columns: 1fr !important;
@@ -22258,5 +22414,17 @@ body {
 
   .kpi-num {
     font-size: 1.4rem !important;
+  }
+
+  .bento-clock-dial .bento-digits {
+    font-size: 2.1rem !important;
+  }
+
+  .countdown-dial-unit .dial-digits {
+    font-size: 1.85rem !important;
+  }
+
+  .booking-countdown-deck .dial-sep {
+    font-size: 1.5rem !important;
   }
 }
