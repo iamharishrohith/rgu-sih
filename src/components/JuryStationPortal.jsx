@@ -5,7 +5,7 @@ import {
   Search, ShieldCheck, Download, Sparkles, Monitor, Laptop, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Bot, Brain, MessageSquare, Lightbulb, CheckSquare, 
-  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut
+  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut, Megaphone
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -650,7 +650,7 @@ export default function JuryStationPortal({
     playSoundAlert('chime');
   };
 
-  // Submit Rubric Evaluation
+  // Submit Rubric Evaluation (Auto-completes timing & triggers next team calling)
   const handleSubmitEvaluationScore = () => {
     const current = activeSessions[activePanelObj.id];
     if (!current) return;
@@ -679,20 +679,41 @@ export default function JuryStationPortal({
       evaluatedAtMs: now.getTime()
     };
 
+    // 1. Save Section 65B evaluation to ledger
     const nextLedger = [ledgerEntry, ...(evaluationLedger || [])];
     if (onUpdateLedger) onUpdateLedger(nextLedger);
 
+    // 2. Auto-complete and clear active session (stops timing)
     const nextSessions = { ...activeSessions };
     delete nextSessions[activePanelObj.id];
     if (onUpdateSessions) onUpdateSessions(nextSessions);
 
+    // 3. Remove evaluated team from queue
     const nextQueue = { ...evaluationQueue };
     delete nextQueue[current.teamId];
     if (onUpdateQueue) onUpdateQueue(nextQueue);
 
+    // 4. Reset rubric form
     setRubricScores({ innovation: 8, feasibility: 8, prototype: 8, presentation: 8, defense: 8 });
     setEvalFeedback('');
     playSoundAlert('phase_switch');
+
+    // 5. Next Team Calling Automation
+    const remainingQueued = (panelQueues[activePanelObj.id] || []).filter(item => item.teamId !== current.teamId && (item.status === 'WAITING' || item.status === 'CALLING'));
+    if (remainingQueued.length > 0) {
+      const nextTeam = remainingQueued[0];
+      try {
+        if ('speechSynthesis' in window && soundEnabled) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(`Attention please. Team ${nextTeam.teamName}, Token ${nextTeam.tokenNumber}, please report to ${activePanelObj.name}, ${activePanelObj.room} for your evaluation.`);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          utterance.lang = 'en-US';
+          window.speechSynthesis.speak(utterance);
+        }
+      } catch (e) {}
+    }
+
     alert(`Evaluation submitted successfully for ${current.teamName}! Final Score: ${total}/50`);
   };
 

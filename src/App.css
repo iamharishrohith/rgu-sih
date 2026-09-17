@@ -18881,6 +18881,354 @@ body {
   }
 }
 
+/* ==========================================================================
+   12. Live Broadcast Calling Banner & Drag-Drop Queue Management
+   ========================================================================== */
+
+.eval-broadcast-calling-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 14px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.18);
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 4px 16px rgba(245, 158, 11, 0.15); }
+  50% { box-shadow: 0 8px 30px rgba(245, 158, 11, 0.35); }
+}
+
+.calling-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.calling-pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f59e0b;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.calling-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calling-team-name {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #78350f;
+}
+
+.calling-dest {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.calling-dest strong {
+  font-weight: 800;
+  color: #78350f;
+}
+
+.calling-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-start-called-pitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.btn-start-called-pitch:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-dismiss-call {
+  background: rgba(180, 83, 9, 0.15);
+  border: none;
+  border-radius: 6px;
+  color: #78350f;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.btn-dismiss-call:hover {
+  background: rgba(180, 83, 9, 0.3);
+}
+
+/* Drag Over Panel Highlight */
+.projector-panel-card.drag-over-active {
+  border: 2px dashed #4f46e5 !important;
+  background: #f5f3ff !important;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+.drag-handle-grip {
+  cursor: grab;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  transition: color 0.15s ease;
+}
+
+.drag-handle-grip:hover {
+  color: #4f46e5;
+}
+
+.drag-handle-grip:active {
+  cursor: grabbing;
+}
+
+.drag-hint-pill {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.q-title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-mini-call-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-mini-call-next:hover {
+  background: #fde68a;
+  color: #78350f;
+}
+
+.btn-call-first-team {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #f59e0b;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-call-first-team:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.queued-team-item-row.is-dragging {
+  opacity: 0.4;
+  border: 1.5px dashed #4f46e5;
+}
+
+.queued-team-item-row.is-calling {
+  background: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+
+.calling-indicator-badge {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.q-item-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.queued-team-item-row:hover .q-item-admin-actions {
+  opacity: 1;
+}
+
+.btn-q-action {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.btn-q-action:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.btn-q-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-q-action.call {
+  color: #d97706;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.btn-q-action.call:hover {
+  background: #fde68a;
+}
+
+.btn-q-action.start {
+  color: #059669;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.btn-q-action.start:hover {
+  background: #a7f3d0;
+}
+
+.btn-q-action.delete {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.btn-q-action.delete:hover {
+  background: #fecaca;
+}
+
+.q-panel-transfer-select {
+  padding: 2px 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  max-width: 90px;
+}
+
+.admin-session-controls-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-session-ctrl {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.btn-session-ctrl.pause {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.btn-session-ctrl.pause:hover {
+  background: #e2e8f0;
+}
+
+.btn-session-ctrl.extend {
+  background: #eef2ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
+}
+
+.btn-session-ctrl.extend:hover {
+  background: #e0e7ff;
+}
+
+.btn-session-ctrl.stop {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.btn-session-ctrl.stop:hover {
+  background: #fee2e2;
+}
+
 
 
 
