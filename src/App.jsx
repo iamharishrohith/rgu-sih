@@ -344,6 +344,21 @@ export default function App() {
     syncArenaToSupabase('evaluation_sessions', newSessions);
   };
 
+  const handleResetAllEvaluationData = () => {
+    setEvaluationQueue({});
+    setEvaluationLedger([]);
+    setEvaluationSessions({});
+    try {
+      localStorage.setItem('sih_evaluation_queue', '{}');
+      localStorage.setItem('sih_evaluation_ledger', '[]');
+      localStorage.setItem('sih_evaluation_sessions', '{}');
+      localStorage.removeItem('sih_eval_calling_team');
+    } catch (e) {}
+    syncArenaToSupabase('evaluation_queue', {});
+    syncArenaToSupabase('evaluation_ledger', []);
+    syncArenaToSupabase('evaluation_sessions', {});
+  };
+
   // Combined Active Finalized Master Teams (Merged with latest submitted form details)
   const masterTeamsList = useMemo(() => {
     const mergeWithReg = (teamObj) => {
@@ -1065,6 +1080,7 @@ export default function App() {
           onUpdateQueue={handleUpdateEvaluationQueue}
           onUpdateLedger={handleUpdateEvaluationLedger}
           onUpdateSessions={handleUpdateEvaluationSessions}
+          onResetAllEvaluationData={handleResetAllEvaluationData}
           isAdminLoggedIn={isAdminLoggedIn}
           onOpenAdminGateway={isAdminLoggedIn ? triggerSecretAdmin : null}
           onBackToMain={() => {

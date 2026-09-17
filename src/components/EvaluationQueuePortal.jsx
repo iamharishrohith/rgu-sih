@@ -267,6 +267,7 @@ export default function EvaluationQueuePortal({
   onUpdateQueue,
   onUpdateLedger,
   onUpdateSessions,
+  onResetAllEvaluationData,
   onOpenAdminGateway,
   onBackToMain
 }) {
@@ -345,6 +346,32 @@ export default function EvaluationQueuePortal({
   // Ledger Filter
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [ledgerPanelFilter, setLedgerPanelFilter] = useState('ALL');
+
+  const handleResetAllEvaluation = () => {
+    if (window.confirm('Are you sure you want to RESET ALL EVALUATION DATA (Queues, Tokens, Active Pitch Timers, and Ledger Scores)? Panels and theme configurations will be preserved.')) {
+      if (onResetAllEvaluationData) {
+        onResetAllEvaluationData();
+      } else {
+        if (onUpdateQueue) onUpdateQueue({});
+        if (onUpdateLedger) onUpdateLedger([]);
+        if (onUpdateSessions) onUpdateSessions({});
+      }
+      setCallingTeamAlert(null);
+      setBookingSuccessToken(null);
+      setSelectedTeamForBooking(null);
+      setStudentSearchInput('');
+      setStudentSelectedThemes({});
+      setStudentSelectedTags({});
+      setStudentCustomTagInputs({});
+      setBookingStep(1);
+      try {
+        localStorage.setItem('sih_evaluation_queue', '{}');
+        localStorage.setItem('sih_evaluation_ledger', '[]');
+        localStorage.setItem('sih_evaluation_sessions', '{}');
+        localStorage.removeItem('sih_eval_calling_team');
+      } catch (e) {}
+    }
+  };
 
   // Live Timer Tick
   const [currentTimeMs, setCurrentTimeMs] = useState(Date.now());
@@ -944,6 +971,28 @@ export default function EvaluationQueuePortal({
               >
                 <Layers size={15} />
                 <span>Manage Panels</span>
+              </button>
+
+              <button 
+                className='btn-eval-reset-data' 
+                onClick={handleResetAllEvaluation}
+                title='Reset All Evaluation Queues, Tokens, and Ledger Scores (Preserves Panels & Themes)'
+                style={{
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1.5px solid #fecaca',
+                  padding: '7px 12px',
+                  borderRadius: '10px',
+                  fontSize: '0.82rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Trash2 size={14} />
+                <span>Reset Eval Data</span>
               </button>
 
               {onOpenAdminGateway && (
