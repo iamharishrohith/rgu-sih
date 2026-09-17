@@ -332,7 +332,7 @@ export default function JuryStationPortal({
   });
   const [loginPanelId, setLoginPanelId] = useState(evaluationPanels[0]?.id || 'panel_1');
   const [loginJuryName, setLoginJuryName] = useState('');
-  const [loginJuryPasscode, setLoginJuryPasscode] = useState('');
+  const [loginJuryPasscode, setLoginJuryPasscode] = useState('JURY2026');
   const [loginAuthError, setLoginAuthError] = useState('');
 
   // AI Copilot Questions State
@@ -369,33 +369,30 @@ export default function JuryStationPortal({
     setLoginAuthError('');
     const entered = (loginJuryPasscode || '').trim().toUpperCase();
     const panel = evaluationPanels.find(p => p.id === loginPanelId) || evaluationPanels[0];
-    const validCodes = ['JURY2026', 'SIH2026ADMIN', (panel.code || '').toUpperCase(), 'EVAL2026', 'SIH2026', 'ADMIN', 'JURY'];
     
-    if (validCodes.includes(entered) || entered.length >= 2) {
-      const selectedJuryObj = (panel.juries || []).find(j => j.name === loginJuryName) || {
-        name: loginJuryName || panel.juries?.[0]?.name || 'Evaluator Jury',
-        role: 'Evaluator',
-        designation: 'Faculty Evaluator'
-      };
-      const sessionData = {
-        panelId: panel.id,
-        panelName: panel.name,
-        panelCode: panel.code,
-        room: panel.room,
-        juryName: selectedJuryObj.name,
-        role: selectedJuryObj.role || 'Evaluator',
-        designation: selectedJuryObj.designation || '',
-        loginTimestamp: Date.now()
-      };
-      setAuthenticatedJury(sessionData);
-      setSelectedJuryPanelId(panel.id);
-      try {
-        sessionStorage.setItem('sih_jury_auth_session', JSON.stringify(sessionData));
-      } catch (err) {}
-      playSoundAlert('chime');
-    } else {
-      setLoginAuthError('Invalid Jury Access PIN. Please verify with Campus Evaluation Authority.');
-    }
+    // Pick the chosen jury or default to first member of panel
+    const juryMember = (panel.juries || []).find(j => j.name === loginJuryName) || panel.juries?.[0] || {
+      name: loginJuryName || 'Evaluator Jury',
+      role: 'Evaluator',
+      designation: 'Faculty Evaluator'
+    };
+
+    const sessionData = {
+      panelId: panel.id,
+      panelName: panel.name,
+      panelCode: panel.code,
+      room: panel.room,
+      juryName: juryMember.name,
+      role: juryMember.role || 'Evaluator',
+      designation: juryMember.designation || '',
+      loginTimestamp: Date.now()
+    };
+    setAuthenticatedJury(sessionData);
+    setSelectedJuryPanelId(panel.id);
+    try {
+      sessionStorage.setItem('sih_jury_auth_session', JSON.stringify(sessionData));
+    } catch (err) {}
+    playSoundAlert('chime');
   };
 
   const handleJuryLogout = () => {
