@@ -502,7 +502,7 @@ export default function EvaluationQueuePortal({
   };
 
   return (
-    <div className={`eval-queue-viewport ${activeView === 'projector' ? 'projector-theme-active' : ''}`}>
+    <div className="eval-queue-viewport">
       <header className='eval-top-navbar'>
         <div className='eval-nav-left'>
           <button className='btn-eval-back' onClick={onBackToMain}>
