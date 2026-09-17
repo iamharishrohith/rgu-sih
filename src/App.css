@@ -20254,9 +20254,873 @@ body {
   border: 1.5px solid #c7d2fe;
 }
 
+/* ==========================================================================
+   SKIP / DELAY ACTION BUTTONS & STATUS BADGES
+   ========================================================================== */
 
+.btn-session-ctrl.delay {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
 
+.btn-session-ctrl.delay:hover {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
 
+.btn-q-action.delay {
+  background: #fffbeb;
+  color: #d97706;
+  border-color: #fde68a;
+}
 
+.btn-q-action.delay:hover {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fcd34d;
+}
 
+.delayed-indicator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
 
+.queued-team-item-row.is-delayed {
+  background: #fffdf5;
+  border-left: 3.5px solid #f59e0b;
+}
+
+.btn-timer-ctrl.btn-delay {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1.5px solid #fde68a;
+}
+
+.btn-timer-ctrl.btn-delay:hover {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   MASTER ADMIN ANALYTICS & MANAGING DASHBOARD STYLES
+   ========================================================================== */
+
+.eval-master-analytics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 8px 4px 32px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.analytics-header-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.analytics-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.analytics-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  width: fit-content;
+}
+
+.analytics-header-banner h2 {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+
+.analytics-header-banner p {
+  color: #64748b;
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.analytics-live-pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1.5px solid #bbf7d0;
+  padding: 6px 14px;
+  border-radius: 24px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.pulse-dot-green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  animation: pulse-green 1.8s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+/* 4 Top KPI Cards */
+.analytics-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.analytics-kpi-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.analytics-kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+}
+
+.kpi-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-icon-badge.blue { background: #eff6ff; color: #2563eb; border: 1.5px solid #bfdbfe; }
+.kpi-icon-badge.amber { background: #fffbeb; color: #d97706; border: 1.5px solid #fde68a; }
+.kpi-icon-badge.emerald { background: #f0fdf4; color: #059669; border: 1.5px solid #a7f3d0; }
+.kpi-icon-badge.purple { background: #faf5ff; color: #7c3aed; border: 1.5px solid #e9d5ff; }
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.kpi-num {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+  font-family: var(--font-mono, monospace);
+}
+
+.kpi-sub-total {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.kpi-progress-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 4px 0 2px;
+}
+
+.kpi-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.kpi-progress-fill.blue { background: #2563eb; }
+.kpi-progress-fill.emerald { background: #10b981; }
+
+.kpi-footer-note {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.kpi-highlight-tag {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  width: fit-content;
+  margin: 2px 0;
+}
+
+.kpi-highlight-tag.amber { background: #fffbeb; color: #b45309; }
+.kpi-highlight-tag.purple { background: #faf5ff; color: #6b21a8; }
+
+/* Panel Grid Section */
+.analytics-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.analytics-sec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sec-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sec-title-group h3 {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.sec-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.analytics-panel-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.analytics-panel-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+.analytics-panel-card.is-active-now {
+  border-color: #3b82f6;
+  background: #f8faff;
+}
+
+.panel-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-code-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.p-badge {
+  background: #1e293b;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.p-details h4 {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.p-room {
+  font-size: 0.74rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.status-pill.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.status-pill.idle {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.panel-stats-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+  gap: 4px;
+}
+
+.p-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.m-num {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.m-lbl {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.panel-current-eval-pill {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.curr-lbl {
+  color: #1d4ed8;
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+
+.curr-team {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.curr-token {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.panel-idle-eval-pill {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  color: #64748b;
+  text-align: center;
+  font-weight: 600;
+}
+
+.panel-juries-roster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.j-roster-lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.j-roster-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.j-roster-chip {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Charts Grid */
+.analytics-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.analytics-chart-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+.chart-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title-group h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.card-subtitle {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.tier-distribution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tier-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tier-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.tier-label {
+  font-weight: 700;
+  color: #334155;
+}
+
+.tier-count {
+  color: #0f172a;
+  font-family: var(--font-mono, monospace);
+}
+
+.tier-bar-track {
+  width: 100%;
+  height: 7px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tier-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.tier-bar-fill.outstanding { background: #f59e0b; }
+.tier-bar-fill.excellent { background: #10b981; }
+.tier-bar-fill.good { background: #3b82f6; }
+.tier-bar-fill.satisfactory { background: #f97316; }
+.tier-bar-fill.needs-improvement { background: #ef4444; }
+
+/* Mini Table */
+.jury-activity-table-wrap {
+  overflow-x: auto;
+}
+
+.analytics-mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.analytics-mini-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1.5px solid #e2e8f0;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.analytics-mini-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #0f172a;
+}
+
+.panel-chip-small {
+  background: #e2e8f0;
+  color: #1e293b;
+  font-weight: 800;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.eval-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Delayed Teams Section */
+.analytics-delayed-section {
+  background: #fffdf5;
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.delayed-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.delayed-teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.delayed-team-card {
+  background: #ffffff;
+  border: 1px solid #fef08a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.delayed-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.delayed-token {
+  font-family: var(--font-mono, monospace);
+  font-weight: 900;
+  color: #b45309;
+  font-size: 0.84rem;
+}
+
+.delayed-count-badge {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.delayed-team-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.delayed-meta {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.delayed-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-delayed-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-delayed-action.call {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.btn-delayed-action.start {
+  background: #059669;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   COMPREHENSIVE MOBILE VIEWPORT OPTIMIZATIONS (<= 768px & <= 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Jury Station Mobile Optimizations */
+  .jury-workspace-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .param-score-pill-selector {
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .score-pill-btn {
+    min-height: 40px !important;
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    border-radius: 8px !important;
+  }
+
+  .rubric-submit-actions {
+    flex-direction: column !important;
+  }
+
+  .rubric-submit-actions button {
+    width: 100% !important;
+    min-height: 48px !important;
+  }
+
+  .timer-buttons-row {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  .btn-timer-ctrl {
+    flex: 1 1 calc(50% - 8px) !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+
+  .jury-station-auth-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .station-info-right {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* Evaluation Queue Portal Mobile Optimizations */
+  .eval-nav-left {
+    width: 100% !important;
+  }
+
+  .eval-view-switcher {
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding-bottom: 2px !important;
+  }
+
+  .eval-tab-btn {
+    flex-shrink: 0 !important;
+    padding: 7px 12px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .projector-panels-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .admin-session-controls-strip {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .btn-session-ctrl {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-height: 38px !important;
+    justify-content: center !important;
+  }
+
+  .q-item-admin-actions {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  /* Student Flow Mobile Wizard Optimizations */
+  .student-booking-card {
+    padding: 16px !important;
+  }
+
+  .student-wizard-stepper {
+    gap: 4px !important;
+  }
+
+  .wizard-step-node {
+    padding: 6px 8px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .wizard-step-node .step-title {
+    display: none !important;
+  }
+
+  .theme-grid-selector {
+    grid-template-columns: 1fr !important;
+  }
+
+  .wizard-nav-footer {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+  }
+
+  .wizard-nav-footer button {
+    width: 100% !important;
+    min-height: 48px !important;
+    justify-content: center !important;
+  }
+
+  /* Master Analytics Mobile Optimizations */
+  .analytics-kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .analytics-panel-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .analytics-charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .analytics-header-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .param-score-pill-selector {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .eval-header-title h1 {
+    font-size: 1.05rem !important;
+  }
+
+  .kpi-num {
+    font-size: 1.4rem !important;
+  }
+}

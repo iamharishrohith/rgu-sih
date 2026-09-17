@@ -6,7 +6,7 @@ import {
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Check, Award, Trash2, Tag, Hash, X,
   GripVertical, ArrowUp, ArrowDown, ArrowRightLeft, Megaphone, Radio, Square,
-  ArrowRight, ChevronRight
+  ArrowRight, ChevronRight, BarChart3, TrendingUp, Activity, FastForward, RotateCcw, AlertTriangle, UserCheck, PieChart
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -278,6 +278,7 @@ export default function EvaluationQueuePortal({
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
       if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) return 'student';
+      if (isAdminLoggedIn && (pathname.includes('/analytics') || search.includes('view=analytics') || hash.includes('analytics') || hash.includes('dashboard') || hash.includes('kpi'))) return 'analytics';
       if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) return 'ledger';
       if (pathname.includes('/projector') || pathname.includes('/live') || search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector') || hash.includes('live')) return 'projector';
     } catch (e) {}
@@ -293,6 +294,8 @@ export default function EvaluationQueuePortal({
         const hash = window.location.hash.toLowerCase();
         if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) {
           setActiveView('student');
+        } else if (isAdminLoggedIn && (pathname.includes('/analytics') || search.includes('view=analytics') || hash.includes('analytics') || hash.includes('dashboard') || hash.includes('kpi'))) {
+          setActiveView('analytics');
         } else if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) {
           setActiveView('ledger');
         } else {
@@ -309,9 +312,9 @@ export default function EvaluationQueuePortal({
     };
   }, [isAdminLoggedIn]);
 
-  // Ensure unauthenticated users are kept out of ledger view
+  // Ensure unauthenticated users are kept out of ledger & analytics view
   useEffect(() => {
-    if (!isAdminLoggedIn && activeView === 'ledger') {
+    if (!isAdminLoggedIn && (activeView === 'ledger' || activeView === 'analytics')) {
       setActiveView('projector');
     }
   }, [isAdminLoggedIn, activeView]);
@@ -701,6 +704,44 @@ export default function EvaluationQueuePortal({
     }
   };
 
+  // Delay / Skip Team Slot (Moves Delayed Team to End of Waiting Queue without losing token)
+  const handleDelayTeamSlot = (teamId, panelId) => {
+    const item = evaluationQueue[teamId];
+    if (!item) return;
+
+    const currentList = panelQueues[panelId] || [];
+    const maxTimestamp = currentList.reduce((max, t) => Math.max(max, t.bookedTimestamp || 0), Date.now());
+
+    const nextQueue = {
+      ...evaluationQueue,
+      [teamId]: {
+        ...item,
+        status: 'DELAYED',
+        bookedTimestamp: maxTimestamp + 60000,
+        delayedCount: (item.delayedCount || 0) + 1,
+        lastDelayedAt: Date.now()
+      }
+    };
+
+    // If this team was actively presenting in this panel, clear session
+    if (activeSessions[panelId]?.teamId === teamId) {
+      const nextSessions = { ...activeSessions };
+      delete nextSessions[panelId];
+      if (onUpdateSessions) onUpdateSessions(nextSessions);
+    }
+
+    if (onUpdateQueue) onUpdateQueue(nextQueue);
+    playSoundAlert('delete');
+
+    // Immediately call next ready waiting team if available
+    const nextReady = currentList.filter(t => t.teamId !== teamId && t.status !== 'DELAYED')[0] || currentList.filter(t => t.teamId !== teamId)[0];
+    if (nextReady) {
+      setTimeout(() => {
+        handleCallNextTeamInPanel(panelId, false);
+      }, 500);
+    }
+  };
+
   // Timer Controls
   const handleToggleTimerPause = (panelId) => {
     const current = activeSessions[panelId];
@@ -883,6 +924,106 @@ export default function EvaluationQueuePortal({
     }).sort((a, b) => b.avgScore - a.avgScore);
   }, [filteredLedger]);
 
+  // Master Analytics & Real-Time Performance KPIs
+  const analyticsData = useMemo(() => {
+    const totalTeamsCount = allTeams.length || 0;
+    const evaluatedTeamsCount = consolidatedLedger.length;
+    const inQueueCount = Object.keys(evaluationQueue || {}).length;
+    const activeSessionsCount = Object.keys(activeSessions || {}).length;
+    const completionPct = totalTeamsCount > 0 ? Math.round((evaluatedTeamsCount / totalTeamsCount) * 100) : 0;
+
+    const allLedger = evaluationLedger || [];
+    const totalIndividualEvals = allLedger.length;
+    const overallAvgScore = totalIndividualEvals > 0 
+      ? (allLedger.reduce((sum, e) => sum + (e.totalScore || 0), 0) / totalIndividualEvals).toFixed(1)
+      : '0.0';
+    const overallAvgPct = totalIndividualEvals > 0 ? Math.round((parseFloat(overallAvgScore) / 50) * 100) : 0;
+
+    // Panel stats
+    const panelStats = evaluationPanels.map(panel => {
+      const panelEvals = allLedger.filter(e => e.panelId === panel.id);
+      const uniqueTeams = new Set(panelEvals.map(e => e.teamId)).size;
+      const qCount = (panelQueues[panel.id] || []).length;
+      const activeSession = activeSessions[panel.id];
+      const avg = panelEvals.length > 0
+        ? (panelEvals.reduce((s, e) => s + (e.totalScore || 0), 0) / panelEvals.length).toFixed(1)
+        : '—';
+      return {
+        panel,
+        evalCount: panelEvals.length,
+        uniqueTeams,
+        qCount,
+        activeSession,
+        avgScore: avg
+      };
+    });
+
+    // Score distribution tiers
+    const tiers = {
+      outstanding: allLedger.filter(e => e.totalScore >= 45).length,
+      excellent: allLedger.filter(e => e.totalScore >= 40 && e.totalScore < 45).length,
+      good: allLedger.filter(e => e.totalScore >= 35 && e.totalScore < 40).length,
+      satisfactory: allLedger.filter(e => e.totalScore >= 28 && e.totalScore < 35).length,
+      needsImprovement: allLedger.filter(e => e.totalScore < 28).length,
+    };
+
+    // Jury Activity
+    const juryActivityMap = {};
+    evaluationPanels.forEach(p => {
+      (p.juries || []).forEach(j => {
+        juryActivityMap[j.name] = {
+          name: j.name,
+          role: j.role || j.designation,
+          panelCode: p.code,
+          panelName: p.name,
+          count: 0,
+          totalSum: 0
+        };
+      });
+    });
+
+    allLedger.forEach(e => {
+      const name = e.evaluatorName || e.juries?.[0]?.name;
+      if (name) {
+        if (!juryActivityMap[name]) {
+          juryActivityMap[name] = {
+            name,
+            role: e.evaluatorRole || 'Evaluator',
+            panelCode: e.panelId || 'P',
+            panelName: e.panelName || 'Panel',
+            count: 0,
+            totalSum: 0
+          };
+        }
+        juryActivityMap[name].count += 1;
+        juryActivityMap[name].totalSum += (e.totalScore || 0);
+      }
+    });
+
+    const juryActivityList = Object.values(juryActivityMap).map(j => ({
+      ...j,
+      avgScore: j.count > 0 ? (j.totalSum / j.count).toFixed(1) : '—'
+    })).sort((a, b) => b.count - a.count);
+
+    // Delayed Teams
+    const delayedTeams = Object.values(evaluationQueue || {}).filter(t => t.status === 'DELAYED');
+
+    return {
+      totalTeamsCount,
+      evaluatedTeamsCount,
+      inQueueCount,
+      activeSessionsCount,
+      completionPct,
+      totalIndividualEvals,
+      overallAvgScore,
+      overallAvgPct,
+      panelStats,
+      tiers,
+      juryActivityList,
+      delayedTeams
+    };
+  }, [allTeams, consolidatedLedger, evaluationLedger, evaluationQueue, activeSessions, evaluationPanels, panelQueues]);
+
   const handleExportLedgerCSV = () => {
     const headers = ['Evaluation ID', 'Panel', 'Room', 'Evaluator Jury', 'Role', 'Team ID', 'Team Name', 'Leader Name', 'Reg No', 'PS ID', 'Innovation (10)', 'Feasibility (10)', 'Prototype (10)', 'Pitch (10)', 'Q&A Defense (10)', 'Total / 50', 'Score %', 'Time', 'Feedback'];
     const rows = (evaluationLedger || []).map(l => [
@@ -959,13 +1100,22 @@ export default function EvaluationQueuePortal({
               <span>Student Slot Booking</span>
             </button>
             {isAdminLoggedIn && (
-              <button 
-                className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
-                onClick={() => handleSwitchTab('ledger')}
-              >
-                <FileText size={15} />
-                <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
-              </button>
+              <>
+                <button 
+                  className={`eval-tab-btn ${activeView === 'analytics' ? 'active analytics' : ''}`}
+                  onClick={() => handleSwitchTab('analytics')}
+                >
+                  <BarChart3 size={15} />
+                  <span>Master Analytics &amp; KPIs</span>
+                </button>
+                <button 
+                  className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
+                  onClick={() => handleSwitchTab('ledger')}
+                >
+                  <FileText size={15} />
+                  <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -1220,6 +1370,18 @@ export default function EvaluationQueuePortal({
                             <span>+5 Min</span>
                           </button>
                           <button 
+                            className='btn-session-ctrl delay'
+                            onClick={() => {
+                              if (window.confirm(`Skip & Delay active team "${activeSession.teamName}"? They will be placed at the end of the queue.`)) {
+                                handleDelayTeamSlot(activeSession.teamId, panel.id);
+                              }
+                            }}
+                            title='Skip / Delay Slot (Move active team to back of waiting queue)'
+                          >
+                            <FastForward size={13} />
+                            <span>Skip / Delay</span>
+                          </button>
+                          <button 
                             className='btn-session-ctrl stop'
                             onClick={() => handleConcludeSession(panel.id, true)}
                             title='Stop & Auto-Complete Evaluation'
@@ -1281,7 +1443,7 @@ export default function EvaluationQueuePortal({
                         {queuedTeams.map((item, qIdx) => (
                           <div 
                             key={item.teamId} 
-                            className={`queued-team-item-row ${item.status === 'CALLING' ? 'is-calling' : ''} ${draggedTeamId === item.teamId ? 'is-dragging' : ''} ${isAdminLoggedIn ? 'is-admin' : 'is-viewer'}`}
+                            className={`queued-team-item-row ${item.status === 'CALLING' ? 'is-calling' : ''} ${item.status === 'DELAYED' ? 'is-delayed' : ''} ${draggedTeamId === item.teamId ? 'is-dragging' : ''} ${isAdminLoggedIn ? 'is-admin' : 'is-viewer'}`}
                             draggable={isAdminLoggedIn}
                             onDragStart={() => {
                               if (!isAdminLoggedIn) return;
@@ -1305,6 +1467,8 @@ export default function EvaluationQueuePortal({
                                 <strong className='q-team-title' title={item.teamName}>{item.teamName}</strong>
                                 {item.status === 'CALLING' ? (
                                   <span className='calling-indicator-badge'>📢 CALLING</span>
+                                ) : item.status === 'DELAYED' ? (
+                                  <span className='delayed-indicator-badge'>⏳ DELAYED ({item.delayedCount || 1}x)</span>
                                 ) : (
                                   <span className='q-status-tag'>#{qIdx + 1}</span>
                                 )}
@@ -1347,6 +1511,15 @@ export default function EvaluationQueuePortal({
                                     </option>
                                   ))}
                                 </select>
+
+                                {/* Skip / Delay Team */}
+                                <button 
+                                  className='btn-q-action delay'
+                                  onClick={() => handleDelayTeamSlot(item.teamId, panel.id)}
+                                  title='Skip / Delay Slot (Move to End of Queue)'
+                                >
+                                  <FastForward size={11} />
+                                </button>
 
                                 {/* Call Now */}
                                 <button 
@@ -1971,6 +2144,328 @@ export default function EvaluationQueuePortal({
               })()
             ) : null}
           </div>
+        </div>
+      )}
+
+      {/* VIEW: MASTER ADMIN ANALYTICS & MANAGING DASHBOARD */}
+      {activeView === 'analytics' && (
+        <div className='eval-master-analytics-container'>
+          {/* Header Banner */}
+          <div className='analytics-header-banner'>
+            <div className='analytics-header-left'>
+              <div className='analytics-pill-badge'>
+                <BarChart3 size={15} className='text-indigo' />
+                <span>EXECUTIVE OPERATIONS COMMAND</span>
+              </div>
+              <h2>Hackathon Evaluation Analytics &amp; Master Throughput</h2>
+              <p>Real-time telemetry across Panels 1–5, multi-jury throughput, delay tracking, and score distributions.</p>
+            </div>
+            <div className='analytics-header-right'>
+              <div className='analytics-live-pulse-badge'>
+                <span className='pulse-dot-green'></span>
+                <span>Telemetry Live (Sync: 1s)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Top KPI Cards */}
+          <div className='analytics-kpis-grid'>
+            <div className='analytics-kpi-card'>
+              <div className='kpi-icon-badge blue'>
+                <CheckCircle2 size={22} />
+              </div>
+              <div className='kpi-info'>
+                <span className='kpi-label'>Teams Evaluated</span>
+                <div className='kpi-value-row'>
+                  <span className='kpi-num'>{analyticsData.evaluatedTeamsCount}</span>
+                  <span className='kpi-sub-total'>/ {analyticsData.totalTeamsCount} Teams</span>
+                </div>
+                <div className='kpi-progress-bar-wrap'>
+                  <div className='kpi-progress-fill blue' style={{ width: `${analyticsData.completionPct}%` }}></div>
+                </div>
+                <span className='kpi-footer-note'>{analyticsData.completionPct}% Campus Completion</span>
+              </div>
+            </div>
+
+            <div className='analytics-kpi-card'>
+              <div className='kpi-icon-badge amber'>
+                <Activity size={22} />
+              </div>
+              <div className='kpi-info'>
+                <span className='kpi-label'>Live Workload</span>
+                <div className='kpi-value-row'>
+                  <span className='kpi-num'>{analyticsData.activeSessionsCount}</span>
+                  <span className='kpi-sub-total'>Active Slots</span>
+                </div>
+                <span className='kpi-highlight-tag amber'>
+                  {analyticsData.inQueueCount} Teams Waiting in Queue
+                </span>
+                <span className='kpi-footer-note'>{analyticsData.delayedTeams.length} Teams on Hold / Delayed</span>
+              </div>
+            </div>
+
+            <div className='analytics-kpi-card'>
+              <div className='kpi-icon-badge emerald'>
+                <TrendingUp size={22} />
+              </div>
+              <div className='kpi-info'>
+                <span className='kpi-label'>Campus Average Score</span>
+                <div className='kpi-value-row'>
+                  <span className='kpi-num'>{analyticsData.overallAvgScore}</span>
+                  <span className='kpi-sub-total'>/ 50.0</span>
+                </div>
+                <div className='kpi-progress-bar-wrap'>
+                  <div className='kpi-progress-fill emerald' style={{ width: `${analyticsData.overallAvgPct}%` }}></div>
+                </div>
+                <span className='kpi-footer-note'>{analyticsData.overallAvgPct}% Overall Performance Benchmark</span>
+              </div>
+            </div>
+
+            <div className='analytics-kpi-card'>
+              <div className='kpi-icon-badge purple'>
+                <ShieldCheck size={22} />
+              </div>
+              <div className='kpi-info'>
+                <span className='kpi-label'>Multi-Jury Scorecards</span>
+                <div className='kpi-value-row'>
+                  <span className='kpi-num'>{analyticsData.totalIndividualEvals}</span>
+                  <span className='kpi-sub-total'>Recorded Entries</span>
+                </div>
+                <span className='kpi-highlight-tag purple'>
+                  100% Section 65B Certified
+                </span>
+                <span className='kpi-footer-note'>Independent Evaluator Marks</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Panel Throughput & Status Cards Grid (Panels 1–5) */}
+          <div className='analytics-panel-section'>
+            <div className='analytics-sec-header'>
+              <div className='sec-title-group'>
+                <Layers size={18} className='text-indigo' />
+                <h3>Station-Wise Throughput &amp; Live Velocity</h3>
+              </div>
+              <span className='sec-hint'>Individual real-time monitoring of Panels 1 to 5</span>
+            </div>
+
+            <div className='analytics-panel-cards-grid'>
+              {analyticsData.panelStats.map(stat => {
+                const isSessionActive = !!stat.activeSession;
+                return (
+                  <div key={stat.panel.id} className={`analytics-panel-card ${isSessionActive ? 'is-active-now' : 'is-standing-by'}`}>
+                    <div className='panel-card-top'>
+                      <div className='panel-code-title'>
+                        <span className='p-badge'>{stat.panel.code}</span>
+                        <div className='p-details'>
+                          <h4>{stat.panel.name.split('—')[1] || stat.panel.name}</h4>
+                          <span className='p-room'>📍 {stat.panel.room}</span>
+                        </div>
+                      </div>
+                      <span className={`status-pill ${isSessionActive ? 'active' : 'idle'}`}>
+                        {isSessionActive ? '● Presenting' : '○ Standby'}
+                      </span>
+                    </div>
+
+                    <div className='panel-stats-metrics-row'>
+                      <div className='p-metric'>
+                        <span className='m-num'>{stat.uniqueTeams}</span>
+                        <span className='m-lbl'>Teams Done</span>
+                      </div>
+                      <div className='p-metric'>
+                        <span className='m-num'>{stat.qCount}</span>
+                        <span className='m-lbl'>In Queue</span>
+                      </div>
+                      <div className='p-metric'>
+                        <span className='m-num font-mono'>{stat.avgScore}</span>
+                        <span className='m-lbl'>Avg / 50</span>
+                      </div>
+                    </div>
+
+                    {isSessionActive ? (
+                      <div className='panel-current-eval-pill'>
+                        <span className='curr-lbl'>Current:</span>
+                        <strong className='curr-team'>{stat.activeSession.teamName}</strong>
+                        <span className='curr-token'>({stat.activeSession.teamId})</span>
+                      </div>
+                    ) : (
+                      <div className='panel-idle-eval-pill'>
+                        <span>Awaiting Next Presentation</span>
+                      </div>
+                    )}
+
+                    <div className='panel-juries-roster-list'>
+                      <span className='j-roster-lbl'>Evaluator Roster:</span>
+                      <div className='j-roster-chips'>
+                        {(stat.panel.juries || []).map((j, jIdx) => (
+                          <span key={jIdx} className='j-roster-chip'>
+                            {j.name.split(' ')[0]} ({j.role})
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Two-Column Analytics: Score Distribution & Jury Performance */}
+          <div className='analytics-charts-grid'>
+            {/* Score Distribution Breakdown */}
+            <div className='analytics-chart-card'>
+              <div className='chart-card-header'>
+                <div className='card-title-group'>
+                  <PieChart size={18} className='text-primary' />
+                  <h3>Score Tier Distribution</h3>
+                </div>
+                <span className='card-subtitle'>Distribution of all {analyticsData.totalIndividualEvals} recorded evaluations</span>
+              </div>
+
+              <div className='tier-distribution-list'>
+                <div className='tier-item'>
+                  <div className='tier-info-row'>
+                    <span className='tier-label outstanding'>🌟 Outstanding (45 – 50)</span>
+                    <strong className='tier-count'>{analyticsData.tiers.outstanding} evals ({analyticsData.totalIndividualEvals > 0 ? Math.round((analyticsData.tiers.outstanding / analyticsData.totalIndividualEvals) * 100) : 0}%)</strong>
+                  </div>
+                  <div className='tier-bar-track'>
+                    <div className='tier-bar-fill outstanding' style={{ width: `${analyticsData.totalIndividualEvals > 0 ? (analyticsData.tiers.outstanding / analyticsData.totalIndividualEvals) * 100 : 0}%` }}></div>
+                  </div>
+                </div>
+
+                <div className='tier-item'>
+                  <div className='tier-info-row'>
+                    <span className='tier-label excellent'>🟢 Excellent (40 – 44)</span>
+                    <strong className='tier-count'>{analyticsData.tiers.excellent} evals ({analyticsData.totalIndividualEvals > 0 ? Math.round((analyticsData.tiers.excellent / analyticsData.totalIndividualEvals) * 100) : 0}%)</strong>
+                  </div>
+                  <div className='tier-bar-track'>
+                    <div className='tier-bar-fill excellent' style={{ width: `${analyticsData.totalIndividualEvals > 0 ? (analyticsData.tiers.excellent / analyticsData.totalIndividualEvals) * 100 : 0}%` }}></div>
+                  </div>
+                </div>
+
+                <div className='tier-item'>
+                  <div className='tier-info-row'>
+                    <span className='tier-label good'>🔵 Good (35 – 39)</span>
+                    <strong className='tier-count'>{analyticsData.tiers.good} evals ({analyticsData.totalIndividualEvals > 0 ? Math.round((analyticsData.tiers.good / analyticsData.totalIndividualEvals) * 100) : 0}%)</strong>
+                  </div>
+                  <div className='tier-bar-track'>
+                    <div className='tier-bar-fill good' style={{ width: `${analyticsData.totalIndividualEvals > 0 ? (analyticsData.tiers.good / analyticsData.totalIndividualEvals) * 100 : 0}%` }}></div>
+                  </div>
+                </div>
+
+                <div className='tier-item'>
+                  <div className='tier-info-row'>
+                    <span className='tier-label satisfactory'>🟡 Satisfactory (28 – 34)</span>
+                    <strong className='tier-count'>{analyticsData.tiers.satisfactory} evals ({analyticsData.totalIndividualEvals > 0 ? Math.round((analyticsData.tiers.satisfactory / analyticsData.totalIndividualEvals) * 100) : 0}%)</strong>
+                  </div>
+                  <div className='tier-bar-track'>
+                    <div className='tier-bar-fill satisfactory' style={{ width: `${analyticsData.totalIndividualEvals > 0 ? (analyticsData.tiers.satisfactory / analyticsData.totalIndividualEvals) * 100 : 0}%` }}></div>
+                  </div>
+                </div>
+
+                <div className='tier-item'>
+                  <div className='tier-info-row'>
+                    <span className='tier-label needs-improvement'>🔴 Bench / Needs Work (&lt; 28)</span>
+                    <strong className='tier-count'>{analyticsData.tiers.needsImprovement} evals ({analyticsData.totalIndividualEvals > 0 ? Math.round((analyticsData.tiers.needsImprovement / analyticsData.totalIndividualEvals) * 100) : 0}%)</strong>
+                  </div>
+                  <div className='tier-bar-track'>
+                    <div className='tier-bar-fill needs-improvement' style={{ width: `${analyticsData.totalIndividualEvals > 0 ? (analyticsData.tiers.needsImprovement / analyticsData.totalIndividualEvals) * 100 : 0}%` }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Evaluator Activity Tracker */}
+            <div className='analytics-chart-card'>
+              <div className='chart-card-header'>
+                <div className='card-title-group'>
+                  <UserCheck size={18} className='text-indigo' />
+                  <h3>Evaluator Activity Tracker</h3>
+                </div>
+                <span className='card-subtitle'>Evaluator individual submissions and scoring index</span>
+              </div>
+
+              <div className='jury-activity-table-wrap'>
+                <table className='analytics-mini-table'>
+                  <thead>
+                    <tr>
+                      <th>Evaluator</th>
+                      <th>Panel</th>
+                      <th>Evals Logged</th>
+                      <th>Avg Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analyticsData.juryActivityList.map((j, idx) => (
+                      <tr key={idx}>
+                        <td>
+                          <strong>{j.name}</strong>
+                          <div className='text-muted small'>{j.role}</div>
+                        </td>
+                        <td>
+                          <span className='panel-chip-small'>{j.panelCode}</span>
+                        </td>
+                        <td>
+                          <span className='eval-count-badge'>{j.count}</span>
+                        </td>
+                        <td>
+                          <strong className='font-mono'>{j.avgScore}</strong> <span className='text-muted small'>/ 50</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Delayed / On-Hold Teams Monitor */}
+          {analyticsData.delayedTeams.length > 0 && (
+            <div className='analytics-delayed-section'>
+              <div className='delayed-section-header'>
+                <div className='sec-title-group'>
+                  <AlertTriangle size={18} className='text-amber' />
+                  <h3>Delayed &amp; On-Hold Teams ({analyticsData.delayedTeams.length})</h3>
+                </div>
+                <span className='sec-hint'>Teams skipped by jury or moved to waiting pool</span>
+              </div>
+
+              <div className='delayed-teams-grid'>
+                {analyticsData.delayedTeams.map(team => (
+                  <div key={team.teamId} className='delayed-team-card'>
+                    <div className='delayed-card-top'>
+                      <span className='delayed-token'>{team.tokenNumber}</span>
+                      <span className='delayed-count-badge'>{team.delayedCount || 1}x Delayed</span>
+                    </div>
+                    <h4 className='delayed-team-name'>{team.teamName}</h4>
+                    <p className='delayed-meta'>{team.leaderName} ({team.teamId}) • {team.psId}</p>
+                    <div className='delayed-card-actions'>
+                      <button 
+                        className='btn-delayed-action call'
+                        onClick={() => {
+                          const panel = evaluationPanels.find(p => p.id === team.panelId);
+                          if (panel) announceTeamCall(team, panel);
+                        }}
+                      >
+                        <Megaphone size={12} />
+                        <span>Re-Announce</span>
+                      </button>
+                      <button 
+                        className='btn-delayed-action start'
+                        onClick={() => {
+                          const panel = evaluationPanels.find(p => p.id === team.panelId);
+                          if (panel) handleStartPanelEvaluation(panel, team);
+                        }}
+                      >
+                        <Play size={12} />
+                        <span>Start Slot</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

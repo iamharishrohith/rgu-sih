@@ -5,7 +5,7 @@ import {
   Search, ShieldCheck, Download, Sparkles, Monitor, Laptop, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Bot, Brain, MessageSquare, Lightbulb, CheckSquare, 
-  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut, Megaphone
+  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut, Megaphone, FastForward, AlertTriangle, RotateCcw
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -598,6 +598,69 @@ export default function JuryStationPortal({
     playSoundAlert('pause');
   };
 
+  // Delay / Skip Active Team (Moves to End of Waiting Queue)
+  const handleDelayActiveTeam = () => {
+    const current = activeSessions[activePanelObj.id];
+    if (!current) return;
+
+    const teamId = current.teamId;
+    const item = evaluationQueue[teamId];
+    if (item) {
+      const currentList = panelQueues[activePanelObj.id] || [];
+      const maxTimestamp = currentList.reduce((max, t) => Math.max(max, t.bookedTimestamp || 0), Date.now());
+
+      const nextQueue = {
+        ...evaluationQueue,
+        [teamId]: {
+          ...item,
+          status: 'DELAYED',
+          bookedTimestamp: maxTimestamp + 60000,
+          delayedCount: (item.delayedCount || 0) + 1,
+          lastDelayedAt: Date.now()
+        }
+      };
+      if (onUpdateQueue) onUpdateQueue(nextQueue);
+    }
+
+    // Clear active session
+    const nextSessions = { ...activeSessions };
+    delete nextSessions[activePanelObj.id];
+    if (onUpdateSessions) onUpdateSessions(nextSessions);
+
+    playSoundAlert('delete');
+
+    // Announce next team if available
+    const remaining = (panelQueues[activePanelObj.id] || []).filter(t => t.teamId !== teamId && t.status !== 'DELAYED');
+    if (remaining.length > 0) {
+      setTimeout(() => {
+        playSoundAlert('call');
+      }, 500);
+    }
+
+    alert(`⏱ Team ${current.teamName} moved to waiting queue (Delayed). Panel is open for the next available team.`);
+  };
+
+  // Delay / Skip a waiting queue item
+  const handleDelayQueueItem = (teamId) => {
+    const item = evaluationQueue[teamId];
+    if (!item) return;
+    const currentList = panelQueues[activePanelObj.id] || [];
+    const maxTimestamp = currentList.reduce((max, t) => Math.max(max, t.bookedTimestamp || 0), Date.now());
+
+    const nextQueue = {
+      ...evaluationQueue,
+      [teamId]: {
+        ...item,
+        status: 'DELAYED',
+        bookedTimestamp: maxTimestamp + 60000,
+        delayedCount: (item.delayedCount || 0) + 1,
+        lastDelayedAt: Date.now()
+      }
+    };
+    if (onUpdateQueue) onUpdateQueue(nextQueue);
+    playSoundAlert('delete');
+  };
+
   // Submit Rubric Evaluation (Separate Marks for Each Individual Jury)
   const handleSubmitEvaluationScore = (forceConclude = false) => {
     const current = activeSessions[activePanelObj.id];
@@ -914,7 +977,7 @@ export default function JuryStationPortal({
                                 onClick={() => handleToggleTimerPause(activePanelObj.id)}
                               >
                                 {timing.isPaused ? <Play size={16} /> : <Pause size={16} />}
-                                <span>{timing.isPaused ? 'Resume Timer' : 'Pause Timer'}</span>
+                                <span>{timing.isPaused ? 'Resume' : 'Pause'}</span>
                               </button>
 
                               <button 
@@ -923,6 +986,19 @@ export default function JuryStationPortal({
                               >
                                 <Plus size={16} />
                                 <span>+5m Grace</span>
+                              </button>
+
+                              <button 
+                                className='btn-timer-ctrl btn-delay'
+                                onClick={() => {
+                                  if (window.confirm(`Mark Team "${currSession.teamName}" as delayed and move to waiting slots at the end of queue?`)) {
+                                    handleDelayActiveTeam();
+                                  }
+                                }}
+                                title='Team not present or delayed - move to end of waiting queue'
+                              >
+                                <FastForward size={16} />
+                                <span>Skip / Delay</span>
                               </button>
                             </div>
                           </div>
@@ -1147,22 +1223,36 @@ export default function JuryStationPortal({
                       ) : (
                         <div className='jury-queue-items-list'>
                           {(panelQueues[activePanelObj.id] || []).map((item) => (
-                            <div key={item.teamId} className='jury-queue-item-row'>
+                            <div key={item.teamId} className={`jury-queue-item-row ${item.status === 'DELAYED' ? 'is-delayed' : ''}`}>
                               <div className='item-left'>
                                 <span className='item-token'>{item.tokenNumber}</span>
                                 <div>
-                                  <strong>{item.teamName}</strong>
+                                  <div className='item-name-line'>
+                                    <strong>{item.teamName}</strong>
+                                    {item.status === 'DELAYED' && <span className='delayed-tag'>⏱ Delayed</span>}
+                                  </div>
                                   <span className='item-meta'>{item.leaderName} • {item.psId}</span>
                                 </div>
                               </div>
-                              <button 
-                                className='btn-call-team-start'
-                                disabled={!!activeSessions[activePanelObj.id]}
-                                onClick={() => handleStartJuryEvaluation(item)}
-                              >
-                                <Play size={14} />
-                                <span>Start Evaluation</span>
-                              </button>
+                              <div className='item-actions-group'>
+                                <button 
+                                  type='button'
+                                  className='btn-queue-skip'
+                                  onClick={() => handleDelayQueueItem(item.teamId)}
+                                  title='Skip / Move to end of waiting queue'
+                                >
+                                  <FastForward size={13} />
+                                  <span>Skip</span>
+                                </button>
+                                <button 
+                                  className='btn-call-team-start'
+                                  disabled={!!activeSessions[activePanelObj.id]}
+                                  onClick={() => handleStartJuryEvaluation(item)}
+                                >
+                                  <Play size={14} />
+                                  <span>Start</span>
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
