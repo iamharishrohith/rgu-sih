@@ -3,7 +3,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { 
   Play, Pause, Plus, CheckCircle2, Clock, Users, Building2, 
   Search, ShieldCheck, Download, Sparkles, Monitor, Laptop, 
-  Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX 
+  Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
+  LayoutDashboard
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -79,18 +80,55 @@ export default function EvaluationQueuePortal({
   onUpdateQueue,
   onUpdateLedger,
   onUpdateSessions,
+  onOpenAdminGateway,
   onBackToMain
 }) {
   const [activeView, setActiveView] = useState(() => {
     try {
+      const pathname = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (search.includes('view=jury') || hash.includes('jury')) return 'jury';
-      if (search.includes('view=student') || hash.includes('book') || hash.includes('student')) return 'student';
-      if (search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector')) return 'projector';
+      if (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury')) return 'jury';
+      if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) return 'student';
+      if (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger')) return 'ledger';
+      if (pathname.includes('/projector') || search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector')) return 'projector';
     } catch (e) {}
     return 'projector';
   });
+
+  // Sync internal active tab with hash changes
+  useEffect(() => {
+    const handleUrlSync = () => {
+      try {
+        const pathname = window.location.pathname.toLowerCase();
+        const search = window.location.search.toLowerCase();
+        const hash = window.location.hash.toLowerCase();
+        if (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury')) {
+          setActiveView('jury');
+        } else if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) {
+          setActiveView('student');
+        } else if (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger')) {
+          setActiveView('ledger');
+        } else if (pathname.includes('/projector') || search.includes('view=projector') || hash.includes('projector')) {
+          setActiveView('projector');
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener('hashchange', handleUrlSync);
+    window.addEventListener('popstate', handleUrlSync);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlSync);
+      window.removeEventListener('popstate', handleUrlSync);
+    };
+  }, []);
+
+  const handleSwitchTab = (tabName) => {
+    setActiveView(tabName);
+    try {
+      window.history.replaceState(null, '', `#${tabName}`);
+    } catch (e) {}
+  };
 
   const [isPanelModalOpen, setIsPanelModalOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -487,28 +525,28 @@ export default function EvaluationQueuePortal({
           <div className='eval-mode-tabs'>
             <button 
               className={`eval-tab-btn ${activeView === 'projector' ? 'active projector' : ''}`}
-              onClick={() => setActiveView('projector')}
+              onClick={() => handleSwitchTab('projector')}
             >
               <Monitor size={15} />
               <span>Arena Projector Wall</span>
             </button>
             <button 
               className={`eval-tab-btn ${activeView === 'jury' ? 'active jury' : ''}`}
-              onClick={() => setActiveView('jury')}
+              onClick={() => handleSwitchTab('jury')}
             >
               <Laptop size={15} />
               <span>Jury Workspace</span>
             </button>
             <button 
               className={`eval-tab-btn ${activeView === 'student' ? 'active student' : ''}`}
-              onClick={() => setActiveView('student')}
+              onClick={() => handleSwitchTab('student')}
             >
               <Smartphone size={15} />
               <span>Student Slot Booking</span>
             </button>
             <button 
               className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
-              onClick={() => setActiveView('ledger')}
+              onClick={() => handleSwitchTab('ledger')}
             >
               <FileText size={15} />
               <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
@@ -525,6 +563,17 @@ export default function EvaluationQueuePortal({
             <Layers size={15} />
             <span>Manage Panels</span>
           </button>
+
+          {onOpenAdminGateway && (
+            <button 
+              className='btn-nav-admin active-admin'
+              onClick={onOpenAdminGateway}
+              title='Open Master Admin Gateway (Ctrl+Shift+A)'
+            >
+              <LayoutDashboard size={15} />
+              <span>Admin Gateway</span>
+            </button>
+          )}
 
           <button 
             className='btn-sound-toggle'

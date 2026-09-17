@@ -79,43 +79,45 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Admin Navigation Controls appear ONLY when authenticated */}
-          {isAdminLoggedIn && (
-            <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button 
-                className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
-                onClick={onOpenTimerModal}
-                title="Manage Registration Window & Timer"
-              >
-                {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
-                <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
-              </button>
+          {/* Action Navigation Controls (Always accessible) */}
+          <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isAdminLoggedIn && (
+              <>
+                <button 
+                  className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
+                  onClick={onOpenTimerModal}
+                  title="Manage Registration Window & Timer"
+                >
+                  {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
+                  <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
+                </button>
 
-              <div className="meta-stats-pill">
-                <CheckCircle2 size={15} className="text-emerald" />
-                <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
-              </div>
+                <div className="meta-stats-pill">
+                  <CheckCircle2 size={15} className="text-emerald" />
+                  <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
+                </div>
+              </>
+            )}
 
-              <button 
-                className="btn-nav-admin"
-                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
-                onClick={onOpenEvaluationQueue || onOpenAdminGateway}
-                title="Launch Live Evaluation Queue & Arena Projector Wall"
-              >
-                <Clock size={15} />
-                <span>Evaluation Queue</span>
-              </button>
+            <button 
+              className="btn-nav-admin"
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
+              onClick={onOpenEvaluationQueue || onOpenAdminGateway}
+              title="Launch Live Evaluation Queue & Arena Projector Wall"
+            >
+              <Clock size={15} />
+              <span>Evaluation Queue</span>
+            </button>
 
-              <button 
-                className="btn-nav-admin active-admin" 
-                onClick={onOpenAdminGateway || onSecretAdminTrigger}
-                title="Open Master Admin Gateway (Ctrl+Shift+A)"
-              >
-                <LayoutDashboard size={15} />
-                <span>Admin Gateway</span>
-              </button>
-            </div>
-          )}
+            <button 
+              className={`btn-nav-admin ${isAdminLoggedIn ? 'active-admin' : ''}`}
+              onClick={onOpenAdminGateway || onSecretAdminTrigger}
+              title="Open Master Admin Gateway (Ctrl+Shift+A)"
+            >
+              <LayoutDashboard size={15} />
+              <span>Admin Gateway</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

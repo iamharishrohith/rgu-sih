@@ -42,7 +42,8 @@ export default function InOutAttendancePortal({
   onUpdateActiveOuts,
   onUpdateLogs,
   onBackToMain,
-  onOpenEvaluationQueue
+  onOpenEvaluationQueue,
+  onOpenAdminGateway
 }) {
   // Mode: If opened via QR code (?action=out or ?action=in), show dedicated minimal mobile form box!
   const [viewMode, setViewMode] = useState(() => {
@@ -1733,6 +1734,18 @@ export default function InOutAttendancePortal({
             >
               <Clock size={14} />
               <span>Evaluation Queue</span>
+            </button>
+          )}
+
+          {/* Master Admin Gateway Launcher */}
+          {onOpenAdminGateway && (
+            <button 
+              className="btn-self-pass-trigger"
+              onClick={onOpenAdminGateway}
+              title="Open Master Admin Gateway (Ctrl+Shift+A)"
+            >
+              <LayoutDashboard size={14} />
+              <span>Admin Gateway</span>
             </button>
           )}
 

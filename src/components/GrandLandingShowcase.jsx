@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Sparkles, ShieldCheck, Award, Filter, ArrowRight, Search, CheckCircle2, 
-  Trophy, Star, Users, ExternalLink, Zap, ChevronRight, UserCheck, Flame, DoorOpen
+  Trophy, Star, Users, ExternalLink, Zap, ChevronRight, UserCheck, Flame, DoorOpen,
+  LayoutDashboard
 } from 'lucide-react';
 
 export default function GrandLandingShowcase({ 
@@ -10,6 +11,7 @@ export default function GrandLandingShowcase({
   onExploreWaitlist, 
   onOpenInOutPortal,
   onOpenEvaluationQueue,
+  onOpenAdminGateway,
   allTeams,
   onOpenTeamRegistration
 }) {
@@ -72,6 +74,17 @@ export default function GrandLandingShowcase({
               <Sparkles size={18} className="text-amber" />
               <span>Live Evaluation Queue (Arena)</span>
             </button>
+
+            {onOpenAdminGateway && (
+              <button 
+                className="btn-grand-secondary-cta" 
+                onClick={onOpenAdminGateway}
+                title="Master Admin Gateway & Security Workplace Launcher"
+              >
+                <LayoutDashboard size={18} className="text-emerald" />
+                <span>Admin Gateway</span>
+              </button>
+            )}
 
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />

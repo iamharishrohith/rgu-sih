@@ -35,7 +35,8 @@ export default function AdminDashboard({
   portalSettings,
   onOpenTimerModal,
   onUpdatePortalSettings,
-  onOpenEvaluationQueue
+  onOpenEvaluationQueue,
+  onOpenAdminGateway
 }) {
   // Navigation Tabs: 'analytics' | 'arena' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload' | 'whatsapp'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -468,6 +469,16 @@ export default function AdminDashboard({
             <Clock size={15} />
             <span>Evaluation Queue</span>
           </button>
+          {onOpenAdminGateway && (
+            <button 
+              className="btn-admin-portal-pill"
+              onClick={onOpenAdminGateway}
+              title="Open Master Admin Gateway (Ctrl+Shift+A)"
+            >
+              <Layers size={15} />
+              <span>Admin Gateway</span>
+            </button>
+          )}
           <button className="btn-admin-add-team" onClick={handleOpenCreateModal}>
             <Plus size={15} />
             <span>Add New Team</span>

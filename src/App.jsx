@@ -34,16 +34,30 @@ export default function App() {
   // '/admin' or '#admin' -> 'admin'
   const [currentView, setCurrentView] = useState(() => {
     try {
+      const pathname = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
+
       // Only open inout_portal if scanning a candidate QR code (?action=out or ?action=in)
       if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         return 'inout_portal';
       }
-      if (search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('book')) {
+      // Check for arena inout workplace
+      if (pathname.includes('/arena') || pathname.includes('/inout') || search.includes('arena') || hash.includes('arena') || hash.includes('inout')) {
+        return 'inout_portal';
+      }
+      // Check for eval queue, jury, projector, student booking, ledger
+      if (
+        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/jury') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
+        search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
+        hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
+      ) {
         return 'eval_queue';
       }
-      if (window.location.pathname.toLowerCase().includes('/desk') || hash.includes('desk')) {
+      if (
+        pathname.includes('/desk') || pathname.includes('/shortlist') || pathname.includes('/bench') || pathname.includes('/waitlist') ||
+        hash.includes('desk') || hash.includes('shortlist') || hash.includes('bench') || hash.includes('waitlist')
+      ) {
         return 'candidate_desk';
       }
     } catch (e) {
@@ -375,16 +389,27 @@ export default function App() {
     };
 
     const syncRouteFromUrl = () => {
+      const pathname = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      // Only route to inout_portal if scanning candidate gate QR code with action=out or action=in
+
+      // Gate Pass action check
       if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         setCurrentView('inout_portal');
-      } else if (search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('book')) {
+      } else if (pathname.includes('/arena') || pathname.includes('/inout') || search.includes('arena') || hash.includes('arena') || hash.includes('inout')) {
+        setCurrentView('inout_portal');
+      } else if (
+        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/jury') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
+        search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
+        hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
+      ) {
         setCurrentView('eval_queue');
-      } else if (hash === '#admin') {
+      } else if (pathname.includes('/admin') || pathname.includes('/gateway') || hash.includes('admin') || hash.includes('gateway') || search.includes('admin')) {
         triggerSecretAdmin();
-      } else if (hash.includes('desk')) {
+      } else if (
+        pathname.includes('/desk') || pathname.includes('/shortlist') || pathname.includes('/bench') || pathname.includes('/waitlist') ||
+        hash.includes('desk') || hash.includes('shortlist') || hash.includes('bench') || hash.includes('waitlist')
+      ) {
         setCurrentView('candidate_desk');
       }
     };
@@ -933,7 +958,7 @@ export default function App() {
         registeredCount={finalizedSubmittedCount}
         totalFinalizedCount={tierCounts.totalFinalized}
         onSecretAdminTrigger={triggerSecretAdmin}
-        onOpenAdminGateway={() => setIsGatewayModalOpen(true)}
+        onOpenAdminGateway={triggerSecretAdmin}
         isAdminLoggedIn={isAdminLoggedIn}
         onOpenLandingView={() => {
           setIsReadOnlyAfterClosure(false);
@@ -998,6 +1023,7 @@ export default function App() {
           onOpenTimerModal={() => setIsTimerModalOpen(true)}
           onUpdatePortalSettings={handleUpdatePortalSettings}
           onOpenEvaluationQueue={() => setCurrentView('eval_queue')}
+          onOpenAdminGateway={triggerSecretAdmin}
         />
       ) : currentView === 'eval_queue' ? (
         /* VIEW 2: DIGITAL EVALUATION QUEUE & MULTI-PANEL LIVE TIMING */
@@ -1012,6 +1038,7 @@ export default function App() {
           onUpdateQueue={handleUpdateEvaluationQueue}
           onUpdateLedger={handleUpdateEvaluationLedger}
           onUpdateSessions={handleUpdateEvaluationSessions}
+          onOpenAdminGateway={triggerSecretAdmin}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');
@@ -1036,6 +1063,7 @@ export default function App() {
             setIsReadOnlyAfterClosure(false);
             setCurrentView('eval_queue');
           }}
+          onOpenAdminGateway={triggerSecretAdmin}
         />
       ) : isPortalClosed && !isReadOnlyAfterClosure ? (
         /* PORTAL CLOSED VIEW (Active when portal is locked) */
@@ -1072,6 +1100,7 @@ export default function App() {
             setIsReadOnlyAfterClosure(false);
             setCurrentView('eval_queue');
           }}
+          onOpenAdminGateway={triggerSecretAdmin}
           allTeams={publicTeamsList}
           onOpenTeamRegistration={(team) => {
             if (!isPortalClosed) setActiveRegTeam(team);
@@ -1615,7 +1644,23 @@ export default function App() {
       <AdminGatewayModal
         isOpen={isGatewayModalOpen}
         onClose={() => setIsGatewayModalOpen(false)}
-        onSelectView={(v) => setCurrentView(v)}
+        onSelectView={(v) => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView(v);
+          try {
+            if (v === 'eval_queue') {
+              window.history.pushState(null, '', '#queue');
+            } else if (v === 'inout_portal') {
+              window.history.pushState(null, '', '#arena');
+            } else if (v === 'candidate_desk') {
+              window.history.pushState(null, '', '#desk');
+            } else if (v === 'admin') {
+              window.history.pushState(null, '', '#admin');
+            } else {
+              window.history.pushState(null, '', '/');
+            }
+          } catch (e) {}
+        }}
         onOpenTimer={() => setIsTimerModalOpen(true)}
         onAdminLogout={handleAdminLogout}
         currentView={currentView}
