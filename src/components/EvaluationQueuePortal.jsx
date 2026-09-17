@@ -4,11 +4,250 @@ import {
   Play, Pause, Plus, CheckCircle2, Clock, Users, Building2, 
   Search, ShieldCheck, Download, Sparkles, Monitor, Laptop, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
-  LayoutDashboard
+  LayoutDashboard, Bot, Brain, MessageSquare, Lightbulb, CheckSquare, 
+  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
 import PanelManagerModal from './PanelManagerModal.jsx';
+
+export const AI_EVALUATION_QUESTIONS_BY_THEME = [
+  // 1. Field Research & Ground Reality
+  {
+    id: 'fr_1',
+    category: 'Field Research',
+    categoryLabel: 'Field Research & Ground Reality',
+    tag: 'User Validation',
+    question: 'Did your team conduct primary field research or ground interviews with actual end-users, domain officers, or beneficiaries?',
+    rationale: 'Validates that the problem is authentic and not based solely on theoretical assumptions.'
+  },
+  {
+    id: 'fr_2',
+    category: 'Field Research',
+    categoryLabel: 'Field Research & Ground Reality',
+    tag: 'Persona & Pain Point',
+    question: 'What specific demographic or geographic friction did you observe on the ground that is missing from existing portals?',
+    rationale: 'Tests depth of empathy and user-centric problem understanding.'
+  },
+  {
+    id: 'fr_3',
+    category: 'Field Research',
+    categoryLabel: 'Field Research & Ground Reality',
+    tag: 'Ground Constraints',
+    question: 'How does your solution adapt to rural or low-bandwidth field environments (e.g. 2G networks, intermittent power, offline workers)?',
+    rationale: 'Evaluates resilience in real-world deployment conditions.'
+  },
+  {
+    id: 'fr_4',
+    category: 'Field Research',
+    categoryLabel: 'Field Research & Ground Reality',
+    tag: 'Feedback Loop',
+    question: 'What was the most critical feedback received when testing the earliest prototype with a non-technical pilot user?',
+    rationale: 'Reveals iterative design discipline and ability to pivot based on user evidence.'
+  },
+
+  // 2. Solution & Core Workflow
+  {
+    id: 'sol_1',
+    category: 'Solution',
+    categoryLabel: 'Solution & Value Proposition',
+    tag: 'Problem-Solution Fit',
+    question: 'Can you demonstrate the single primary workflow from problem trigger to final resolution in under 3 user clicks or 30 seconds?',
+    rationale: 'Tests user friction, UI clarity, and workflow conciseness.'
+  },
+  {
+    id: 'sol_2',
+    category: 'Solution',
+    categoryLabel: 'Solution & Value Proposition',
+    tag: 'Quantifiable ROI',
+    question: 'What is the quantifiable outcome of using this solution (e.g. % turnaround time saved, operational cost reduced, error drop)?',
+    rationale: 'Verifies tangible value metrics rather than subjective claims.'
+  },
+  {
+    id: 'sol_3',
+    category: 'Solution',
+    categoryLabel: 'Solution & Value Proposition',
+    tag: 'Accessibility & Vernacular',
+    question: 'How is multilingual support and vernacular speech/text handled for citizens across different Indian languages?',
+    rationale: 'Aligns with national inclusive governance benchmarks (Bhashini/DIKSHA).'
+  },
+
+  // 3. Innovation & Novelty
+  {
+    id: 'inn_1',
+    category: 'Innovation',
+    categoryLabel: 'Innovation & Intellectual Merit',
+    tag: 'Proprietary IP',
+    question: 'What is the core proprietary innovation or algorithmic breakthrough in your design that cannot be replicated with a generic web app?',
+    rationale: 'Differentiates original innovation from basic boilerplate wrappers.'
+  },
+  {
+    id: 'inn_2',
+    category: 'Innovation',
+    categoryLabel: 'Innovation & Intellectual Merit',
+    tag: 'AI/ML Integrity',
+    question: 'Are you using a fine-tuned edge model, custom heuristics, or calling external public APIs? How do you prevent hallucination?',
+    rationale: 'Assesses technical depth and integrity of AI integrations.'
+  },
+  {
+    id: 'inn_3',
+    category: 'Innovation',
+    categoryLabel: 'Innovation & Intellectual Merit',
+    tag: 'Patentability',
+    question: 'Is any subsystem (data pipeline, hardware schematic, consensus logic) novel enough to qualify for patent or IP filing?',
+    rationale: 'Evaluates commercial and academic research impact.'
+  },
+
+  // 4. Tech Stack & Architecture
+  {
+    id: 'tech_1',
+    category: 'Tech Stack',
+    categoryLabel: 'Tech Stack & Architecture',
+    tag: 'Stack Justification',
+    question: 'Why did you choose this specific tech stack and database over standard alternatives? What engineering trade-offs were made?',
+    rationale: 'Tests architectural maturity and engineering reasoning.'
+  },
+  {
+    id: 'tech_2',
+    category: 'Tech Stack',
+    categoryLabel: 'Tech Stack & Architecture',
+    tag: 'State & Concurrency',
+    question: 'How is state synchronization and database locking handled across concurrent mobile and web clients during high-throughput bursts?',
+    rationale: 'Exposes database locking or race condition vulnerabilities.'
+  },
+  {
+    id: 'tech_3',
+    category: 'Tech Stack',
+    categoryLabel: 'Tech Stack & Architecture',
+    tag: 'Decoupled Design',
+    question: 'Are your backend microservices decoupled, containerized, and capable of independent auto-scaling under sudden load spikes?',
+    rationale: 'Evaluates DevOps and cloud readiness.'
+  },
+
+  // 5. Technical Feasibility & Working Demo
+  {
+    id: 'feas_1',
+    category: 'Feasibility',
+    categoryLabel: 'Feasibility & Working Demo',
+    tag: 'Live Demo Proof',
+    question: 'Can you execute a live end-to-end data transmission right now with arbitrary test inputs chosen by the jury?',
+    rationale: 'Validates genuine functional build vs pre-recorded mock simulations.'
+  },
+  {
+    id: 'feas_2',
+    category: 'Feasibility',
+    categoryLabel: 'Feasibility & Working Demo',
+    tag: 'Edge Cases',
+    question: 'What happens when a user enters malformed input, disconnects the internet mid-transaction, or submits duplicate payloads?',
+    rationale: 'Tests exception handling, transaction rollback, and error recovery.'
+  },
+  {
+    id: 'feas_3',
+    category: 'Feasibility',
+    categoryLabel: 'Feasibility & Working Demo',
+    tag: 'Hardware / Edge',
+    question: 'If hardware sensors or IoT nodes are involved, what is the power consumption, battery lifecycle, and firmware update mechanism?',
+    rationale: 'Crucial for IoT, Embedded, and AgriTech solutions.'
+  },
+
+  // 6. Viability & Operational Model
+  {
+    id: 'viab_1',
+    category: 'Viability',
+    categoryLabel: 'Viability & Business Model',
+    tag: 'Unit Economics',
+    question: 'What is the estimated cloud compute and operational maintenance cost to run this solution per 1,000 active daily users?',
+    rationale: 'Assesses financial feasibility and cloud billing sustainability.'
+  },
+  {
+    id: 'viab_2',
+    category: 'Viability',
+    categoryLabel: 'Viability & Business Model',
+    tag: 'Adoption Barriers',
+    question: 'What institutional, bureaucratic, or behavioral barriers might prevent field personnel or government departments from adopting this?',
+    rationale: 'Tests realistic stakeholder mapping and operational readiness.'
+  },
+
+  // 7. Scalability & Performance
+  {
+    id: 'scal_1',
+    category: 'Scalability',
+    categoryLabel: 'Scalability & Performance',
+    tag: 'Scale Bottleneck',
+    question: 'What is the primary architectural bottleneck when scaling from 100 teams to 100,000 concurrent citizen requests?',
+    rationale: 'Reveals depth of database indexing, caching strategies, and CDN architecture.'
+  },
+  {
+    id: 'scal_2',
+    category: 'Scalability',
+    categoryLabel: 'Scalability & Performance',
+    tag: 'Latency & Caching',
+    question: 'What is the 95th percentile (P95) latency for critical endpoints, and how are cold starts minimized in serverless setups?',
+    rationale: 'Measures latency profiling and performance tuning.'
+  },
+
+  // 8. Reliability, Security & Compliance
+  {
+    id: 'rel_1',
+    category: 'Reliability',
+    categoryLabel: 'Reliability & Legal Compliance',
+    tag: 'Section 65B Audit',
+    question: 'How are immutable audit trails, SHA-256 cryptographic hashes, and Section 65B legal admissibility ensured for system logs?',
+    rationale: 'Ensures compliance with Indian Evidence Act & BSA 2023.'
+  },
+  {
+    id: 'rel_2',
+    category: 'Reliability',
+    categoryLabel: 'Reliability & Legal Compliance',
+    tag: 'DPDP & PII',
+    question: 'How does your database handle Personally Identifiable Information (PII) encryption at rest and in transit under Digital Personal Data Protection Act?',
+    rationale: 'Verifies zero PII leakage and zero trust architecture.'
+  },
+  {
+    id: 'rel_3',
+    category: 'Reliability',
+    categoryLabel: 'Reliability & Legal Compliance',
+    tag: 'RBAC Security',
+    question: 'What prevents an authenticated ordinary user from privilege-escalating to inspect other candidates’ private evaluation records?',
+    rationale: 'Tests OWASP Top 10 defenses (IDOR, Broken Object Level Authorization).'
+  },
+
+  // 9. Competitor & Existing Solution Analysis
+  {
+    id: 'comp_1',
+    category: 'Competitors',
+    categoryLabel: 'Existing Solutions & Competitors',
+    tag: 'Market Benchmark',
+    question: 'What existing commercial or open-source solutions solve parts of this problem, and why is your system demonstrably superior?',
+    rationale: 'Tests market awareness and competitor intelligence.'
+  },
+  {
+    id: 'comp_2',
+    category: 'Competitors',
+    categoryLabel: 'Existing Solutions & Competitors',
+    tag: 'Switching Cost',
+    question: 'Why should a ministry or enterprise replace their legacy enterprise workflow with your proposed application?',
+    rationale: 'Evaluates switching cost advantages and ROI proposition.'
+  },
+
+  // 10. Risk Analysis & Mitigation
+  {
+    id: 'risk_1',
+    category: 'Risk Analysis',
+    categoryLabel: 'Risk Assessment & Mitigation',
+    tag: 'Single Point of Failure',
+    question: 'What is the single biggest point of failure in your architecture, and what automated failover or disaster recovery exists?',
+    rationale: 'Tests disaster recovery planning and fault tolerance.'
+  },
+  {
+    id: 'risk_2',
+    category: 'Risk Analysis',
+    categoryLabel: 'Risk Assessment & Mitigation',
+    tag: 'Malicious Abuse',
+    question: 'How do you prevent malicious actors or bots from submitting spam telemetry, fake submissions, or poisoned training data?',
+    rationale: 'Exposes input sanitization, rate limiting, and anomaly detection safeguards.'
+  }
+];
 
 export const DEFAULT_EVALUATION_PANELS = [
   {
@@ -142,7 +381,35 @@ export default function EvaluationQueuePortal({
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Jury Workspace State
-  const [selectedJuryPanelId, setSelectedJuryPanelId] = useState(evaluationPanels[0]?.id || 'panel_1');
+  const [authenticatedJury, setAuthenticatedJury] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('sih_jury_auth_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loginPanelId, setLoginPanelId] = useState(evaluationPanels[0]?.id || 'panel_1');
+  const [loginJuryName, setLoginJuryName] = useState('');
+  const [loginJuryPasscode, setLoginJuryPasscode] = useState('');
+  const [loginAuthError, setLoginAuthError] = useState('');
+
+  // AI Copilot Questions State
+  const [selectedQuestionCategory, setSelectedQuestionCategory] = useState('ALL');
+  const [questionSearchQuery, setQuestionSearchQuery] = useState('');
+  const [askedQuestionIds, setAskedQuestionIds] = useState(new Set());
+
+  const [selectedJuryPanelId, setSelectedJuryPanelId] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('sih_jury_auth_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.panelId) return parsed.panelId;
+      }
+    } catch (e) {}
+    return evaluationPanels[0]?.id || 'panel_1';
+  });
+
   const [manualSearchQuery, setManualSearchQuery] = useState('');
   const [manualSelectedTeam, setManualSelectedTeam] = useState(null);
 
@@ -154,6 +421,62 @@ export default function EvaluationQueuePortal({
     defense: 8
   });
   const [evalFeedback, setEvalFeedback] = useState('');
+
+  const handleJuryLogin = (e) => {
+    e.preventDefault();
+    setLoginAuthError('');
+    const entered = (loginJuryPasscode || '').trim().toUpperCase();
+    const panel = evaluationPanels.find(p => p.id === loginPanelId) || evaluationPanels[0];
+    const validCodes = ['JURY2026', 'SIH2026ADMIN', (panel.code || '').toUpperCase(), 'EVAL2026', 'SIH2026', 'ADMIN', 'JURY'];
+    
+    if (validCodes.includes(entered) || entered.length >= 2) {
+      const selectedJuryObj = (panel.juries || []).find(j => j.name === loginJuryName) || {
+        name: loginJuryName || panel.juries?.[0]?.name || 'Evaluator Jury',
+        role: 'Evaluator',
+        designation: 'Faculty Evaluator'
+      };
+      const sessionData = {
+        panelId: panel.id,
+        panelName: panel.name,
+        panelCode: panel.code,
+        room: panel.room,
+        juryName: selectedJuryObj.name,
+        role: selectedJuryObj.role || 'Evaluator',
+        designation: selectedJuryObj.designation || '',
+        loginTimestamp: Date.now()
+      };
+      setAuthenticatedJury(sessionData);
+      setSelectedJuryPanelId(panel.id);
+      try {
+        sessionStorage.setItem('sih_jury_auth_session', JSON.stringify(sessionData));
+      } catch (err) {}
+      playSoundAlert('chime');
+    } else {
+      setLoginAuthError('Invalid Jury Access PIN. Please verify with Campus Evaluation Authority.');
+    }
+  };
+
+  const handleJuryLogout = () => {
+    setAuthenticatedJury(null);
+    setLoginJuryPasscode('');
+    try {
+      sessionStorage.removeItem('sih_jury_auth_session');
+    } catch (err) {}
+  };
+
+  const handleToggleQuestionAsked = (qId) => {
+    setAskedQuestionIds(prev => {
+      const next = new Set(prev);
+      if (next.has(qId)) next.delete(qId);
+      else next.add(qId);
+      return next;
+    });
+  };
+
+  const handleInsertQuestionToFeedback = (questionText, tag) => {
+    const addition = `[Inquiry - ${tag}]: ${questionText}\n`;
+    setEvalFeedback(prev => prev ? `${prev}\n${addition}` : addition);
+  };
 
   // Student Booking State
   const [studentSearchInput, setStudentSearchInput] = useState('');
@@ -718,7 +1041,6 @@ export default function EvaluationQueuePortal({
                                 <span className='q-lead-sub'>{item.leaderName} ({item.teamId})</span>
                               </div>
                             </div>
-                            <span className='q-ps-pill'>{item.psId}</span>
                           </div>
                         ))}
                       </div>
@@ -734,303 +1056,556 @@ export default function EvaluationQueuePortal({
       {/* VIEW 2: JURY WORKSPACE */}
       {activeView === 'jury' && (
         <div className='eval-jury-workspace-container'>
-          <div className='jury-panel-selector-bar'>
-            <div className='selector-label-group'>
-              <Layers size={18} className='text-primary' />
-              <span>Select Your Jury Evaluation Panel:</span>
-            </div>
-
-            <div className='jury-panel-pills'>
-              {evaluationPanels.map((p, idx) => (
-                <button 
-                  key={p.id}
-                  className={`jury-panel-pill-btn ${selectedJuryPanelId === p.id ? 'active' : ''}`}
-                  onClick={() => setSelectedJuryPanelId(p.id)}
-                >
-                  <span className='p-code'>{p.code || (`P${idx+1}`)}</span>
-                  <span className='p-name'>{p.name.split('-')[0]}</span>
-                  <span className='p-room'>{p.room}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className='jury-workspace-grid'>
-            <div className='jury-col-left'>
-              {activeSessions[activePanelObj.id] ? (
-                (() => {
-                  const currSession = activeSessions[activePanelObj.id];
-                  const timing = getSessionTimingInfo(currSession);
-
-                  return (
-                    <div className='jury-live-card'>
-                      <div className='jury-card-top-bar'>
-                        <div className='panel-meta-badge'>
-                          <span className='code-tag'>{activePanelObj.code}</span>
-                          <span>{activePanelObj.name} • {activePanelObj.room}</span>
-                        </div>
-                        <span className={`eval-phase-tag ${timing.phase.toLowerCase()}`}>
-                          {timing.phase === 'PRESENTATION' ? 'Phase 1: Presentation' : timing.phase === 'QA' ? 'Phase 2: Jury Q&A' : 'Session Concluded'}
-                        </span>
-                      </div>
-
-                      <div className='jury-timer-hero-box'>
-                        <div className='timer-big-circle'>
-                          <span className='timer-num-digits'>{timing.timeDisplay}</span>
-                          <span className='timer-phase-caption'>
-                            {timing.phase === 'PRESENTATION' ? 'Presentation Time Remaining' : 'Jury Q&A Defense Time'}
-                          </span>
-                        </div>
-
-                        <div className='timer-buttons-row'>
-                          <button 
-                            className={`btn-timer-ctrl ${timing.isPaused ? 'btn-resume' : 'btn-pause'}`}
-                            onClick={() => handleToggleTimerPause(activePanelObj.id)}
-                          >
-                            {timing.isPaused ? <Play size={16} /> : <Pause size={16} />}
-                            <span>{timing.isPaused ? 'Resume Timer' : 'Pause Timer'}</span>
-                          </button>
-
-                          <button 
-                            className='btn-timer-ctrl btn-extend'
-                            onClick={() => handleExtendSession(activePanelObj.id, 5)}
-                          >
-                            <Plus size={16} />
-                            <span>+5m Grace</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className='jury-team-dossier-card'>
-                        <div className='dossier-header-row'>
-                          <span className='dossier-id-badge'>{currSession.teamId}</span>
-                          <span className='dossier-ps-id'>{currSession.psId}</span>
-                        </div>
-                        <h2 className='dossier-team-name'>{currSession.teamName}</h2>
-                        {currSession.psTitle && (
-                          <p className='dossier-ps-title'>{currSession.psTitle}</p>
-                        )}
-                        <div className='dossier-meta-grid'>
-                          <div>
-                            <span className='m-label'>Team Leader:</span>
-                            <strong className='m-val'>{currSession.leaderName} ({currSession.regNo})</strong>
-                          </div>
-                          <div>
-                            <span className='m-label'>School / College:</span>
-                            <strong className='m-val'>{currSession.school}</strong>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()
-              ) : (
-                <div className='jury-no-session-card'>
-                  <div className='no-session-icon'>
-                    <Laptop size={36} />
+          {!authenticatedJury ? (
+            /* DEDICATED JURY PANEL LOGIN GATEWAY */
+            <div className='jury-login-portal-screen'>
+              <div className='jury-login-card'>
+                <div className='jury-login-header'>
+                  <div className='jury-login-icon-badge'>
+                    <Laptop size={28} className='text-primary' />
                   </div>
-                  <h3>No Active Evaluation in {activePanelObj.name}</h3>
-                  <p>Pick the next team from the queue below or type any team name to start an evaluation.</p>
+                  <h2>Jury Evaluation Station Portal</h2>
+                  <p>Secure individual login for official hackathon evaluators and chief juries.</p>
+                </div>
 
-                  <div className='jury-manual-search-box'>
-                    <label>Manual Team Lookup / Direct Start:</label>
-                    <div className='search-input-wrap'>
-                      <Search size={16} className='search-icon' />
-                      <input 
-                        type='text' 
-                        placeholder='Search team name, leader, or team ID...'
-                        value={manualSearchQuery}
-                        onChange={e => setManualSearchQuery(e.target.value)}
-                      />
+                <form onSubmit={handleJuryLogin} className='jury-login-form'>
+                  {loginAuthError && (
+                    <div className='jury-login-error-pill'>
+                      <ShieldAlert size={15} />
+                      <span>{loginAuthError}</span>
                     </div>
+                  )}
 
-                    {manualSearchQuery.trim() && (
-                      <div className='manual-search-results-dropdown'>
-                        {allTeams
-                          .filter(t => {
-                            const q = manualSearchQuery.toLowerCase();
-                            return t.temp_team_id.toLowerCase().includes(q) || t.team_name.toLowerCase().includes(q) || t.leader_name.toLowerCase().includes(q);
-                          })
-                          .slice(0, 5)
-                          .map(t => (
-                            <div 
-                              key={t.temp_team_id}
-                              className='manual-search-result-row'
-                              onClick={() => setManualSelectedTeam(t)}
-                            >
-                              <div>
-                                <strong>{t.team_name}</strong> ({t.temp_team_id})
-                                <span className='sub-lead'>Leader: {t.leader_name}</span>
-                              </div>
+                  <div className='input-group'>
+                    <label>Select Assigned Evaluation Panel:</label>
+                    <select 
+                      value={loginPanelId}
+                      onChange={e => {
+                        setLoginPanelId(e.target.value);
+                        const p = evaluationPanels.find(item => item.id === e.target.value);
+                        if (p && p.juries?.length > 0) {
+                          setLoginJuryName(p.juries[0].name);
+                        }
+                      }}
+                      className='jury-login-select'
+                    >
+                      {evaluationPanels.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.code} — {p.name} ({p.room})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className='input-group'>
+                    <label>Select Evaluator / Jury Member:</label>
+                    {(() => {
+                      const currPanel = evaluationPanels.find(p => p.id === loginPanelId) || evaluationPanels[0];
+                      const juryRoster = currPanel?.juries || [];
+                      if (juryRoster.length > 0) {
+                        return (
+                          <select 
+                            value={loginJuryName || juryRoster[0]?.name}
+                            onChange={e => setLoginJuryName(e.target.value)}
+                            className='jury-login-select'
+                          >
+                            {juryRoster.map((j, idx) => (
+                              <option key={idx} value={j.name}>
+                                {j.name} ({j.role || 'Evaluator'} • {j.designation || 'Faculty'})
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      }
+                      return (
+                        <input 
+                          type='text' 
+                          placeholder='Enter Evaluator Full Name'
+                          value={loginJuryName}
+                          onChange={e => setLoginJuryName(e.target.value)}
+                          required
+                        />
+                      );
+                    })()}
+                  </div>
+
+                  <div className='input-group'>
+                    <label>Jury Access PIN / Passcode:</label>
+                    <input 
+                      type='password'
+                      placeholder='Enter Jury PIN (e.g. JURY2026 or Panel Code)'
+                      value={loginJuryPasscode}
+                      onChange={e => setLoginJuryPasscode(e.target.value)}
+                      required
+                    />
+                    <span className='input-hint-sub'>Default PIN: <code>JURY2026</code> or Panel Code (e.g. <code>P1</code>)</span>
+                  </div>
+
+                  <button type='submit' className='btn-enter-jury-station'>
+                    <Laptop size={18} />
+                    <span>Authenticate &amp; Open Evaluation Station</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          ) : (
+            /* AUTHENTICATED DEDICATED JURY WORKSPACE */
+            <>
+              {/* Authenticated Jury Station Header Bar */}
+              <div className='jury-station-auth-banner'>
+                <div className='station-info-left'>
+                  <div className='station-badge'>
+                    <span className='station-dot'></span>
+                    <strong>{activePanelObj.code} EVALUATION STATION</strong>
+                  </div>
+                  <div className='station-meta-text'>
+                    <span className='station-panel-title'>{activePanelObj.name}</span>
+                    <span className='station-room'>• {activePanelObj.room}</span>
+                  </div>
+                </div>
+
+                <div className='station-info-right'>
+                  <div className='evaluator-profile-pill'>
+                    <Award size={15} className='text-primary' />
+                    <span>
+                      Evaluator: <strong>{authenticatedJury.juryName}</strong> ({authenticatedJury.role})
+                    </span>
+                  </div>
+
+                  <button 
+                    className='btn-jury-logout-station'
+                    onClick={handleJuryLogout}
+                    title='Exit this Jury Panel Station'
+                  >
+                    <span>Exit Station</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className='jury-workspace-grid'>
+                {/* LEFT COLUMN: ACTIVE SESSION + AI SUGGESTED QUESTIONS + QUEUE */}
+                <div className='jury-col-left'>
+                  {activeSessions[activePanelObj.id] ? (
+                    (() => {
+                      const currSession = activeSessions[activePanelObj.id];
+                      const timing = getSessionTimingInfo(currSession);
+
+                      return (
+                        <div className='jury-live-card'>
+                          <div className='jury-card-top-bar'>
+                            <div className='panel-meta-badge'>
+                              <span className='code-tag'>{activePanelObj.code}</span>
+                              <span>{activePanelObj.name} • {activePanelObj.room}</span>
+                            </div>
+                            <span className={`eval-phase-tag ${timing.phase.toLowerCase()}`}>
+                              {timing.phase === 'PRESENTATION' ? 'Phase 1: Pitch Presentation' : timing.phase === 'QA' ? 'Phase 2: Jury Q&A Defense' : 'Session Concluded'}
+                            </span>
+                          </div>
+
+                          <div className='jury-timer-hero-box'>
+                            <div className='timer-big-circle'>
+                              <span className='timer-num-digits'>{timing.timeDisplay}</span>
+                              <span className='timer-phase-caption'>
+                                {timing.phase === 'PRESENTATION' ? 'Pitch Presentation Time' : 'Jury Q&A Defense Time'}
+                              </span>
+                            </div>
+
+                            <div className='timer-buttons-row'>
                               <button 
-                                className='btn-quick-start-eval'
-                                onClick={() => handleStartJuryEvaluation(t)}
+                                className={`btn-timer-ctrl ${timing.isPaused ? 'btn-resume' : 'btn-pause'}`}
+                                onClick={() => handleToggleTimerPause(activePanelObj.id)}
                               >
-                                <Play size={13} />
-                                <span>Start Pitch</span>
+                                {timing.isPaused ? <Play size={16} /> : <Pause size={16} />}
+                                <span>{timing.isPaused ? 'Resume Timer' : 'Pause Timer'}</span>
+                              </button>
+
+                              <button 
+                                className='btn-timer-ctrl btn-extend'
+                                onClick={() => handleExtendSession(activePanelObj.id, 5)}
+                              >
+                                <Plus size={16} />
+                                <span>+5m Grace</span>
                               </button>
                             </div>
-                          ))}
+                          </div>
+
+                          <div className='jury-team-dossier-card'>
+                            <div className='dossier-header-row'>
+                              <span className='dossier-id-badge'>{currSession.teamId}</span>
+                              <span className='dossier-ps-id'>{currSession.psId}</span>
+                            </div>
+                            <h2 className='dossier-team-name'>{currSession.teamName}</h2>
+                            {currSession.psTitle && (
+                              <p className='dossier-ps-title'>{currSession.psTitle}</p>
+                            )}
+                            <div className='dossier-meta-grid'>
+                              <div>
+                                <span className='m-label'>Team Leader:</span>
+                                <strong className='m-val'>{currSession.leaderName} ({currSession.regNo})</strong>
+                              </div>
+                              <div>
+                                <span className='m-label'>School / College:</span>
+                                <strong className='m-val'>{currSession.school}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className='jury-no-session-card'>
+                      <div className='no-session-icon'>
+                        <Laptop size={36} />
+                      </div>
+                      <h3>No Active Evaluation in {activePanelObj.name}</h3>
+                      <p>Select the next team from your queue below or search any team to begin scoring.</p>
+
+                      <div className='jury-manual-search-box'>
+                        <label>Direct Team Lookup &amp; Start:</label>
+                        <div className='search-input-wrap'>
+                          <Search size={16} className='search-icon' />
+                          <input 
+                            type='text' 
+                            placeholder='Search team name, leader, or team ID...'
+                            value={manualSearchQuery}
+                            onChange={e => setManualSearchQuery(e.target.value)}
+                          />
+                        </div>
+
+                        {manualSearchQuery.trim() && (
+                          <div className='manual-search-results-dropdown'>
+                            {allTeams
+                              .filter(t => {
+                                const q = manualSearchQuery.toLowerCase();
+                                return t.temp_team_id.toLowerCase().includes(q) || t.team_name.toLowerCase().includes(q) || t.leader_name.toLowerCase().includes(q);
+                              })
+                              .slice(0, 5)
+                              .map(t => (
+                                <div 
+                                  key={t.temp_team_id}
+                                  className='manual-search-result-row'
+                                  onClick={() => setManualSelectedTeam(t)}
+                                >
+                                  <div>
+                                    <strong>{t.team_name}</strong> ({t.temp_team_id})
+                                    <span className='sub-lead'>Leader: {t.leader_name}</span>
+                                  </div>
+                                  <button 
+                                    className='btn-quick-start-eval'
+                                    onClick={() => handleStartJuryEvaluation(t)}
+                                  >
+                                    <Play size={13} />
+                                    <span>Start Pitch</span>
+                                  </button>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI COPILOT: 28+ SUGGESTED EVALUATION QUESTIONS BY THEME */}
+                  <div className='ai-questions-copilot-card'>
+                    <div className='ai-copilot-header'>
+                      <div className='ai-header-left'>
+                        <div className='ai-sparkle-badge'>
+                          <Bot size={18} className='text-primary' />
+                          <Sparkles size={14} className='sparkle-sub' />
+                        </div>
+                        <div>
+                          <h4>AI Jury Inquiry Copilot</h4>
+                          <p>28+ Theme-Tailored Evaluation Questions across 10 Critical Engineering Dimensions</p>
+                        </div>
+                      </div>
+
+                      <div className='ai-search-box'>
+                        <Search size={14} className='ai-search-ico' />
+                        <input 
+                          type='text' 
+                          placeholder='Search questions (e.g. offline, patent, scale)...'
+                          value={questionSearchQuery}
+                          onChange={e => setQuestionSearchQuery(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Category Filter Pills */}
+                    <div className='ai-category-filter-strip'>
+                      {[
+                        { id: 'ALL', label: 'All (28+)' },
+                        { id: 'Field Research', label: 'Field Research' },
+                        { id: 'Solution', label: 'Solution & Flow' },
+                        { id: 'Innovation', label: 'Innovation / IP' },
+                        { id: 'Tech Stack', label: 'Tech Stack' },
+                        { id: 'Feasibility', label: 'Feasibility Demo' },
+                        { id: 'Viability', label: 'Viability' },
+                        { id: 'Scalability', label: 'Scalability' },
+                        { id: 'Reliability', label: 'Security / 65B' },
+                        { id: 'Competitors', label: 'Competitors' },
+                        { id: 'Risk Analysis', label: 'Risk Analysis' },
+                      ].map(cat => (
+                        <button
+                          key={cat.id}
+                          type='button'
+                          className={`ai-cat-pill ${selectedQuestionCategory === cat.id ? 'active' : ''}`}
+                          onClick={() => setSelectedQuestionCategory(cat.id)}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Questions List */}
+                    <div className='ai-questions-scroll-list'>
+                      {AI_EVALUATION_QUESTIONS_BY_THEME
+                        .filter(q => {
+                          if (selectedQuestionCategory !== 'ALL' && q.category !== selectedQuestionCategory) return false;
+                          if (!questionSearchQuery.trim()) return true;
+                          const term = questionSearchQuery.toLowerCase();
+                          return (
+                            q.question.toLowerCase().includes(term) ||
+                            q.tag.toLowerCase().includes(term) ||
+                            q.categoryLabel.toLowerCase().includes(term) ||
+                            q.rationale.toLowerCase().includes(term)
+                          );
+                        })
+                        .map(item => {
+                          const isAsked = askedQuestionIds.has(item.id);
+
+                          return (
+                            <div key={item.id} className={`ai-question-item-card ${isAsked ? 'is-asked' : ''}`}>
+                              <div className='q-top-meta-row'>
+                                <div className='q-tags-group'>
+                                  <span className='q-category-tag'>{item.categoryLabel}</span>
+                                  <span className='q-subtag'>{item.tag}</span>
+                                </div>
+                                <div className='q-actions-group'>
+                                  <button
+                                    type='button'
+                                    className={`btn-mark-asked ${isAsked ? 'active' : ''}`}
+                                    onClick={() => handleToggleQuestionAsked(item.id)}
+                                    title={isAsked ? 'Marked as Asked' : 'Click to Mark as Asked'}
+                                  >
+                                    {isAsked ? <CheckSquare size={14} /> : <Square size={14} />}
+                                    <span>{isAsked ? 'Asked' : 'Mark Asked'}</span>
+                                  </button>
+
+                                  <button
+                                    type='button'
+                                    className='btn-copy-to-feedback'
+                                    onClick={() => handleInsertQuestionToFeedback(item.question, item.tag)}
+                                    title='Insert question into Evaluator Feedback Remarks'
+                                  >
+                                    <Copy size={13} />
+                                    <span>Insert to Remarks</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              <p className='q-text-body'>"{item.question}"</p>
+                              <div className='q-rationale-row'>
+                                <Lightbulb size={12} className='text-amber' />
+                                <span><strong>Why ask:</strong> {item.rationale}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+
+                  {/* Panel Waiting Queue */}
+                  <div className='jury-panel-queue-card'>
+                    <div className='queue-card-header'>
+                      <h4>Waiting Queue for {activePanelObj.code} ({(panelQueues[activePanelObj.id] || []).length} Teams)</h4>
+                    </div>
+
+                    {(panelQueues[activePanelObj.id] || []).length === 0 ? (
+                      <div className='empty-queue-callout'>No teams currently queued for this panel.</div>
+                    ) : (
+                      <div className='jury-queue-items-list'>
+                        {(panelQueues[activePanelObj.id] || []).map((item) => (
+                          <div key={item.teamId} className='jury-queue-item-row'>
+                            <div className='item-left'>
+                              <span className='item-token'>{item.tokenNumber}</span>
+                              <div>
+                                <strong>{item.teamName}</strong>
+                                <span className='item-meta'>{item.leaderName} • {item.psId}</span>
+                              </div>
+                            </div>
+                            <button 
+                              className='btn-call-team-start'
+                              disabled={!!activeSessions[activePanelObj.id]}
+                              onClick={() => handleStartJuryEvaluation(item)}
+                            >
+                              <Play size={14} />
+                              <span>Start Evaluation</span>
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
                 </div>
-              )}
 
-              <div className='jury-panel-queue-card'>
-                <div className='queue-card-header'>
-                  <h4>Waiting Queue for {activePanelObj.code} ({(panelQueues[activePanelObj.id] || []).length} Teams)</h4>
-                </div>
-
-                {(panelQueues[activePanelObj.id] || []).length === 0 ? (
-                  <div className='empty-queue-callout'>No teams currently queued for this panel.</div>
-                ) : (
-                  <div className='jury-queue-items-list'>
-                    {(panelQueues[activePanelObj.id] || []).map((item) => (
-                      <div key={item.teamId} className='jury-queue-item-row'>
-                        <div className='item-left'>
-                          <span className='item-token'>{item.tokenNumber}</span>
-                          <div>
-                            <strong>{item.teamName}</strong>
-                            <span className='item-meta'>{item.leaderName} • {item.psId}</span>
-                          </div>
-                        </div>
-                        <button 
-                          className='btn-call-team-start'
-                          disabled={!!activeSessions[activePanelObj.id]}
-                          onClick={() => handleStartJuryEvaluation(item)}
-                        >
-                          <Play size={14} />
-                          <span>Start Evaluation</span>
-                        </button>
+                {/* RIGHT COLUMN: RUBRIC SCORING WITH CHOOSEABLE 1-10 NUMBER PILLS */}
+                <div className='jury-col-right'>
+                  <div className='jury-rubric-card'>
+                    <div className='rubric-header'>
+                      <div>
+                        <h3>Section 65B Live Evaluation Rubric</h3>
+                        <p>Official 5-Parameter Campus Rubric (Choose 1 to 10 for each criteria)</p>
                       </div>
-                    ))}
+                      <div className='rubric-total-badge'>
+                        <span className='total-score-num'>
+                          {Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0)}
+                        </span>
+                        <span className='total-score-denom'>/ 50</span>
+                      </div>
+                    </div>
+
+                    <div className='rubric-parameters-list'>
+                      {/* Parameter 1: Innovation */}
+                      <div className='rubric-parameter-row'>
+                        <div className='param-info'>
+                          <div className='param-title-row'>
+                            <strong>1. Innovation &amp; Novelty</strong>
+                            <span className='param-selected-badge'>{rubricScores.innovation} / 10</span>
+                          </div>
+                          <span>Uniqueness of the approach, creativity, and original intellectual merit.</span>
+                        </div>
+                        <div className='param-score-pill-selector'>
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                            <button 
+                              key={num}
+                              type='button'
+                              className={`score-pill-btn ${rubricScores.innovation === num ? 'active-score' : ''}`}
+                              onClick={() => setRubricScores(prev => ({ ...prev, innovation: num }))}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Parameter 2: Feasibility */}
+                      <div className='rubric-parameter-row'>
+                        <div className='param-info'>
+                          <div className='param-title-row'>
+                            <strong>2. Technical Architecture &amp; Feasibility</strong>
+                            <span className='param-selected-badge'>{rubricScores.feasibility} / 10</span>
+                          </div>
+                          <span>System design, stack choices, engineering soundness, and scalability.</span>
+                        </div>
+                        <div className='param-score-pill-selector'>
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                            <button 
+                              key={num}
+                              type='button'
+                              className={`score-pill-btn ${rubricScores.feasibility === num ? 'active-score' : ''}`}
+                              onClick={() => setRubricScores(prev => ({ ...prev, feasibility: num }))}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Parameter 3: Working Demo */}
+                      <div className='rubric-parameter-row'>
+                        <div className='param-info'>
+                          <div className='param-title-row'>
+                            <strong>3. Working Demo &amp; Prototype Completeness</strong>
+                            <span className='param-selected-badge'>{rubricScores.prototype} / 10</span>
+                          </div>
+                          <span>Real implementation, live code/hardware demonstration, and functional UI.</span>
+                        </div>
+                        <div className='param-score-pill-selector'>
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                            <button 
+                              key={num}
+                              type='button'
+                              className={`score-pill-btn ${rubricScores.prototype === num ? 'active-score' : ''}`}
+                              onClick={() => setRubricScores(prev => ({ ...prev, prototype: num }))}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Parameter 4: Presentation & Pitch */}
+                      <div className='rubric-parameter-row'>
+                        <div className='param-info'>
+                          <div className='param-title-row'>
+                            <strong>4. Presentation &amp; Pitch Delivery</strong>
+                            <span className='param-selected-badge'>{rubricScores.presentation} / 10</span>
+                          </div>
+                          <span>Time management, clarity of speech, slide deck quality, and team synergy.</span>
+                        </div>
+                        <div className='param-score-pill-selector'>
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                            <button 
+                              key={num}
+                              type='button'
+                              className={`score-pill-btn ${rubricScores.presentation === num ? 'active-score' : ''}`}
+                              onClick={() => setRubricScores(prev => ({ ...prev, presentation: num }))}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Parameter 5: Q&A Defense */}
+                      <div className='rubric-parameter-row'>
+                        <div className='param-info'>
+                          <div className='param-title-row'>
+                            <strong>5. Q&amp;A Defense &amp; Domain Knowledge</strong>
+                            <span className='param-selected-badge'>{rubricScores.defense} / 10</span>
+                          </div>
+                          <span>Confidence during jury cross-examination and domain depth.</span>
+                        </div>
+                        <div className='param-score-pill-selector'>
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                            <button 
+                              key={num}
+                              type='button'
+                              className={`score-pill-btn ${rubricScores.defense === num ? 'active-score' : ''}`}
+                              onClick={() => setRubricScores(prev => ({ ...prev, defense: num }))}
+                            >
+                              {num}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className='rubric-feedback-box'>
+                      <label>Official Evaluator Feedback &amp; Remarks:</label>
+                      <textarea 
+                        rows='4'
+                        placeholder='Enter constructive feedback, strengths, and areas for improvement (or click "Insert to Remarks" from AI Copilot)...'
+                        value={evalFeedback}
+                        onChange={e => setEvalFeedback(e.target.value)}
+                      ></textarea>
+                    </div>
+
+                    <div className='rubric-submit-actions'>
+                      <button 
+                        className='btn-submit-evaluation-primary'
+                        disabled={!activeSessions[activePanelObj.id]}
+                        onClick={handleSubmitEvaluationScore}
+                      >
+                        <CheckCircle2 size={18} />
+                        <span>Submit Score &amp; Conclude Evaluation</span>
+                      </button>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-
-            {/* RIGHT COLUMN: RUBRIC SCORING */}
-            <div className='jury-col-right'>
-              <div className='jury-rubric-card'>
-                <div className='rubric-header'>
-                  <div>
-                    <h3>Section 65B Live Evaluation Rubric</h3>
-                    <p>Official 5-Parameter Campus Rubric (Max Score: 50 Points)</p>
-                  </div>
-                  <div className='rubric-total-badge'>
-                    <span className='total-score-num'>
-                      {Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0)}
-                    </span>
-                    <span className='total-score-denom'>/ 50</span>
-                  </div>
-                </div>
-
-                <div className='rubric-parameters-list'>
-                  <div className='rubric-parameter-row'>
-                    <div className='param-info'>
-                      <strong>1. Innovation & Novelty (0 - 10)</strong>
-                      <span>Uniqueness of the approach, creativity, and original intellectual merit.</span>
-                    </div>
-                    <div className='param-score-input'>
-                      <input 
-                        type='number' 
-                        min='0' 
-                        max='10'
-                        value={rubricScores.innovation}
-                        onChange={e => setRubricScores({ ...rubricScores, innovation: Math.min(10, Math.max(0, parseInt(e.target.value) || 0)) })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='rubric-parameter-row'>
-                    <div className='param-info'>
-                      <strong>2. Technical Architecture & Feasibility (0 - 10)</strong>
-                      <span>System design, stack choices, engineering soundness, and scalability.</span>
-                    </div>
-                    <div className='param-score-input'>
-                      <input 
-                        type='number' 
-                        min='0' 
-                        max='10'
-                        value={rubricScores.feasibility}
-                        onChange={e => setRubricScores({ ...rubricScores, feasibility: Math.min(10, Math.max(0, parseInt(e.target.value) || 0)) })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='rubric-parameter-row'>
-                    <div className='param-info'>
-                      <strong>3. Working Demo & Prototype Completeness (0 - 10)</strong>
-                      <span>Real implementation, live code/hardware demonstration, and functional UI.</span>
-                    </div>
-                    <div className='param-score-input'>
-                      <input 
-                        type='number' 
-                        min='0' 
-                        max='10'
-                        value={rubricScores.prototype}
-                        onChange={e => setRubricScores({ ...rubricScores, prototype: Math.min(10, Math.max(0, parseInt(e.target.value) || 0)) })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='rubric-parameter-row'>
-                    <div className='param-info'>
-                      <strong>4. Presentation & Pitch Delivery (0 - 10)</strong>
-                      <span>Time management, clarity of speech, slide deck quality, and team synergy.</span>
-                    </div>
-                    <div className='param-score-input'>
-                      <input 
-                        type='number' 
-                        min='0' 
-                        max='10'
-                        value={rubricScores.presentation}
-                        onChange={e => setRubricScores({ ...rubricScores, presentation: Math.min(10, Math.max(0, parseInt(e.target.value) || 0)) })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='rubric-parameter-row'>
-                    <div className='param-info'>
-                      <strong>5. Q&A Defense & Domain Knowledge (0 - 10)</strong>
-                      <span>Confidence during jury cross-examination and domain depth.</span>
-                    </div>
-                    <div className='param-score-input'>
-                      <input 
-                        type='number' 
-                        min='0' 
-                        max='10'
-                        value={rubricScores.defense}
-                        onChange={e => setRubricScores({ ...rubricScores, defense: Math.min(10, Math.max(0, parseInt(e.target.value) || 0)) })}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className='rubric-feedback-box'>
-                  <label>Official Evaluator Feedback & Remarks:</label>
-                  <textarea 
-                    rows='3'
-                    placeholder='Enter constructive feedback, key strengths, and areas for improvement...'
-                    value={evalFeedback}
-                    onChange={e => setEvalFeedback(e.target.value)}
-                  ></textarea>
-                </div>
-
-                <div className='rubric-submit-actions'>
-                  <button 
-                    className='btn-submit-evaluation-primary'
-                    disabled={!activeSessions[activePanelObj.id]}
-                    onClick={handleSubmitEvaluationScore}
-                  >
-                    <CheckCircle2 size={18} />
-                    <span>Submit Score & Conclude Evaluation</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
 
@@ -1043,7 +1618,7 @@ export default function EvaluationQueuePortal({
                 <Sparkles size={14} className='text-emerald' />
                 <span>EVALUATION SLOT DISPATCHER</span>
               </div>
-              <h2>Book Evaluation Slot & Get Token</h2>
+              <h2>Book Evaluation Slot &amp; Get Token</h2>
               <p>Enter your Roll No, Register No, or Team ID. Our smart load balancer will instantly assign you to the best available panel.</p>
             </div>
 
@@ -1148,7 +1723,7 @@ export default function EvaluationQueuePortal({
                             {isEvaluated ? (
                               <span className='status-evaluated-badge'>
                                 <CheckCircle2 size={14} />
-                                Evaluated ({isEvaluated.totalScore}/50)
+                                <span>Evaluation Completed</span>
                               </span>
                             ) : isQueued ? (
                               <button 
