@@ -5,7 +5,7 @@ import {
   Search, ShieldCheck, Download, Sparkles, Monitor, Laptop, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Bot, Brain, MessageSquare, Lightbulb, CheckSquare, 
-  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut, Megaphone, FastForward, AlertTriangle, RotateCcw
+  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut, Megaphone, FastForward, AlertTriangle, RotateCcw, X
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -368,6 +368,9 @@ export default function JuryStationPortal({
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [ledgerPanelFilter, setLedgerPanelFilter] = useState('ALL');
   const [ledgerViewMode, setLedgerViewMode] = useState('individual'); // 'individual' | 'consolidated'
+
+  // AI Question Suggestion Copilot Pop-up Modal State
+  const [isAiCopilotModalOpen, setIsAiCopilotModalOpen] = useState(false);
 
   // Active Evaluator within Current Panel (supports multi-jury scoring per panel)
   const [activeEvaluatorName, setActiveEvaluatorName] = useState(() => {
@@ -943,129 +946,135 @@ export default function JuryStationPortal({
                 </div>
               </div>
 
-              <div className='jury-workspace-grid'>
-                {/* LEFT COLUMN: ACTIVE SESSION + AI SUGGESTED QUESTIONS + QUEUE */}
-                <div className='jury-col-left'>
-                  {activeSessions[activePanelObj.id] ? (
-                    (() => {
-                      const currSession = activeSessions[activePanelObj.id];
-                      const timing = getSessionTimingInfo(currSession);
+              {/* AUTHENTICATED BENTO GRID WORKSPACE */}
+              <div className='jury-bento-workspace'>
+                {/* BENTO ROW 1: PRESENTATION & TIMER HERO + EVALUATOR TERMINAL */}
+                <div className='bento-row-top'>
+                  {/* BENTO TILE 1: PRESENTATION & TIMER HERO (Wide) */}
+                  <div className='bento-card bento-hero-timer-card'>
+                    {activeSessions[activePanelObj.id] ? (
+                      (() => {
+                        const currSession = activeSessions[activePanelObj.id];
+                        const timing = getSessionTimingInfo(currSession);
 
-                      return (
-                        <div className='jury-live-card'>
-                          <div className='jury-card-top-bar'>
-                            <div className='panel-meta-badge'>
-                              <span className='code-tag'>{activePanelObj.code}</span>
-                              <span>{activePanelObj.name} • {activePanelObj.room}</span>
-                            </div>
-                            <span className={`eval-phase-tag ${timing.phase.toLowerCase()}`}>
-                              {timing.phase === 'PRESENTATION' ? 'Phase 1: Pitch Presentation' : timing.phase === 'QA' ? 'Phase 2: Jury Q&A Defense' : 'Session Concluded'}
-                            </span>
-                          </div>
-
-                          <div className='jury-timer-hero-box'>
-                            <div className='timer-big-circle'>
-                              <span className='timer-num-digits'>{timing.timeDisplay}</span>
-                              <span className='timer-phase-caption'>
-                                {timing.phase === 'PRESENTATION' ? 'Pitch Presentation Time' : 'Jury Q&A Defense Time'}
-                              </span>
-                            </div>
-
-                            <div className='timer-buttons-row'>
-                              <button 
-                                className={`btn-timer-ctrl ${timing.isPaused ? 'btn-resume' : 'btn-pause'}`}
-                                onClick={() => handleToggleTimerPause(activePanelObj.id)}
-                              >
-                                {timing.isPaused ? <Play size={16} /> : <Pause size={16} />}
-                                <span>{timing.isPaused ? 'Resume' : 'Pause'}</span>
-                              </button>
-
-                              <button 
-                                className='btn-timer-ctrl btn-extend'
-                                onClick={() => handleExtendSession(activePanelObj.id, 5)}
-                              >
-                                <Plus size={16} />
-                                <span>+5m Grace</span>
-                              </button>
-
-                              <button 
-                                className='btn-timer-ctrl btn-delay'
-                                onClick={() => {
-                                  if (window.confirm(`Mark Team "${currSession.teamName}" as delayed and move to waiting slots at the end of queue?`)) {
-                                    handleDelayActiveTeam();
-                                  }
-                                }}
-                                title='Team not present or delayed - move to end of waiting queue'
-                              >
-                                <FastForward size={16} />
-                                <span>Skip / Delay</span>
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className='jury-team-dossier-card'>
-                            <div className='dossier-header-row'>
-                              <span className='dossier-id-badge'>{currSession.teamId}</span>
-                              <span className='dossier-ps-id'>{currSession.psId}</span>
-                            </div>
-                            <h2 className='dossier-team-name'>{currSession.teamName}</h2>
-                            {currSession.psTitle && (
-                              <p className='dossier-ps-title'>{currSession.psTitle}</p>
-                            )}
-                            <div className='dossier-meta-grid'>
-                              <div>
-                                <span className='m-label'>Team Leader:</span>
-                                <strong className='m-val'>{currSession.leaderName} ({currSession.regNo})</strong>
+                        return (
+                          <div className='bento-timer-content'>
+                            <div className='bento-timer-top-bar'>
+                              <div className='bento-team-token-badge'>
+                                <span className='token-lbl'>ACTIVE PITCH</span>
+                                <strong className='token-val'>{currSession.teamId}</strong>
+                                <span className='token-ps'>{currSession.psId}</span>
                               </div>
-                              <div>
-                                <span className='m-label'>School / College:</span>
-                                <strong className='m-val'>{currSession.school}</strong>
+
+                              <div className='bento-top-actions'>
+                                <button
+                                  type='button'
+                                  className='btn-bento-ai-copilot-trigger'
+                                  onClick={() => setIsAiCopilotModalOpen(true)}
+                                  title='Open AI Inquiry Question Copilot'
+                                >
+                                  <Bot size={15} />
+                                  <span>AI Questions (28+)</span>
+                                  <Sparkles size={13} className='text-amber' />
+                                </button>
+
+                                <span className={`bento-phase-badge ${timing.phase.toLowerCase()}`}>
+                                  {timing.phase === 'PRESENTATION' ? '● Phase 1: Presentation' : timing.phase === 'QA' ? '● Phase 2: Q&A Defense' : 'Concluded'}
+                                </span>
                               </div>
                             </div>
+
+                            <div className='bento-timer-center-row'>
+                              <div className='bento-clock-dial'>
+                                <span className='bento-digits'>{timing.timeDisplay}</span>
+                                <span className='bento-phase-caption'>
+                                  {timing.phase === 'PRESENTATION' ? 'Pitch Presentation Time' : 'Jury Q&A Defense Time'}
+                                </span>
+                              </div>
+
+                              <div className='bento-timer-controls-col'>
+                                <button 
+                                  className={`btn-bento-timer-ctrl ${timing.isPaused ? 'resume' : 'pause'}`}
+                                  onClick={() => handleToggleTimerPause(activePanelObj.id)}
+                                >
+                                  {timing.isPaused ? <Play size={15} /> : <Pause size={15} />}
+                                  <span>{timing.isPaused ? 'Resume Timer' : 'Pause Timer'}</span>
+                                </button>
+
+                                <button 
+                                  className='btn-bento-timer-ctrl extend'
+                                  onClick={() => handleExtendSession(activePanelObj.id, 5)}
+                                >
+                                  <Plus size={15} />
+                                  <span>+5m Grace Time</span>
+                                </button>
+
+                                <button 
+                                  className='btn-bento-timer-ctrl delay'
+                                  onClick={() => {
+                                    if (window.confirm(`Skip & delay active team "${currSession.teamName}" to the end of the queue?`)) {
+                                      handleDelayActiveTeam();
+                                    }
+                                  }}
+                                >
+                                  <FastForward size={15} />
+                                  <span>Skip / Move to Back</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className='bento-team-dossier-strip'>
+                              <h2 className='dossier-main-title'>{currSession.teamName}</h2>
+                              {currSession.psTitle && (
+                                <p className='dossier-ps-desc'>{currSession.psTitle}</p>
+                              )}
+                              <div className='dossier-meta-chips'>
+                                <span className='d-chip'>
+                                  <strong>Leader:</strong> {currSession.leaderName} ({currSession.regNo})
+                                </span>
+                                <span className='d-chip'>
+                                  <strong>College:</strong> {currSession.school}
+                                </span>
+                              </div>
+                            </div>
                           </div>
+                        );
+                      })()
+                    ) : (
+                      <div className='bento-idle-content'>
+                        <div className='idle-badge'>
+                          <Laptop size={28} className='text-primary' />
+                          <span>PANEL STANDBY</span>
                         </div>
-                      );
-                    })()
-                  ) : (
-                    <div className='jury-no-session-card'>
-                      <div className='no-session-icon'>
-                        <Laptop size={36} />
-                      </div>
-                      <h3>No Active Evaluation in {activePanelObj.name}</h3>
-                      <p>Select the next team from your queue below or search any team to begin scoring.</p>
+                        <h3>Station Ready — Awaiting Next Presentation</h3>
+                        <p>Select a team from the waiting queue on the right or search directly below to begin scoring.</p>
 
-                      <div className='jury-manual-search-box'>
-                        <label>Direct Team Lookup &amp; Start:</label>
-                        <div className='search-input-wrap'>
-                          <Search size={16} className='search-icon' />
+                        <div className='bento-search-box'>
+                          <Search size={15} className='search-icon' />
                           <input 
                             type='text' 
-                            placeholder='Search team name, leader, or team ID...'
+                            placeholder='Search team name, leader, or team ID to start...'
                             value={manualSearchQuery}
                             onChange={e => setManualSearchQuery(e.target.value)}
                           />
                         </div>
 
                         {manualSearchQuery.trim() && (
-                          <div className='manual-search-results-dropdown'>
+                          <div className='bento-search-results-list'>
                             {allTeams
                               .filter(t => {
                                 const q = manualSearchQuery.toLowerCase();
                                 return t.temp_team_id.toLowerCase().includes(q) || t.team_name.toLowerCase().includes(q) || t.leader_name.toLowerCase().includes(q);
                               })
-                              .slice(0, 5)
+                              .slice(0, 4)
                               .map(t => (
-                                <div 
-                                  key={t.temp_team_id}
-                                  className='manual-search-result-row'
-                                  onClick={() => setManualSelectedTeam(t)}
-                                >
+                                <div key={t.temp_team_id} className='bento-search-res-item'>
                                   <div>
                                     <strong>{t.team_name}</strong> ({t.temp_team_id})
-                                    <span className='sub-lead'>Leader: {t.leader_name}</span>
+                                    <span className='res-lead'>Leader: {t.leader_name}</span>
                                   </div>
                                   <button 
-                                    className='btn-quick-start-eval'
+                                    className='btn-bento-start-pitch'
                                     onClick={() => handleStartJuryEvaluation(t)}
                                   >
                                     <Play size={13} />
@@ -1076,392 +1085,233 @@ export default function JuryStationPortal({
                           </div>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* JURY LEFT COLUMN TABS */}
-                  <div className='jury-left-nav-tabs'>
-                    <button
-                      type='button'
-                      className={`jury-left-tab-btn ${juryLeftTab === 'copilot' ? 'active' : ''}`}
-                      onClick={() => setJuryLeftTab('copilot')}
-                    >
-                      <Bot size={15} />
-                      <span>AI Inquiry Copilot (28+)</span>
-                    </button>
-
-                    <button
-                      type='button'
-                      className={`jury-left-tab-btn ${juryLeftTab === 'queue' ? 'active' : ''}`}
-                      onClick={() => setJuryLeftTab('queue')}
-                    >
-                      <Users size={15} />
-                      <span>Panel Queue ({(panelQueues[activePanelObj.id] || []).length})</span>
-                    </button>
+                    )}
                   </div>
 
-                  {/* TAB 1: AI COPILOT */}
-                  {juryLeftTab === 'copilot' && (
-                    <div className='ai-questions-copilot-card'>
-                      <div className='ai-copilot-header'>
-                        <div className='ai-header-left'>
-                          <div className='ai-sparkle-badge'>
-                            <Bot size={18} className='text-primary' />
-                            <Sparkles size={14} className='sparkle-sub' />
-                          </div>
-                          <div>
-                            <h4>AI Jury Inquiry Copilot</h4>
-                            <p>28+ Theme-Tailored Evaluation Questions across 10 Engineering Dimensions</p>
-                          </div>
-                        </div>
-
-                        <div className='ai-search-box'>
-                          <Search size={14} className='ai-search-ico' />
-                          <input 
-                            type='text' 
-                            placeholder='Search questions (e.g. offline, patent, scale)...'
-                            value={questionSearchQuery}
-                            onChange={e => setQuestionSearchQuery(e.target.value)}
-                          />
-                        </div>
+                  {/* BENTO TILE 2: ACTIVE EVALUATOR TERMINAL & SCORE METER */}
+                  <div className='bento-card bento-evaluator-card'>
+                    <div className='bento-eval-header'>
+                      <div className='bento-sec-kicker'>
+                        <ShieldCheck size={14} className='text-primary' />
+                        <span>ACTIVE JURY TERMINAL</span>
                       </div>
-
-                      {/* Category Filter Pills */}
-                      <div className='ai-category-filter-strip'>
-                        {[
-                          { id: 'ALL', label: 'All (28+)' },
-                          { id: 'Field Research', label: 'Field Research' },
-                          { id: 'Solution', label: 'Solution & Flow' },
-                          { id: 'Innovation', label: 'Innovation / IP' },
-                          { id: 'Tech Stack', label: 'Tech Stack' },
-                          { id: 'Feasibility', label: 'Feasibility Demo' },
-                          { id: 'Viability', label: 'Viability' },
-                          { id: 'Scalability', label: 'Scalability' },
-                          { id: 'Reliability', label: 'Security / 65B' },
-                          { id: 'Competitors', label: 'Competitors' },
-                          { id: 'Risk Analysis', label: 'Risk Analysis' },
-                        ].map(cat => (
-                          <button
-                            key={cat.id}
-                            type='button'
-                            className={`ai-cat-pill ${selectedQuestionCategory === cat.id ? 'active' : ''}`}
-                            onClick={() => setSelectedQuestionCategory(cat.id)}
-                          >
-                            {cat.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Questions List */}
-                      <div className='ai-questions-scroll-list'>
-                        {AI_EVALUATION_QUESTIONS_BY_THEME
-                          .filter(q => {
-                            if (selectedQuestionCategory !== 'ALL' && q.category !== selectedQuestionCategory) return false;
-                            if (!questionSearchQuery.trim()) return true;
-                            const term = questionSearchQuery.toLowerCase();
-                            return (
-                              q.question.toLowerCase().includes(term) ||
-                              q.tag.toLowerCase().includes(term) ||
-                              q.categoryLabel.toLowerCase().includes(term) ||
-                              q.rationale.toLowerCase().includes(term)
-                            );
-                          })
-                          .map(item => {
-                            const isAsked = askedQuestionIds.has(item.id);
-
-                            return (
-                              <div key={item.id} className={`ai-question-item-card ${isAsked ? 'is-asked' : ''}`}>
-                                <div className='q-top-meta-row'>
-                                  <div className='q-tags-group'>
-                                    <span className='q-category-tag'>{item.categoryLabel}</span>
-                                    <span className='q-subtag'>{item.tag}</span>
-                                  </div>
-                                  <div className='q-actions-group'>
-                                    <button
-                                      type='button'
-                                      className={`btn-mark-asked ${isAsked ? 'active' : ''}`}
-                                      onClick={() => handleToggleQuestionAsked(item.id)}
-                                      title={isAsked ? 'Marked as Asked' : 'Click to Mark as Asked'}
-                                    >
-                                      {isAsked ? <CheckSquare size={14} /> : <Square size={14} />}
-                                      <span>{isAsked ? 'Asked' : 'Mark Asked'}</span>
-                                    </button>
-
-                                    <button
-                                      type='button'
-                                      className='btn-copy-to-feedback'
-                                      onClick={() => handleInsertQuestionToFeedback(item.question, item.tag)}
-                                      title='Insert question into Evaluator Feedback Remarks'
-                                    >
-                                      <Copy size={13} />
-                                      <span>Insert to Remarks</span>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <p className='q-text-body'>"{item.question}"</p>
-                                <div className='q-rationale-row'>
-                                  <Lightbulb size={12} className='text-amber' />
-                                  <span><strong>Why ask:</strong> {item.rationale}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
+                      <span className='bento-sec-hint'>Switch evaluator to enter separate score</span>
                     </div>
-                  )}
 
-                  {/* TAB 2: PANEL WAITING QUEUE */}
-                  {juryLeftTab === 'queue' && (
-                    <div className='jury-panel-queue-card'>
-                      <div className='queue-card-header'>
-                        <h4>Waiting Queue for {activePanelObj.code} ({(panelQueues[activePanelObj.id] || []).length} Teams)</h4>
-                      </div>
-
-                      {(panelQueues[activePanelObj.id] || []).length === 0 ? (
-                        <div className='empty-queue-callout'>No teams currently queued for this panel. Teams can book slots in the Student Booking tab or you can look up any team above.</div>
-                      ) : (
-                        <div className='jury-queue-items-list'>
-                          {(panelQueues[activePanelObj.id] || []).map((item) => (
-                            <div key={item.teamId} className={`jury-queue-item-row ${item.status === 'DELAYED' ? 'is-delayed' : ''}`}>
-                              <div className='item-left'>
-                                <span className='item-token'>{item.tokenNumber}</span>
-                                <div>
-                                  <div className='item-name-line'>
-                                    <strong>{item.teamName}</strong>
-                                    {item.status === 'DELAYED' && <span className='delayed-tag'>⏱ Delayed</span>}
-                                  </div>
-                                  <span className='item-meta'>{item.leaderName} • {item.psId}</span>
-                                </div>
-                              </div>
-                              <div className='item-actions-group'>
-                                <button 
-                                  type='button'
-                                  className='btn-queue-skip'
-                                  onClick={() => handleDelayQueueItem(item.teamId)}
-                                  title='Skip / Move to end of waiting queue'
-                                >
-                                  <FastForward size={13} />
-                                  <span>Skip</span>
-                                </button>
-                                <button 
-                                  className='btn-call-team-start'
-                                  disabled={!!activeSessions[activePanelObj.id]}
-                                  onClick={() => handleStartJuryEvaluation(item)}
-                                >
-                                  <Play size={14} />
-                                  <span>Start</span>
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* RIGHT COLUMN: RUBRIC SCORING WITH REFINED INTUITIVE SCORE MATRIX */}
-                <div className='jury-col-right'>
-                  <div className='jury-rubric-card'>
-                    {/* Rubric Header with Live Score Gauge */}
-                    <div className='rubric-header'>
-                      <div className='rubric-title-wrap'>
-                        <div className='rubric-kicker'>
-                          <ShieldCheck size={14} className='text-primary' />
-                          <span>SECTION 65B OFFICIAL DIGITAL RUBRIC</span>
-                        </div>
-                        <h3>Evaluation Scorecard</h3>
-                        <p>Grade each parameter from 1 (lowest) to 10 (highest)</p>
-                      </div>
-
-                      {(() => {
-                        const totalScore = Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0);
-                        const pct = Math.round((totalScore / 50) * 100);
-                        const isTop = pct >= 80;
-                        const isMid = pct >= 60;
+                    <div className='bento-evaluator-selector-grid'>
+                      {(activePanelObj.juries || []).map((j, idx) => {
+                        const isSelected = activeEvaluatorName === j.name;
+                        const currentTeamId = activeSessions[activePanelObj.id]?.teamId;
+                        const alreadyScored = (evaluationLedger || []).some(l => l.teamId === currentTeamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
                         return (
-                          <div className={`rubric-total-badge ${isTop ? 'tier-top' : isMid ? 'tier-mid' : 'tier-base'}`}>
-                            <div className='badge-score-main'>
-                              <span className='total-score-num'>{totalScore}</span>
-                              <span className='total-score-denom'>/ 50</span>
+                          <button
+                            key={idx}
+                            type='button'
+                            className={`bento-eval-pill ${isSelected ? 'selected' : ''}`}
+                            onClick={() => setActiveEvaluatorName(j.name)}
+                          >
+                            <div className='bento-eval-avatar'>
+                              {j.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                             </div>
-                            <span className='badge-pct-tag'>{pct}% • {isTop ? 'Distinction' : isMid ? 'Proficient' : 'Standard'}</span>
-                          </div>
+                            <div className='bento-eval-info'>
+                              <strong className='eval-name'>{j.name}</strong>
+                              <span className='eval-role'>{j.role || j.designation}</span>
+                            </div>
+                            {alreadyScored ? (
+                              <span className='bento-scored-pill'>✓ Scored</span>
+                            ) : isSelected ? (
+                              <span className='bento-active-pill'>Active</span>
+                            ) : null}
+                          </button>
                         );
-                      })()}
+                      })}
                     </div>
 
-                    {/* Evaluator Selector Strip for Panels with Multiple Juries */}
-                    <div className='evaluator-selector-strip'>
-                      <div className='eval-label-row'>
-                        <span className='eval-label'>Active Evaluator Terminal:</span>
-                        <span className='eval-hint'>Click to score as another jury</span>
-                      </div>
-                      <div className='evaluator-pills-row'>
-                        {(activePanelObj.juries || []).map((j, idx) => {
-                          const isSelected = activeEvaluatorName === j.name;
-                          const currentTeamId = activeSessions[activePanelObj.id]?.teamId;
-                          const alreadyScored = (evaluationLedger || []).some(l => l.teamId === currentTeamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
-                          return (
-                            <button
-                              key={idx}
-                              type='button'
-                              className={`evaluator-pill ${isSelected ? 'selected' : ''}`}
-                              onClick={() => setActiveEvaluatorName(j.name)}
-                            >
-                              <div className='eval-avatar-circle'>
-                                {j.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </div>
-                              <div className='eval-pill-content'>
-                                <span className='eval-name'>{j.name}</span>
-                                <span className='eval-role'>{j.role || j.designation}</span>
-                              </div>
-                              {alreadyScored ? (
-                                <span className='scored-dot' title='Score already submitted by this evaluator'>✓ Scored</span>
-                              ) : isSelected ? (
-                                <span className='active-indicator-tag'>Scoring Now</span>
-                              ) : null}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    {/* Live Score Meter */}
+                    {(() => {
+                      const totalScore = Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0);
+                      const pct = Math.round((totalScore / 50) * 100);
+                      const isTop = pct >= 80;
+                      const isMid = pct >= 60;
+                      return (
+                        <div className={`bento-score-gauge-card ${isTop ? 'tier-top' : isMid ? 'tier-mid' : 'tier-base'}`}>
+                          <div className='gauge-left'>
+                            <span className='gauge-lbl'>Running Total Score</span>
+                            <div className='gauge-digits-row'>
+                              <span className='gauge-num'>{totalScore}</span>
+                              <span className='gauge-denom'>/ 50 Max</span>
+                            </div>
+                          </div>
+                          <div className='gauge-right'>
+                            <span className='gauge-pct-badge'>{pct}% Standing</span>
+                            <span className='gauge-verdict-lbl'>{isTop ? '🌟 Distinction' : isMid ? '🟢 Proficient' : '🟡 Standard'}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
-                    {/* Prior Recorded Evaluations for this Team */}
+                    {/* Prior Evaluations list for current team */}
                     {(() => {
                       const currentTeamId = activeSessions[activePanelObj.id]?.teamId;
                       if (!currentTeamId) return null;
                       const teamRecords = (evaluationLedger || []).filter(l => l.teamId === currentTeamId);
                       if (teamRecords.length === 0) return null;
                       return (
-                        <div className='prior-evaluations-banner'>
-                          <div className='prior-eval-header'>
-                            <CheckCircle2 size={15} className='text-emerald' />
-                            <strong>Completed Scorecards for this Team ({teamRecords.length}):</strong>
-                          </div>
-                          <div className='prior-eval-list'>
+                        <div className='bento-prior-evals-wrap'>
+                          <span className='prior-title'>Team Scorecards ({teamRecords.length}):</span>
+                          <div className='prior-chips-list'>
                             {teamRecords.map((rec, rIdx) => (
-                              <div key={rec.id || rIdx} className='prior-eval-chip'>
-                                <span className='evaluator-name'>{rec.evaluatorName || 'Jury Member'}:</span>
-                                <strong className='evaluator-score'>{rec.totalScore}/50 ({rec.percentage}%)</strong>
-                                <span className='evaluator-time'>at {rec.evaluatedAtStr}</span>
+                              <div key={rec.id || rIdx} className='prior-chip'>
+                                <strong>{rec.evaluatorName?.split(' ')[0] || 'Jury'}:</strong>
+                                <span className='sc'>{rec.totalScore}/50</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       );
                     })()}
+                  </div>
+                </div>
 
-                    {/* 5-Parameter Rubric Scoring Cards */}
-                    <div className='rubric-parameters-list'>
-                      {[
-                        {
-                          key: 'innovation',
-                          num: '01',
-                          title: 'Innovation & Novelty',
-                          desc: 'Uniqueness of the approach, creativity, and original intellectual merit.'
-                        },
-                        {
-                          key: 'feasibility',
-                          num: '02',
-                          title: 'Technical Architecture & Feasibility',
-                          desc: 'System design, stack choices, engineering soundness, and scalability.'
-                        },
-                        {
-                          key: 'prototype',
-                          num: '03',
-                          title: 'Working Demo & Prototype Completeness',
-                          desc: 'Real implementation, live code/hardware demonstration, and functional UI.'
-                        },
-                        {
-                          key: 'presentation',
-                          num: '04',
-                          title: 'Presentation & Pitch Delivery',
-                          desc: 'Time management, clarity of speech, slide deck quality, and team synergy.'
-                        },
-                        {
-                          key: 'defense',
-                          num: '05',
-                          title: 'Q&A Defense & Domain Knowledge',
-                          desc: 'Confidence during jury cross-examination and domain depth.'
-                        }
-                      ].map(param => {
-                        const score = rubricScores[param.key] || 0;
-                        const getBadgeTier = (s) => {
-                          if (s >= 9) return { label: 'Outstanding', cls: 'tier-high' };
-                          if (s >= 7) return { label: 'Good', cls: 'tier-good' };
-                          if (s >= 5) return { label: 'Moderate', cls: 'tier-mod' };
-                          return { label: 'Needs Work', cls: 'tier-low' };
-                        };
-                        const tier = getBadgeTier(score);
+                {/* BENTO ROW 2: 5-PARAMETER RUBRIC SCORING TILES (Interactive Grid) */}
+                <div className='bento-rubric-section'>
+                  <div className='bento-rubric-sec-header'>
+                    <div className='sec-title-left'>
+                      <Award size={18} className='text-primary' />
+                      <div>
+                        <h3>Section 65B Digital Rubric Matrix</h3>
+                        <p>Grade all 5 parameters from 1 (lowest) to 10 (highest)</p>
+                      </div>
+                    </div>
 
-                        return (
-                          <div key={param.key} className='rubric-parameter-card'>
-                            <div className='param-card-header'>
-                              <div className='param-title-group'>
-                                <span className='param-seq-badge'>{param.num}</span>
-                                <div>
-                                  <h4 className='param-title'>{param.title}</h4>
-                                  <p className='param-desc'>{param.desc}</p>
-                                </div>
-                              </div>
-                              <div className={`param-score-display-pill ${tier.cls}`}>
-                                <span className='score-digits'>{score} <span className='denom'>/ 10</span></span>
-                                <span className='score-tier-label'>{tier.label}</span>
+                    <button 
+                      type='button' 
+                      className='btn-rubric-ai-copilot-pill'
+                      onClick={() => setIsAiCopilotModalOpen(true)}
+                    >
+                      <Bot size={15} />
+                      <span>AI Question Copilot (28+)</span>
+                      <Sparkles size={13} className='text-amber' />
+                    </button>
+                  </div>
+
+                  <div className='bento-parameters-grid'>
+                    {[
+                      {
+                        key: 'innovation',
+                        num: '01',
+                        title: 'Innovation & Novelty',
+                        desc: 'Uniqueness of approach, creativity, and original intellectual merit.'
+                      },
+                      {
+                        key: 'feasibility',
+                        num: '02',
+                        title: 'Technical Architecture & Feasibility',
+                        desc: 'System design, stack choices, engineering soundness, and scalability.'
+                      },
+                      {
+                        key: 'prototype',
+                        num: '03',
+                        title: 'Working Demo & Prototype Completeness',
+                        desc: 'Real implementation, live code/hardware demo, and UI completeness.'
+                      },
+                      {
+                        key: 'presentation',
+                        num: '04',
+                        title: 'Presentation & Pitch Delivery',
+                        desc: 'Time management, clarity of speech, slide deck quality, and team synergy.'
+                      },
+                      {
+                        key: 'defense',
+                        num: '05',
+                        title: 'Q&A Defense & Domain Knowledge',
+                        desc: 'Confidence during jury cross-examination and domain depth.'
+                      }
+                    ].map(param => {
+                      const score = rubricScores[param.key] || 0;
+                      const getBadgeTier = (s) => {
+                        if (s >= 9) return { label: 'Outstanding', cls: 'tier-high' };
+                        if (s >= 7) return { label: 'Good', cls: 'tier-good' };
+                        if (s >= 5) return { label: 'Moderate', cls: 'tier-mod' };
+                        return { label: 'Needs Work', cls: 'tier-low' };
+                      };
+                      const tier = getBadgeTier(score);
+
+                      return (
+                        <div key={param.key} className='bento-param-tile'>
+                          <div className='param-tile-header'>
+                            <div className='param-title-wrap'>
+                              <span className='param-num-chip'>{param.num}</span>
+                              <div>
+                                <h4 className='param-title-text'>{param.title}</h4>
+                                <p className='param-desc-text'>{param.desc}</p>
                               </div>
                             </div>
 
-                            {/* 10-Point Score Grid Selector */}
-                            <div className='score-matrix-selector-wrap'>
-                              <div className='score-matrix-grid'>
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => {
-                                  const isSelected = score === num;
-                                  return (
-                                    <button
-                                      key={num}
-                                      type='button'
-                                      className={`matrix-score-btn ${isSelected ? 'selected' : ''}`}
-                                      onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: num }))}
-                                      title={`Set ${param.title} score to ${num}/10`}
-                                    >
-                                      <span className='btn-score-num'>{num}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Quick Presets */}
-                              <div className='score-quick-presets'>
-                                <span className='preset-lbl'>Quick Set:</span>
-                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 4 }))}>Pass (4)</button>
-                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 6 }))}>Average (6)</button>
-                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 8 }))}>Good (8)</button>
-                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 10 }))}>Max (10)</button>
-                              </div>
+                            <div className={`param-score-chip ${tier.cls}`}>
+                              <span className='num-val'>{score} <span className='denom'>/ 10</span></span>
+                              <span className='tier-lbl'>{tier.label}</span>
                             </div>
                           </div>
-                        );
-                      })}
+
+                          {/* 10-Score Matrix Buttons */}
+                          <div className='bento-score-buttons-row'>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => {
+                              const isSelected = score === num;
+                              return (
+                                <button
+                                  key={num}
+                                  type='button'
+                                  className={`bento-score-btn ${isSelected ? 'selected' : ''}`}
+                                  onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: num }))}
+                                  title={`Grade ${num}/10`}
+                                >
+                                  <span>{num}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Quick Preset Buttons */}
+                          <div className='bento-preset-strip'>
+                            <span className='preset-kicker'>Quick:</span>
+                            <button type='button' className='btn-bento-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 4 }))}>Pass (4)</button>
+                            <button type='button' className='btn-bento-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 6 }))}>Avg (6)</button>
+                            <button type='button' className='btn-bento-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 8 }))}>Good (8)</button>
+                            <button type='button' className='btn-bento-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 10 }))}>Max (10)</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* BENTO ROW 3: OFFICIAL REMARKS & PANEL WAITING QUEUE */}
+                <div className='bento-row-bottom'>
+                  {/* BENTO CARD: OFFICIAL REMARKS & SUBMIT */}
+                  <div className='bento-card bento-remarks-card'>
+                    <div className='remarks-header'>
+                      <div className='remarks-title-group'>
+                        <MessageSquare size={16} className='text-primary' />
+                        <h4>Official Evaluator Feedback &amp; Remarks</h4>
+                      </div>
+                      <span className='remarks-hint'>Auto-populated by AI Copilot or typed directly</span>
                     </div>
 
-                    <div className='rubric-feedback-box'>
-                      <label>Official Evaluator Feedback &amp; Remarks:</label>
-                      <textarea 
-                        rows='4'
-                        placeholder='Enter constructive feedback, strengths, and areas for improvement (or click "Insert to Remarks" from AI Copilot)...'
-                        value={evalFeedback}
-                        onChange={e => setEvalFeedback(e.target.value)}
-                      ></textarea>
-                    </div>
+                    <textarea
+                      rows='4'
+                      placeholder='Enter constructive feedback, key strengths, architecture notes, or insert questions from AI Copilot...'
+                      value={evalFeedback}
+                      onChange={e => setEvalFeedback(e.target.value)}
+                      className='bento-remarks-textarea'
+                    ></textarea>
 
-                    <div className='rubric-submit-actions'>
+                    <div className='bento-submit-actions'>
                       <button 
                         type='button'
-                        className='btn-submit-evaluation-primary'
+                        className='btn-bento-submit-primary'
                         disabled={!activeSessions[activePanelObj.id]}
                         onClick={() => handleSubmitEvaluationScore(false)}
-                        title={`Save individual evaluation score for ${activeEvaluatorName}`}
                       >
                         <CheckCircle2 size={18} />
                         <span>Submit &amp; Complete Score for {activeEvaluatorName || 'Evaluator'}</span>
@@ -1470,23 +1320,202 @@ export default function JuryStationPortal({
                       {(activePanelObj.juries || []).length > 1 && (
                         <button 
                           type='button'
-                          className='btn-submit-evaluation-secondary'
+                          className='btn-bento-submit-secondary'
                           disabled={!activeSessions[activePanelObj.id]}
                           onClick={() => {
                             if (window.confirm('Force conclude evaluation for this team and advance to the next team in queue?')) {
                               handleSubmitEvaluationScore(true);
                             }
                           }}
-                          title='Force finalize team evaluation and call next team immediately'
                         >
-                          <Square size={15} />
+                          <Square size={14} />
                           <span>Force Conclude &amp; Call Next</span>
                         </button>
                       )}
                     </div>
                   </div>
+
+                  {/* BENTO CARD: PANEL WAITING QUEUE */}
+                  <div className='bento-card bento-queue-card'>
+                    <div className='queue-header-row'>
+                      <div className='q-head-title'>
+                        <Users size={16} className='text-indigo' />
+                        <h4>Waiting Queue for {activePanelObj.code}</h4>
+                      </div>
+                      <span className='q-count-badge'>{(panelQueues[activePanelObj.id] || []).length} Teams</span>
+                    </div>
+
+                    {(panelQueues[activePanelObj.id] || []).length === 0 ? (
+                      <div className='bento-empty-queue'>
+                        <p>No teams currently queued for {activePanelObj.name}.</p>
+                        <span className='sub'>Teams can book slots in the Student Booking portal.</span>
+                      </div>
+                    ) : (
+                      <div className='bento-queue-items-scroll'>
+                        {(panelQueues[activePanelObj.id] || []).map((item) => (
+                          <div key={item.teamId} className={`bento-queue-item ${item.status === 'DELAYED' ? 'is-delayed' : ''}`}>
+                            <div className='q-item-info-col'>
+                              <div className='q-token-row'>
+                                <span className='q-token'>{item.tokenNumber}</span>
+                                {item.status === 'DELAYED' && <span className='q-delayed-tag'>⏱ Delayed</span>}
+                              </div>
+                              <strong className='q-name'>{item.teamName}</strong>
+                              <span className='q-meta'>{item.leaderName} • {item.psId}</span>
+                            </div>
+
+                            <div className='q-item-actions-col'>
+                              <button 
+                                type='button'
+                                className='btn-q-skip'
+                                onClick={() => handleDelayQueueItem(item.teamId)}
+                                title='Skip team & move to back of waiting queue'
+                              >
+                                <FastForward size={13} />
+                                <span>Skip</span>
+                              </button>
+                              <button 
+                                className='btn-q-start'
+                                disabled={!!activeSessions[activePanelObj.id]}
+                                onClick={() => handleStartJuryEvaluation(item)}
+                                title={activeSessions[activePanelObj.id] ? 'Session currently in progress' : 'Start pitch presentation'}
+                              >
+                                <Play size={13} />
+                                <span>Start</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* POP-UP AI INQUIRY COPILOT MODAL PANEL */}
+              {isAiCopilotModalOpen && (
+                <div className='ai-copilot-modal-backdrop' onClick={() => setIsAiCopilotModalOpen(false)}>
+                  <div className='ai-copilot-modal-container' onClick={e => e.stopPropagation()}>
+                    <div className='ai-copilot-modal-header'>
+                      <div className='ai-modal-header-left'>
+                        <div className='ai-modal-badge'>
+                          <Bot size={22} className='text-primary' />
+                          <Sparkles size={16} className='text-amber' />
+                        </div>
+                        <div>
+                          <h3>AI Jury Inquiry Copilot</h3>
+                          <p>28+ Theme-Tailored Evaluation Questions across 10 Engineering Dimensions</p>
+                        </div>
+                      </div>
+
+                      <div className='ai-modal-header-right'>
+                        <div className='ai-modal-search'>
+                          <Search size={14} className='search-ico' />
+                          <input 
+                            type='text' 
+                            placeholder='Search questions (e.g. offline, patent, scale)...'
+                            value={questionSearchQuery}
+                            onChange={e => setQuestionSearchQuery(e.target.value)}
+                          />
+                        </div>
+
+                        <button 
+                          type='button' 
+                          className='btn-close-ai-modal'
+                          onClick={() => setIsAiCopilotModalOpen(false)}
+                          title='Close AI Copilot'
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Category Filter Pills */}
+                    <div className='ai-modal-categories-bar'>
+                      {[
+                        { id: 'ALL', label: 'All (28+)' },
+                        { id: 'Field Research', label: 'Field Research' },
+                        { id: 'Solution', label: 'Solution & Flow' },
+                        { id: 'Innovation', label: 'Innovation / IP' },
+                        { id: 'Tech Stack', label: 'Tech Stack' },
+                        { id: 'Feasibility', label: 'Feasibility Demo' },
+                        { id: 'Viability', label: 'Viability' },
+                        { id: 'Scalability', label: 'Scalability' },
+                        { id: 'Reliability', label: 'Security / 65B' },
+                        { id: 'Competitors', label: 'Competitors' },
+                        { id: 'Risk Analysis', label: 'Risk Analysis' },
+                      ].map(cat => (
+                        <button
+                          key={cat.id}
+                          type='button'
+                          className={`ai-cat-pill ${selectedQuestionCategory === cat.id ? 'active' : ''}`}
+                          onClick={() => setSelectedQuestionCategory(cat.id)}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Questions Scrollable List */}
+                    <div className='ai-modal-questions-scroll'>
+                      {AI_EVALUATION_QUESTIONS_BY_THEME
+                        .filter(q => {
+                          if (selectedQuestionCategory !== 'ALL' && q.category !== selectedQuestionCategory) return false;
+                          if (!questionSearchQuery.trim()) return true;
+                          const term = questionSearchQuery.toLowerCase();
+                          return (
+                            q.question.toLowerCase().includes(term) ||
+                            q.tag.toLowerCase().includes(term) ||
+                            q.categoryLabel.toLowerCase().includes(term) ||
+                            q.rationale.toLowerCase().includes(term)
+                          );
+                        })
+                        .map(item => {
+                          const isAsked = askedQuestionIds.has(item.id);
+
+                          return (
+                            <div key={item.id} className={`ai-question-card ${isAsked ? 'is-asked' : ''}`}>
+                              <div className='q-card-meta'>
+                                <div className='q-tags'>
+                                  <span className='cat-tag'>{item.categoryLabel}</span>
+                                  <span className='sub-tag'>{item.tag}</span>
+                                </div>
+                                <div className='q-actions'>
+                                  <button
+                                    type='button'
+                                    className={`btn-toggle-asked ${isAsked ? 'active' : ''}`}
+                                    onClick={() => handleToggleQuestionAsked(item.id)}
+                                  >
+                                    {isAsked ? <CheckSquare size={14} /> : <Square size={14} />}
+                                    <span>{isAsked ? 'Asked' : 'Mark Asked'}</span>
+                                  </button>
+
+                                  <button
+                                    type='button'
+                                    className='btn-insert-remarks'
+                                    onClick={() => {
+                                      handleInsertQuestionToFeedback(item.question, item.tag);
+                                      playSoundAlert('chime');
+                                    }}
+                                    title='Insert this question directly into remarks'
+                                  >
+                                    <Copy size={13} />
+                                    <span>Insert to Remarks</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              <p className='q-prompt-text'>"{item.question}"</p>
+                              <div className='q-why-ask-box'>
+                                <Lightbulb size={13} className='text-amber' />
+                                <span><strong>Why ask:</strong> {item.rationale}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
