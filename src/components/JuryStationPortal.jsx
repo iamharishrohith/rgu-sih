@@ -849,12 +849,11 @@ export default function JuryStationPortal({
                     <label>Jury Access PIN / Passcode:</label>
                     <input 
                       type='password'
-                      placeholder='Enter Jury PIN (e.g. Smart@26)'
+                      placeholder='Enter Jury Access Passcode'
                       value={loginJuryPasscode}
                       onChange={e => setLoginJuryPasscode(e.target.value)}
                       required
                     />
-                    <span className='input-hint-sub'>Default PIN: <code>Smart@26</code> or Panel Code (e.g. <code>P1</code> to <code>P5</code>)</span>
                   </div>
 
                   <button type='submit' className='btn-enter-jury-station'>

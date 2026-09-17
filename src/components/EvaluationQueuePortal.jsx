@@ -109,6 +109,87 @@ export const DEFAULT_EVALUATION_PANELS = [
   }
 ];
 
+export const THEME_TECH_HASHTAG_MAP = {
+  // Panel 1: AI, Data Science & Deep Learning
+  'Smart Automation': ['#SmartAutomation', '#AI', '#DeepLearning', '#MachineLearning', '#NLP', '#ComputerVision', '#LLM', '#NeuralNetworks', '#Python'],
+  'MedTech / BioTech / HealthTech': ['#MedTech', '#HealthTech', '#BioTech', '#HealthcareAI', '#Diagnostics', '#Telemedicine', '#BioInformatics'],
+  'Space Technology': ['#SpaceTech', '#SatelliteAI', '#Geospatial', '#GIS', '#RemoteSensing', '#Astrophysics'],
+  'Miscellaneous (Open Innovation)': ['#OpenInnovation', '#DataScience', '#Analytics', '#Python', '#DeepTech', '#BigData', '#Research'],
+
+  // Panel 2: Cloud Architecture & Smart Education
+  'Smart Education': ['#SmartEducation', '#EdTech', '#Elearning', '#AdaptiveLearning', '#CampusTech', '#LMS', '#DigitalClassroom'],
+  'Tourism': ['#Tourism', '#SmartTravel', '#VirtualTourism', '#ARVR', '#Hospitality', '#HeritageTourism'],
+  'Heritage & Culture': ['#Heritage', '#Culture', '#IndianArt', '#LinguisticTech', '#DigitalPreservation', '#IndigenousTech'],
+  'Fitness & Sports': ['#Fitness', '#SportsTech', '#AthleteAnalytics', '#Wearables', '#HealthTracking'],
+
+  // Panel 3: Blockchain, Cybersecurity & Disaster Sentinel
+  'Blockchain & Cybersecurity': ['#Blockchain', '#CyberSecurity', '#SmartContracts', '#Web3', '#Cryptography', '#ZeroTrust', '#PenTesting', '#Forensics', '#Security'],
+  'Disaster Management': ['#DisasterManagement', '#EarlyWarning', '#FloodAlert', '#Earthquake', '#EmergencyRelay', '#CrisisResponse', '#Resilience'],
+  'Clean & Green Technology': ['#CleanTech', '#GreenTech', '#Sustainability', '#WasteManagement', '#CarbonFootprint', '#WaterPurification', '#EcoTech'],
+
+  // Panel 4: IoT, Robotics & Smart Automation
+  'Robotics and Drones': ['#Robotics', '#Drones', '#UAV', '#AutonomousSystems', '#ROS', '#Hardware', '#Embedded', '#Sensors'],
+  'Smart Vehicles': ['#SmartVehicles', '#EV', '#BatteryManagement', '#ADAS', '#ConnectedCars', '#Automotive'],
+  'Renewable / Sustainable Energy': ['#RenewableEnergy', '#SolarTech', '#WindEnergy', '#SmartGrid', '#EnergyStorage', '#Microgrid'],
+  'Agriculture, FoodTech & Rural Development': ['#AgriTech', '#FoodTech', '#SmartFarming', '#CropMonitoring', '#RuralTech', '#PrecisionAgri', '#IoT'],
+
+  // Panel 5: Full Stack WebTech & Cybersecurity
+  'Transportation & Logistics': ['#Logistics', '#Transportation', '#SupplyChain', '#FleetTracking', '#TransitRouting', '#SmartFreight', '#FleetMgmt'],
+  'Toys & Games': ['#ToysAndGames', '#GameDev', '#STEMToys', '#Unity', '#Unreal', '#Gamification', '#FullStack', '#MERN', '#React', '#NodeJS', '#WebDev']
+};
+
+export const getMatchingPanelsForTeam = (team, panels = []) => {
+  if (!team || !panels || panels.length === 0) return [];
+  
+  const textCorpus = [
+    team.ps_title || '',
+    team.domain || '',
+    team.ps_category || '',
+    team.team_name || '',
+    team.ps_id || ''
+  ].join(' ').toLowerCase();
+
+  const scoredPanels = panels.map((panel, idx) => {
+    let score = 0;
+    const matchedPanelTags = [];
+
+    const panelThemes = panel.themes || [];
+    panelThemes.forEach(th => {
+      const thLower = th.toLowerCase();
+      if (textCorpus.includes(thLower)) {
+        score += 40;
+      }
+      const relatedTags = THEME_TECH_HASHTAG_MAP[th] || [];
+      relatedTags.forEach(tag => {
+        const rawKw = tag.replace('#', '').toLowerCase();
+        if (rawKw.length > 2 && textCorpus.includes(rawKw)) {
+          score += 18;
+          if (!matchedPanelTags.includes(tag)) matchedPanelTags.push(tag);
+        }
+      });
+    });
+
+    const panelDomainLower = (panel.domain || '').toLowerCase();
+    const domainWords = panelDomainLower.split(/[\s,&/]+/).filter(w => w.length > 2);
+    domainWords.forEach(w => {
+      if (textCorpus.includes(w)) score += 12;
+    });
+
+    // Match percentage calculation with multi-criteria weighting
+    const matchPercentage = Math.min(99, Math.max(35, score > 0 ? Math.min(98, 55 + score) : (50 - idx * 4)));
+
+    return {
+      panel,
+      matchScore: matchPercentage,
+      matchedTags: matchedPanelTags.slice(0, 5),
+      criteriaSummary: matchedPanelTags.length > 0 ? matchedPanelTags.join(' ') : (panel.themes?.[0] ? `#${panel.themes[0].replace(/\s+/g, '')}` : `#${panel.code}`)
+    };
+  });
+
+  scoredPanels.sort((a, b) => b.matchScore - a.matchScore);
+  return scoredPanels;
+};
+
 export default function EvaluationQueuePortal({
   allTeams = [],
   registrationsMap = {},
@@ -254,8 +335,8 @@ export default function EvaluationQueuePortal({
     return map;
   }, [evaluationPanels, evaluationQueue]);
 
-  // Handle Student Auto-Balanced Slot Booking
-  const handleBookSlotForTeam = (team) => {
+  // Handle Student Theme & Hashtags Criteria-Balanced Slot Booking
+  const handleBookSlotForTeam = (team, preferredPanelId = null, matchedTags = []) => {
     const teamId = team.temp_team_id;
 
     if (evaluationQueue[teamId]) {
@@ -269,16 +350,18 @@ export default function EvaluationQueuePortal({
       return;
     }
 
-    let targetPanel = evaluationPanels[0];
-    let minQueueCount = Infinity;
-
-    evaluationPanels.forEach(p => {
-      const qLen = (panelQueues[p.id] || []).length;
-      if (qLen < minQueueCount) {
-        minQueueCount = qLen;
-        targetPanel = p;
-      }
-    });
+    let targetPanel = null;
+    let targetCriteria = '';
+    
+    if (preferredPanelId) {
+      targetPanel = evaluationPanels.find(p => p.id === preferredPanelId);
+    }
+    
+    if (!targetPanel) {
+      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels);
+      targetPanel = rankedMatches[0]?.panel || evaluationPanels[0];
+      targetCriteria = rankedMatches[0]?.criteriaSummary || '';
+    }
 
     const now = Date.now();
     const tokenSeq = (panelQueues[targetPanel.id] || []).length + 1;
@@ -291,11 +374,13 @@ export default function EvaluationQueuePortal({
       regNo: team.reg_no,
       psId: team.ps_id,
       school: team.school,
+      domain: team.domain || '',
       panelId: targetPanel.id,
       panelName: targetPanel.name,
       panelCode: targetPanel.code,
       room: targetPanel.room,
       tokenNumber,
+      matchedHashtags: matchedTags.length > 0 ? matchedTags : (targetCriteria ? targetCriteria.split(' ') : []),
       bookedTimestamp: now,
       bookedTimeStr: new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'WAITING'
@@ -843,6 +928,16 @@ export default function EvaluationQueuePortal({
                     <span className='lbl'>Problem Statement:</span>
                     <span className='val font-mono'>{bookingSuccessToken.psId}</span>
                   </div>
+                  {bookingSuccessToken.matchedHashtags && bookingSuccessToken.matchedHashtags.length > 0 && (
+                    <div className='token-detail-row hashtags-token-row'>
+                      <span className='lbl'>Matched Criteria:</span>
+                      <div className='token-hashtags-list'>
+                        {bookingSuccessToken.matchedHashtags.map((h, idx) => (
+                          <span key={idx} className='token-h-tag'>{h}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className='token-qr-wrap'>
@@ -896,15 +991,42 @@ export default function EvaluationQueuePortal({
                     .map(team => {
                       const isQueued = evaluationQueue[team.temp_team_id];
                       const isEvaluated = (evaluationLedger || []).find(l => l.teamId === team.temp_team_id);
+                      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels);
+                      const bestMatch = rankedMatches[0] || { panel: evaluationPanels[0], matchScore: 90, matchedTags: [] };
 
                       return (
-                        <div key={team.temp_team_id} className='student-team-option-card'>
+                        <div key={team.temp_team_id} className='student-team-option-card modern-match-card'>
                           <div className='team-opt-left'>
                             <div className='team-code-title'>
                               <span className='code-pill'>{team.temp_team_id}</span>
                               <strong>{team.team_name}</strong>
                             </div>
                             <span className='team-leader-sub'>Lead: {team.leader_name} ({team.reg_no}) • {team.ps_id}</span>
+                            {team.ps_title && (
+                              <div className='team-ps-title-sub' title={team.ps_title}>
+                                {team.ps_title}
+                              </div>
+                            )}
+
+                            {/* Extracted Theme & Tech Hashtags */}
+                            <div className='team-hashtags-strip'>
+                              {bestMatch.matchedTags && bestMatch.matchedTags.length > 0 ? (
+                                bestMatch.matchedTags.map((tag, idx) => (
+                                  <span key={idx} className='hashtag-badge-pill'>{tag}</span>
+                                ))
+                              ) : (
+                                <span className='hashtag-badge-pill'>#{team.domain || 'Innovation'}</span>
+                              )}
+                            </div>
+
+                            {/* Recommended Panel Match Banner */}
+                            {!isQueued && !isEvaluated && (
+                              <div className='panel-criteria-recommendation-box'>
+                                <span className='recommend-tag'>🎯 AI Panel Match:</span>
+                                <strong>{bestMatch.panel.code} — {bestMatch.panel.name}</strong>
+                                <span className='match-pct-pill'>{bestMatch.matchScore}% Match</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className='team-opt-actions'>
@@ -921,13 +1043,35 @@ export default function EvaluationQueuePortal({
                                 View Token #{isQueued.tokenNumber}
                               </button>
                             ) : (
-                              <button 
-                                className='btn-book-slot-primary'
-                                onClick={() => handleBookSlotForTeam(team)}
-                              >
-                                <Sparkles size={14} />
-                                <span>Book Panel Slot</span>
-                              </button>
+                              <div className='booking-action-buttons-wrap'>
+                                <button 
+                                  className='btn-book-slot-primary'
+                                  onClick={() => handleBookSlotForTeam(team, bestMatch.panel.id, bestMatch.matchedTags)}
+                                >
+                                  <Sparkles size={14} />
+                                  <span>Book {bestMatch.panel.code} Slot</span>
+                                </button>
+
+                                {rankedMatches.length > 1 && (
+                                  <select 
+                                    className='alt-panel-select-dropdown'
+                                    onChange={(e) => {
+                                      if (e.target.value) {
+                                        const selected = rankedMatches.find(m => m.panel.id === e.target.value);
+                                        handleBookSlotForTeam(team, e.target.value, selected?.matchedTags || []);
+                                      }
+                                    }}
+                                    defaultValue=''
+                                  >
+                                    <option value='' disabled>Or switch to another panel...</option>
+                                    {rankedMatches.slice(1).map(m => (
+                                      <option key={m.panel.id} value={m.panel.id}>
+                                        {m.panel.code}: {m.panel.name} ({m.matchScore}% match)
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
