@@ -19229,6 +19229,649 @@ body {
   background: #fee2e2;
 }
 
+/* ==========================================================================
+   13. Student Slot Booking 3-Step Wizard System
+   ========================================================================== */
+
+.student-wizard-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-step-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: default;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.wizard-step-node.completed {
+  cursor: pointer;
+}
+
+.wizard-step-node.completed:hover .step-node-num {
+  transform: scale(1.08);
+}
+
+.step-node-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.92rem;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.wizard-step-node.active .step-node-num {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+}
+
+.wizard-step-node.completed .step-node-num {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}
+
+.step-node-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.step-node-content .step-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.wizard-step-node.active .step-node-content .step-label {
+  color: #3b82f6;
+}
+
+.step-node-content .step-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.wizard-step-node.active .step-node-content .step-title {
+  color: #0f172a;
+}
+
+.wizard-step-node.completed .step-node-content .step-title {
+  color: #10b981;
+}
+
+.wizard-step-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 16px;
+  transition: background 0.3s ease;
+}
+
+.wizard-step-line.active {
+  background: #3b82f6;
+}
+
+/* Wizard Step Body Container */
+.wizard-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.step-heading-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.step-badge-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.76rem;
+  font-weight: 900;
+  border-radius: 8px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid #c7d2fe;
+}
+
+.step-heading-row h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.step-heading-row p {
+  font-size: 0.84rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Search Box in Step 1 */
+.slot-search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.slot-search-input-wrap:focus-within {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.slot-search-input-wrap .search-ico {
+  color: #94a3b8;
+}
+
+.slot-search-input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.slot-search-input-wrap .btn-clear {
+  background: #e2e8f0;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+.empty-search-callout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 42px 20px;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.empty-search-callout p {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Matched Teams List in Step 1 */
+.student-matched-teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-team-selection-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.student-team-selection-card:hover:not(.is-disabled) {
+  border-color: #3b82f6;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.student-team-selection-card.is-disabled {
+  background: #f8fafc;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.team-code-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-code-title .code-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #c7d2fe;
+}
+
+.team-code-title strong {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.team-leader-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.team-ps-title-sub {
+  font-size: 0.76rem;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.btn-select-team-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.btn-select-team-cta:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.status-evaluated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.btn-view-existing-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Selected Team Banner in Step 2 */
+.wizard-selected-team-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 18px;
+}
+
+.w-team-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.w-team-left strong {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.w-team-left .sub {
+  display: block;
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.btn-change-team-link {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #3b82f6;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-change-team-link:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+/* Wizard Navigation Footer */
+.wizard-nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+}
+
+.btn-wizard-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-wizard-back:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.btn-wizard-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.btn-wizard-next:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
+/* Step 3: Review & Confirmation Styles */
+.confirmation-review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.review-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.review-sec-title {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 6px;
+}
+
+.review-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+
+.review-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-field.full-width {
+  grid-column: span 2;
+}
+
+.review-field .lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.review-field .val {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.review-field .val.font-mono {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+}
+
+.highlight-panel-block {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #86efac;
+}
+
+.assigned-panel-hero-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.assigned-panel-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.panel-code-hero {
+  font-size: 1.1rem;
+  font-weight: 900;
+  background: #15803d;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+}
+
+.assigned-panel-main h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #14532d;
+  margin: 0 0 4px 0;
+}
+
+.assigned-room-venue {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #166534;
+  margin: 0 0 2px 0;
+}
+
+.assigned-juries-sub {
+  font-size: 0.76rem;
+  color: #15803d;
+  font-weight: 600;
+  margin: 0;
+}
+
+.assigned-match-badge {
+  font-size: 0.78rem;
+  font-weight: 900;
+  background: #22c55e;
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
+  white-space: nowrap;
+}
+
+.review-alt-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #bbf7d0;
+}
+
+.review-alt-panel-row .alt-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.btn-wizard-confirm-final {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.btn-wizard-confirm-final:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+}
+
+@media (max-width: 768px) {
+  .student-wizard-stepper {
+    padding: 12px 16px;
+  }
+  .step-node-content {
+    display: none;
+  }
+  .wizard-step-line {
+    margin: 0 8px;
+  }
+  .wizard-step-body {
+    padding: 16px;
+  }
+  .student-team-selection-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .review-grid-2col {
+    grid-template-columns: 1fr;
+  }
+  .review-field.full-width {
+    grid-column: span 1;
+  }
+  .assigned-panel-hero-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .wizard-nav-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
 
 
 

@@ -5,7 +5,8 @@ import {
   Search, ShieldCheck, Download, Sparkles, Monitor, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Check, Award, Trash2, Tag, Hash, X,
-  GripVertical, ArrowUp, ArrowDown, ArrowRightLeft, Megaphone, Radio, Square
+  GripVertical, ArrowUp, ArrowDown, ArrowRightLeft, Megaphone, Radio, Square,
+  ArrowRight, ChevronRight
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -323,7 +324,10 @@ export default function EvaluationQueuePortal({
   const [isPanelModalOpen, setIsPanelModalOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Student Booking State
+  // Student Booking State & 3-Step Wizard Flow
+  const [bookingStep, setBookingStep] = useState(1); // 1 = Choose Team, 2 = Select Theme & Hashtags, 3 = Confirm
+  const [selectedTeamForBooking, setSelectedTeamForBooking] = useState(null);
+  const [selectedOverridePanelId, setSelectedOverridePanelId] = useState('');
   const [studentSearchInput, setStudentSearchInput] = useState('');
   const [bookingSuccessToken, setBookingSuccessToken] = useState(null);
   const [studentSelectedThemes, setStudentSelectedThemes] = useState({});
@@ -1291,7 +1295,7 @@ export default function EvaluationQueuePortal({
         </div>
       )}
 
-      {/* VIEW 3: STUDENT SLOT BOOKING */}
+      {/* VIEW 3: STUDENT SLOT BOOKING — 3-STEP PROGRESSIVE WIZARD FLOW */}
       {activeView === 'student' && (
         <div className='eval-student-container'>
           <div className='student-booking-card'>
@@ -1301,8 +1305,47 @@ export default function EvaluationQueuePortal({
                 <span>EVALUATION SLOT DISPATCHER</span>
               </div>
               <h2>Book Evaluation Slot &amp; Get Token</h2>
-              <p>Enter your Roll No, Register No, or Team ID. Our smart load balancer will instantly assign you to the best available panel.</p>
+              <p>Step-by-step dispatch workflow: Choose your team, select theme &amp; tech hashtags, and confirm your smart load-balanced panel allocation.</p>
             </div>
+
+            {/* Visual Step Progress Indicator */}
+            {!bookingSuccessToken && (
+              <div className='student-wizard-stepper'>
+                <div 
+                  className={`wizard-step-node ${bookingStep >= 1 ? 'active' : ''} ${bookingStep > 1 ? 'completed' : ''}`}
+                  onClick={() => { if (bookingStep > 1) setBookingStep(1); }}
+                >
+                  <div className='step-node-num'>{bookingStep > 1 ? <Check size={14} /> : '1'}</div>
+                  <div className='step-node-content'>
+                    <span className='step-label'>STEP 1</span>
+                    <strong className='step-title'>Choose Team</strong>
+                  </div>
+                </div>
+
+                <div className={`wizard-step-line ${bookingStep >= 2 ? 'active' : ''}`} />
+
+                <div 
+                  className={`wizard-step-node ${bookingStep >= 2 ? 'active' : ''} ${bookingStep > 2 ? 'completed' : ''}`}
+                  onClick={() => { if (selectedTeamForBooking && bookingStep > 2) setBookingStep(2); }}
+                >
+                  <div className='step-node-num'>{bookingStep > 2 ? <Check size={14} /> : '2'}</div>
+                  <div className='step-node-content'>
+                    <span className='step-label'>STEP 2</span>
+                    <strong className='step-title'>Theme &amp; Tech Tags</strong>
+                  </div>
+                </div>
+
+                <div className={`wizard-step-line ${bookingStep >= 3 ? 'active' : ''}`} />
+
+                <div className={`wizard-step-node ${bookingStep >= 3 ? 'active' : ''}`}>
+                  <div className='step-node-num'>3</div>
+                  <div className='step-node-content'>
+                    <span className='step-label'>STEP 3</span>
+                    <strong className='step-title'>Review &amp; Confirm</strong>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {bookingSuccessToken ? (
               <div className='student-token-success-box'>
@@ -1365,15 +1408,25 @@ export default function EvaluationQueuePortal({
                   className='btn-book-another'
                   onClick={() => {
                     setBookingSuccessToken(null);
+                    setSelectedTeamForBooking(null);
                     setStudentSearchInput('');
+                    setBookingStep(1);
                   }}
                 >
-                  Lookup Another Team
+                  Book Slot for Another Team
                 </button>
               </div>
-            ) : (
-              <div className='student-search-slot-form'>
-                <label className='slot-input-label'>Enter Team Identifier:</label>
+            ) : bookingStep === 1 ? (
+              /* STEP 1: CHOOSE TEAM */
+              <div className='wizard-step-body step-1'>
+                <div className='step-heading-row'>
+                  <span className='step-badge-num'>Step 1</span>
+                  <div>
+                    <h3>Find &amp; Select Your Team</h3>
+                    <p>Search by Team ID (e.g. T-042), Roll No, Register No, or Leader Name.</p>
+                  </div>
+                </div>
+
                 <div className='slot-search-input-wrap'>
                   <Search size={18} className='search-ico' />
                   <input 
@@ -1388,82 +1441,40 @@ export default function EvaluationQueuePortal({
                   )}
                 </div>
 
-                <div className='student-matched-teams-list'>
-                  {allTeams
-                    .filter(t => {
-                      if (!studentSearchInput.trim()) return false;
-                      const q = studentSearchInput.toLowerCase().trim();
-                      return (
-                        t.temp_team_id.toLowerCase().includes(q) ||
-                        t.team_name.toLowerCase().includes(q) ||
-                        t.leader_name.toLowerCase().includes(q) ||
-                        t.reg_no.toLowerCase().includes(q)
-                      );
-                    })
-                    .slice(0, 5)
-                    .map(team => {
-                      const teamId = team.temp_team_id;
-                      const isQueued = evaluationQueue[teamId];
-                      const isEvaluated = (evaluationLedger || []).find(l => l.teamId === teamId);
+                {!studentSearchInput.trim() ? (
+                  <div className='empty-search-callout'>
+                    <Search size={28} className='text-muted' />
+                    <p>Enter your Roll Number or Team ID above to look up your registration.</p>
+                  </div>
+                ) : (
+                  <div className='student-matched-teams-list'>
+                    {allTeams
+                      .filter(t => {
+                        const q = studentSearchInput.toLowerCase().trim();
+                        return (
+                          t.temp_team_id.toLowerCase().includes(q) ||
+                          t.team_name.toLowerCase().includes(q) ||
+                          t.leader_name.toLowerCase().includes(q) ||
+                          t.reg_no.toLowerCase().includes(q)
+                        );
+                      })
+                      .slice(0, 6)
+                      .map(team => {
+                        const teamId = team.temp_team_id;
+                        const isQueued = evaluationQueue[teamId];
+                        const isEvaluated = (evaluationLedger || []).find(l => l.teamId === teamId);
 
-                      // Current student-chosen theme & tags for this team
-                      const currentTheme = studentSelectedThemes[teamId] || getInitialThemeForTeam(team);
-                      const currentTags = studentSelectedTags[teamId] || getInitialTagsForTeam(team);
-                      const currentCustomInput = studentCustomTagInputs[teamId] || '';
-
-                      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels, currentTheme, currentTags);
-                      const bestMatch = rankedMatches[0] || { panel: evaluationPanels[0], matchScore: 90, matchedTags: [] };
-
-                      const handleAddCustomTag = (e) => {
-                        if (e) e.preventDefault();
-                        if (!currentCustomInput.trim()) return;
-                        const raw = currentCustomInput.trim();
-                        const formatted = raw.startsWith('#') ? raw : `#${raw}`;
-                        if (!currentTags.includes(formatted)) {
-                          setStudentSelectedTags(prev => ({
-                            ...prev,
-                            [teamId]: [...currentTags, formatted]
-                          }));
-                        }
-                        setStudentCustomTagInputs(prev => ({ ...prev, [teamId]: '' }));
-                      };
-
-                      const handleToggleTag = (tag) => {
-                        const exists = currentTags.includes(tag);
-                        const nextTags = exists 
-                          ? currentTags.filter(t => t !== tag) 
-                          : [...currentTags, tag];
-                        setStudentSelectedTags(prev => ({
-                          ...prev,
-                          [teamId]: nextTags
-                        }));
-                      };
-
-                      const handleRemoveTag = (tagToRemove) => {
-                        setStudentSelectedTags(prev => ({
-                          ...prev,
-                          [teamId]: currentTags.filter(t => t !== tagToRemove)
-                        }));
-                      };
-
-                      const handleThemeChange = (newTheme) => {
-                        setStudentSelectedThemes(prev => ({
-                          ...prev,
-                          [teamId]: newTheme
-                        }));
-                        const themeTags = THEME_TECH_HASHTAG_MAP[newTheme] || [];
-                        if (themeTags.length > 0) {
-                          const merged = Array.from(new Set([...currentTags, ...themeTags.slice(0, 2)]));
-                          setStudentSelectedTags(prev => ({
-                            ...prev,
-                            [teamId]: merged
-                          }));
-                        }
-                      };
-
-                      return (
-                        <div key={teamId} className='student-team-option-card modern-match-card-expanded'>
-                          <div className='team-opt-header-row'>
+                        return (
+                          <div 
+                            key={teamId} 
+                            className={`student-team-selection-card ${isQueued || isEvaluated ? 'is-disabled' : ''}`}
+                            onClick={() => {
+                              if (!isQueued && !isEvaluated) {
+                                setSelectedTeamForBooking(team);
+                                setBookingStep(2);
+                              }
+                            }}
+                          >
                             <div className='team-opt-left-head'>
                               <div className='team-code-title'>
                                 <span className='code-pill'>{team.temp_team_id}</span>
@@ -1477,178 +1488,394 @@ export default function EvaluationQueuePortal({
                               )}
                             </div>
 
-                            {isEvaluated ? (
-                              <span className='status-evaluated-badge'>
-                                <CheckCircle2 size={14} />
-                                <span>Evaluation Completed</span>
-                              </span>
-                            ) : isQueued ? (
-                              <button 
-                                className='btn-view-existing-token'
-                                onClick={() => setBookingSuccessToken(isQueued)}
-                              >
-                                View Token #{isQueued.tokenNumber}
-                              </button>
-                            ) : null}
-                          </div>
-
-                          {!isQueued && !isEvaluated && (
-                            <div className='student-config-workbench'>
-                              {/* 1. Interactive Theme Selector */}
-                              <div className='student-config-section'>
-                                <div className='config-sec-label'>
-                                  <Layers size={14} className='text-primary' />
-                                  <span>Select SIH Competition Theme (1 of 17 Themes):</span>
-                                </div>
-                                <select 
-                                  className='student-theme-select-dropdown'
-                                  value={currentTheme}
-                                  onChange={(e) => handleThemeChange(e.target.value)}
-                                >
-                                  {ALL_17_SIH_THEMES.map((themeName, tIdx) => {
-                                    const hostingPanel = evaluationPanels.find(p => (p.themes || []).includes(themeName));
-                                    return (
-                                      <option key={tIdx} value={themeName}>
-                                        {themeName} {hostingPanel ? `— [${hostingPanel.code}: ${hostingPanel.name.split('—')[1] || hostingPanel.name}]` : ''}
-                                      </option>
-                                    );
-                                  })}
-                                </select>
-                              </div>
-
-                              {/* 2. Interactive Tech Stack Hashtags & Custom Input */}
-                              <div className='student-config-section'>
-                                <div className='config-sec-label'>
-                                  <Hash size={14} className='text-indigo' />
-                                  <span>Tech Stack &amp; Innovation Hashtags:</span>
-                                  <span className='config-hint'>(Click pills to toggle or type custom tags)</span>
-                                </div>
-
-                                {/* Active Chosen Tags */}
-                                <div className='student-active-tags-strip'>
-                                  {currentTags.map((tag, idx) => (
-                                    <span key={idx} className='active-tag-chip'>
-                                      <span>{tag}</span>
-                                      <button 
-                                        type='button' 
-                                        className='btn-tag-remove'
-                                        onClick={() => handleRemoveTag(tag)}
-                                        title={`Remove ${tag}`}
-                                      >
-                                        <X size={11} />
-                                      </button>
-                                    </span>
-                                  ))}
-                                </div>
-
-                                {/* Quick Popular Hashtag Pills */}
-                                <div className='student-quick-tags-wrap'>
-                                  {POPULAR_TECH_TAGS.map((tag) => {
-                                    const isSelected = currentTags.includes(tag);
-                                    return (
-                                      <button
-                                        key={tag}
-                                        type='button'
-                                        className={`quick-tag-pill ${isSelected ? 'selected' : ''}`}
-                                        onClick={() => handleToggleTag(tag)}
-                                      >
-                                        {tag}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-
-                                {/* Custom Hashtag Input */}
-                                <div className='custom-tag-input-row'>
-                                  <div className='custom-tag-input-box'>
-                                    <Tag size={13} className='text-muted' />
-                                    <input 
-                                      type='text'
-                                      placeholder='Add custom tech tag (e.g. Flutter, PyTorch, ROS)...'
-                                      value={currentCustomInput}
-                                      onChange={(e) => setStudentCustomTagInputs(prev => ({ ...prev, [teamId]: e.target.value }))}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          e.preventDefault();
-                                          handleAddCustomTag();
-                                        }
-                                      }}
-                                    />
-                                  </div>
-                                  <button 
-                                    type='button' 
-                                    className='btn-add-custom-tag'
-                                    onClick={handleAddCustomTag}
-                                  >
-                                    <Plus size={13} />
-                                    <span>Add Tag</span>
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* 3. Real-Time Dynamic AI Panel Match Banner */}
-                              <div className='panel-criteria-recommendation-box-live'>
-                                <div className='rec-match-header'>
-                                  <div className='rec-left'>
-                                    <span className='recommend-tag'>🎯 AI Panel Match</span>
-                                    <strong>{bestMatch.panel.code} — {bestMatch.panel.name}</strong>
-                                  </div>
-                                  <span className='match-pct-pill'>{bestMatch.matchScore}% Match</span>
-                                </div>
-                                <div className='rec-match-sub'>
-                                  <span>📍 {bestMatch.panel.room}</span>
-                                  <span>👨‍⚖️ Juries: {bestMatch.panel.juries?.map(j => j.name).join(', ')}</span>
-                                </div>
-                                {bestMatch.matchedTags && bestMatch.matchedTags.length > 0 && (
-                                  <div className='rec-matched-tags-row'>
-                                    <span className='rec-tags-lbl'>Matched Criteria:</span>
-                                    <div className='rec-tags-list'>
-                                      {bestMatch.matchedTags.map((t, idx) => (
-                                        <span key={idx} className='rec-tag-pill'>{t}</span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* 4. Slot Booking CTAs */}
-                              <div className='student-booking-footer-row'>
+                            <div className='team-opt-actions'>
+                              {isEvaluated ? (
+                                <span className='status-evaluated-badge'>
+                                  <CheckCircle2 size={14} />
+                                  <span>Evaluation Completed</span>
+                                </span>
+                              ) : isQueued ? (
                                 <button 
-                                  className='btn-book-slot-primary'
-                                  onClick={() => handleBookSlotForTeam(team, bestMatch.panel.id, bestMatch.matchedTags, currentTheme)}
+                                  className='btn-view-existing-token'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setBookingSuccessToken(isQueued);
+                                  }}
                                 >
-                                  <Sparkles size={15} />
-                                  <span>Confirm &amp; Book {bestMatch.panel.code} Slot</span>
+                                  View Token #{isQueued.tokenNumber}
                                 </button>
+                              ) : (
+                                <button 
+                                  className='btn-select-team-cta'
+                                  onClick={() => {
+                                    setSelectedTeamForBooking(team);
+                                    setBookingStep(2);
+                                  }}
+                                >
+                                  <span>Select Team</span>
+                                  <ArrowRight size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            ) : bookingStep === 2 && selectedTeamForBooking ? (
+              /* STEP 2: SELECT THEME & DOMAIN #HASHTAGS */
+              (() => {
+                const team = selectedTeamForBooking;
+                const teamId = team.temp_team_id;
+                const currentTheme = studentSelectedThemes[teamId] || getInitialThemeForTeam(team);
+                const currentTags = studentSelectedTags[teamId] || getInitialTagsForTeam(team);
+                const currentCustomInput = studentCustomTagInputs[teamId] || '';
 
-                                {rankedMatches.length > 1 && (
-                                  <select 
-                                    className='alt-panel-select-dropdown'
-                                    onChange={(e) => {
-                                      if (e.target.value) {
-                                        const selected = rankedMatches.find(m => m.panel.id === e.target.value);
-                                        handleBookSlotForTeam(team, e.target.value, selected?.matchedTags || [], currentTheme);
-                                      }
-                                    }}
-                                    defaultValue=''
-                                  >
-                                    <option value='' disabled>Or switch to another panel...</option>
-                                    {rankedMatches.slice(1).map(m => (
-                                      <option key={m.panel.id} value={m.panel.id}>
-                                        {m.panel.code}: {m.panel.name} ({m.matchScore}% match)
-                                      </option>
-                                    ))}
-                                  </select>
-                                )}
-                              </div>
+                const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels, currentTheme, currentTags);
+                const bestMatch = rankedMatches[0] || { panel: evaluationPanels[0], matchScore: 90, matchedTags: [] };
+
+                const handleAddCustomTag = (e) => {
+                  if (e) e.preventDefault();
+                  if (!currentCustomInput.trim()) return;
+                  const raw = currentCustomInput.trim();
+                  const formatted = raw.startsWith('#') ? raw : `#${raw}`;
+                  if (!currentTags.includes(formatted)) {
+                    setStudentSelectedTags(prev => ({
+                      ...prev,
+                      [teamId]: [...currentTags, formatted]
+                    }));
+                  }
+                  setStudentCustomTagInputs(prev => ({ ...prev, [teamId]: '' }));
+                };
+
+                const handleToggleTag = (tag) => {
+                  const exists = currentTags.includes(tag);
+                  const nextTags = exists 
+                    ? currentTags.filter(t => t !== tag) 
+                    : [...currentTags, tag];
+                  setStudentSelectedTags(prev => ({
+                    ...prev,
+                    [teamId]: nextTags
+                  }));
+                };
+
+                const handleRemoveTag = (tagToRemove) => {
+                  setStudentSelectedTags(prev => ({
+                    ...prev,
+                    [teamId]: currentTags.filter(t => t !== tagToRemove)
+                  }));
+                };
+
+                const handleThemeChange = (newTheme) => {
+                  setStudentSelectedThemes(prev => ({
+                    ...prev,
+                    [teamId]: newTheme
+                  }));
+                  const themeTags = THEME_TECH_HASHTAG_MAP[newTheme] || [];
+                  if (themeTags.length > 0) {
+                    const merged = Array.from(new Set([...currentTags, ...themeTags.slice(0, 2)]));
+                    setStudentSelectedTags(prev => ({
+                      ...prev,
+                      [teamId]: merged
+                    }));
+                  }
+                };
+
+                return (
+                  <div className='wizard-step-body step-2'>
+                    {/* Selected Team Header Pill */}
+                    <div className='wizard-selected-team-banner'>
+                      <div className='w-team-left'>
+                        <span className='code-pill'>{team.temp_team_id}</span>
+                        <div>
+                          <strong>{team.team_name}</strong>
+                          <span className='sub'>Lead: {team.leader_name} ({team.reg_no}) • {team.ps_id}</span>
+                        </div>
+                      </div>
+                      <button 
+                        className='btn-change-team-link'
+                        onClick={() => setBookingStep(1)}
+                      >
+                        Change Team
+                      </button>
+                    </div>
+
+                    <div className='step-heading-row'>
+                      <span className='step-badge-num'>Step 2</span>
+                      <div>
+                        <h3>Select Theme &amp; Domain Tech Hashtags</h3>
+                        <p>Customize your SIH domain and technology tags to match with the ideal specialist jury panel.</p>
+                      </div>
+                    </div>
+
+                    <div className='student-config-workbench'>
+                      {/* 1. Theme Selector */}
+                      <div className='student-config-section'>
+                        <div className='config-sec-label'>
+                          <Layers size={14} className='text-primary' />
+                          <span>Select SIH Competition Theme (1 of 17 Themes):</span>
+                        </div>
+                        <select 
+                          className='student-theme-select-dropdown'
+                          value={currentTheme}
+                          onChange={(e) => handleThemeChange(e.target.value)}
+                        >
+                          {ALL_17_SIH_THEMES.map((themeName, tIdx) => {
+                            const hostingPanel = evaluationPanels.find(p => (p.themes || []).includes(themeName));
+                            return (
+                              <option key={tIdx} value={themeName}>
+                                {themeName} {hostingPanel ? `— [${hostingPanel.code}: ${hostingPanel.name.split('—')[1] || hostingPanel.name}]` : ''}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+
+                      {/* 2. Tech Stack Hashtags & Custom Input */}
+                      <div className='student-config-section'>
+                        <div className='config-sec-label'>
+                          <Hash size={14} className='text-indigo' />
+                          <span>Tech Stack &amp; Innovation Hashtags:</span>
+                          <span className='config-hint'>(Click pills to toggle or type custom tags)</span>
+                        </div>
+
+                        {/* Active Chosen Tags */}
+                        <div className='student-active-tags-strip'>
+                          {currentTags.map((tag, idx) => (
+                            <span key={idx} className='active-tag-chip'>
+                              <span>{tag}</span>
+                              <button 
+                                type='button' 
+                                className='btn-tag-remove'
+                                onClick={() => handleRemoveTag(tag)}
+                                title={`Remove ${tag}`}
+                              >
+                                <X size={11} />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Quick Popular Hashtag Pills */}
+                        <div className='student-quick-tags-wrap'>
+                          {POPULAR_TECH_TAGS.map((tag) => {
+                            const isSelected = currentTags.includes(tag);
+                            return (
+                              <button
+                                key={tag}
+                                type='button'
+                                className={`quick-tag-pill ${isSelected ? 'selected' : ''}`}
+                                onClick={() => handleToggleTag(tag)}
+                              >
+                                {tag}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Custom Hashtag Input */}
+                        <div className='custom-tag-input-row'>
+                          <div className='custom-tag-input-box'>
+                            <Tag size={13} className='text-muted' />
+                            <input 
+                              type='text'
+                              placeholder='Add custom tech tag (e.g. Flutter, PyTorch, ROS)...'
+                              value={currentCustomInput}
+                              onChange={(e) => setStudentCustomTagInputs(prev => ({ ...prev, [teamId]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddCustomTag();
+                                }
+                              }}
+                            />
+                          </div>
+                          <button 
+                            type='button' 
+                            className='btn-add-custom-tag'
+                            onClick={handleAddCustomTag}
+                          >
+                            <Plus size={13} />
+                            <span>Add Tag</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 3. Real-Time Dynamic AI Panel Match Banner */}
+                      <div className='panel-criteria-recommendation-box-live'>
+                        <div className='rec-match-header'>
+                          <div className='rec-left'>
+                            <span className='recommend-tag'>🎯 AI Panel Match</span>
+                            <strong>{bestMatch.panel.code} — {bestMatch.panel.name}</strong>
+                          </div>
+                          <span className='match-pct-pill'>{bestMatch.matchScore}% Match</span>
+                        </div>
+                        <div className='rec-match-sub'>
+                          <span>📍 {bestMatch.panel.room}</span>
+                          <span>👨‍⚖️ Juries: {bestMatch.panel.juries?.map(j => j.name).join(', ')}</span>
+                        </div>
+                        {bestMatch.matchedTags && bestMatch.matchedTags.length > 0 && (
+                          <div className='rec-matched-tags-row'>
+                            <span className='rec-tags-lbl'>Matched Criteria:</span>
+                            <div className='rec-tags-list'>
+                              {bestMatch.matchedTags.map((t, idx) => (
+                                <span key={idx} className='rec-tag-pill'>{t}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Step 2 Navigation Footer */}
+                    <div className='wizard-nav-footer'>
+                      <button 
+                        className='btn-wizard-back'
+                        onClick={() => setBookingStep(1)}
+                      >
+                        <ArrowLeft size={15} />
+                        <span>Back to Choose Team</span>
+                      </button>
+                      <button 
+                        className='btn-wizard-next'
+                        onClick={() => setBookingStep(3)}
+                      >
+                        <span>Continue to Confirmation</span>
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : bookingStep === 3 && selectedTeamForBooking ? (
+              /* STEP 3: REVIEW & CONFIRM SLOT BOOKING */
+              (() => {
+                const team = selectedTeamForBooking;
+                const teamId = team.temp_team_id;
+                const currentTheme = studentSelectedThemes[teamId] || getInitialThemeForTeam(team);
+                const currentTags = studentSelectedTags[teamId] || getInitialTagsForTeam(team);
+
+                const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels, currentTheme, currentTags);
+                const bestMatch = rankedMatches[0] || { panel: evaluationPanels[0], matchScore: 90, matchedTags: [] };
+                const assignedPanel = selectedOverridePanelId 
+                  ? (evaluationPanels.find(p => p.id === selectedOverridePanelId) || bestMatch.panel)
+                  : bestMatch.panel;
+
+                return (
+                  <div className='wizard-step-body step-3'>
+                    <div className='step-heading-row'>
+                      <span className='step-badge-num'>Step 3</span>
+                      <div>
+                        <h3>Review &amp; Confirm Slot Booking</h3>
+                        <p>Please review your team information and panel assignment before generating your official token.</p>
+                      </div>
+                    </div>
+
+                    <div className='confirmation-review-card'>
+                      <div className='review-section-block'>
+                        <span className='review-sec-title'>TEAM INFORMATION</span>
+                        <div className='review-grid-2col'>
+                          <div className='review-field'>
+                            <span className='lbl'>Team ID:</span>
+                            <span className='val font-mono'>{team.temp_team_id}</span>
+                          </div>
+                          <div className='review-field'>
+                            <span className='lbl'>Team Name:</span>
+                            <strong className='val'>{team.team_name}</strong>
+                          </div>
+                          <div className='review-field'>
+                            <span className='lbl'>Leader Name:</span>
+                            <span className='val'>{team.leader_name} ({team.reg_no})</span>
+                          </div>
+                          <div className='review-field'>
+                            <span className='lbl'>Problem Statement:</span>
+                            <span className='val font-mono'>{team.ps_id}</span>
+                          </div>
+                          {team.ps_title && (
+                            <div className='review-field full-width'>
+                              <span className='lbl'>PS Title:</span>
+                              <span className='val'>{team.ps_title}</span>
                             </div>
                           )}
                         </div>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
+                      </div>
+
+                      <div className='review-section-block'>
+                        <span className='review-sec-title'>THEME &amp; TECH STACK</span>
+                        <div className='review-grid-2col'>
+                          <div className='review-field full-width'>
+                            <span className='lbl'>Selected SIH Theme:</span>
+                            <strong className='val text-indigo'>{currentTheme}</strong>
+                          </div>
+                          <div className='review-field full-width'>
+                            <span className='lbl'>Tech Hashtags:</span>
+                            <div className='token-hashtags-list'>
+                              {currentTags.map((t, idx) => (
+                                <span key={idx} className='token-h-tag'>{t}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className='review-section-block highlight-panel-block'>
+                        <span className='review-sec-title'>ASSIGNED EVALUATION STATION</span>
+                        <div className='assigned-panel-hero-box'>
+                          <div className='assigned-panel-main'>
+                            <span className='panel-code-hero'>{assignedPanel.code}</span>
+                            <div>
+                              <h4>{assignedPanel.name}</h4>
+                              <p className='assigned-room-venue'>📍 {assignedPanel.room}</p>
+                              <p className='assigned-juries-sub'>
+                                👨‍⚖️ Evaluators: {assignedPanel.juries?.map(j => j.name).join(' • ')}
+                              </p>
+                            </div>
+                          </div>
+                          <span className='assigned-match-badge'>
+                            {bestMatch.matchScore}% Domain Fit
+                          </span>
+                        </div>
+
+                        {/* Optional Panel Override Switcher */}
+                        <div className='review-alt-panel-row'>
+                          <span className='alt-label'>Need a different panel?</span>
+                          <select 
+                            className='alt-panel-select-dropdown'
+                            value={selectedOverridePanelId || assignedPanel.id}
+                            onChange={(e) => setSelectedOverridePanelId(e.target.value)}
+                          >
+                            {evaluationPanels.map(p => (
+                              <option key={p.id} value={p.id}>
+                                {p.code}: {p.name} ({p.room})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3 Action Buttons */}
+                    <div className='wizard-nav-footer'>
+                      <button 
+                        className='btn-wizard-back'
+                        onClick={() => setBookingStep(2)}
+                      >
+                        <ArrowLeft size={15} />
+                        <span>Edit Theme &amp; Tags</span>
+                      </button>
+                      <button 
+                        className='btn-wizard-confirm-final'
+                        onClick={() => handleBookSlotForTeam(team, assignedPanel.id, bestMatch.matchedTags, currentTheme)}
+                      >
+                        <Sparkles size={16} />
+                        <span>Confirm Slot Booking &amp; Generate Token</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : null}
           </div>
         </div>
       )}
