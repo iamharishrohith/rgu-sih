@@ -22420,11 +22420,306 @@ body {
     font-size: 2.1rem !important;
   }
 
-  .countdown-dial-unit .dial-digits {
+  .countdown-dial-unit .dial-digits,
+  .reveal-dial-unit .dial-digits {
     font-size: 1.85rem !important;
   }
 
-  .booking-countdown-deck .dial-sep {
+  .booking-countdown-deck .dial-sep,
+  .projector-reveal-countdown-deck .dial-sep {
     font-size: 1.5rem !important;
+  }
+}
+
+/* ==========================================================================
+   09:15 AM LIVE MULTI-PANEL ARENA REVEAL GATEWAY
+   ========================================================================== */
+.projector-reveal-gate-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 24px;
+  margin: 12px 0 32px;
+  width: 100%;
+}
+
+.reveal-gate-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 800px;
+}
+
+.reveal-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.reveal-status-pill .pulse-dot.live {
+  color: #2563eb;
+  animation: pulse-live-dot 1.5s infinite;
+}
+
+@keyframes pulse-live-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+}
+
+.reveal-gate-header h2 {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 4px 0 0;
+}
+
+.reveal-gate-header p {
+  font-size: 0.96rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Digital Reveal Countdown Deck */
+.projector-reveal-countdown-deck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #0f172a;
+  border: 2px solid #1e293b;
+  border-radius: 18px;
+  padding: 24px 36px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(15, 23, 42, 0.12);
+  margin: 4px 0;
+}
+
+.reveal-dial-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 85px;
+}
+
+.reveal-dial-unit .dial-digits {
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+}
+
+.reveal-dial-unit .dial-unit-lbl {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+.projector-reveal-countdown-deck .dial-sep {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #64748b;
+  line-height: 1;
+  margin-top: -12px;
+}
+
+/* Panel Status Preview Grid */
+.reveal-panels-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.reveal-panel-preview-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 14px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.reveal-panel-preview-card:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.preview-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.preview-code-tag {
+  background: #4338ca;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+}
+
+.preview-room-tag {
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.reveal-panel-preview-card h4 {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0 0;
+  line-height: 1.35;
+  min-height: 38px;
+}
+
+.preview-jury-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: #64748b;
+  font-weight: 600;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 8px;
+}
+
+/* Master Control Override Strip */
+.reveal-override-strip {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.btn-reveal-override-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #2563eb;
+  border: 1.5px solid #bfdbfe;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reveal-override-preview:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.btn-reveal-override-preview.admin {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #4338ca;
+}
+
+.btn-reveal-override-preview.admin:hover {
+  background: #4338ca;
+}
+
+/* Reveal Gate Responsiveness */
+@media (max-width: 1100px) {
+  .reveal-panels-preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .projector-reveal-gate-card {
+    padding: 20px 14px;
+    gap: 18px;
+  }
+
+  .reveal-gate-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .projector-reveal-countdown-deck {
+    padding: 14px 10px;
+    gap: 6px;
+  }
+
+  .reveal-dial-unit {
+    min-width: 60px;
+  }
+
+  .reveal-dial-unit .dial-digits {
+    font-size: 2.2rem;
+  }
+
+  .reveal-dial-unit .dial-unit-lbl {
+    font-size: 0.62rem;
+    margin-top: 4px;
+  }
+
+  .projector-reveal-countdown-deck .dial-sep {
+    font-size: 1.8rem;
+    margin-top: -6px;
+  }
+
+  .reveal-panels-preview-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .reveal-override-strip {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .btn-reveal-override-preview {
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
   }
 }

@@ -411,6 +411,32 @@ export default function EvaluationQueuePortal({
     };
   }, [timeUntilOpenMs]);
 
+  // 9:15 AM Live Panel Reveal Countdown Gate
+  const [adminPanelOverride, setAdminPanelOverride] = useState(false);
+
+  const getPanelRevealTime = () => {
+    const d = new Date(currentTimeMs);
+    const target = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 15, 0, 0);
+    return target.getTime();
+  };
+
+  const panelRevealTimeMs = useMemo(() => getPanelRevealTime(), [currentTimeMs]);
+  const isPanelRevealed = currentTimeMs >= panelRevealTimeMs || adminPanelOverride || isAdminLoggedIn;
+  const timeUntilPanelRevealMs = Math.max(0, panelRevealTimeMs - currentTimeMs);
+
+  const panelRevealCountdown = useMemo(() => {
+    const totalSecs = Math.floor(timeUntilPanelRevealMs / 1000);
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    return {
+      hrs: String(hrs).padStart(2, '0'),
+      mins: String(mins).padStart(2, '0'),
+      secs: String(secs).padStart(2, '0'),
+      totalSecs
+    };
+  }, [timeUntilPanelRevealMs]);
+
   const playSoundAlert = (type = 'chime') => {
     if (!soundEnabled) return;
     playEvalSound(type);
@@ -1276,314 +1302,388 @@ export default function EvaluationQueuePortal({
             </div>
           </div>
 
-          <div className='projector-panels-grid'>
-            {evaluationPanels.map((panel, idx) => {
-              const currentSession = activeSessions[panel.id];
-              const timing = getSessionTimingInfo(currentSession);
-              const queuedTeams = panelQueues[panel.id] || [];
-              const isDragOver = dragOverPanelId === panel.id;
+          {!isPanelRevealed ? (
+            /* PRE-EVALUATION 09:15 AM LIVE PANEL REVEAL GATE */
+            <div className='projector-reveal-gate-card'>
+              <div className='reveal-gate-header'>
+                <div className='reveal-status-pill'>
+                  <Radio size={16} className='pulse-dot live' />
+                  <span>ARENA LIVE BROADCAST • 09:15 AM STAGE REVEAL</span>
+                </div>
+                <h2>Live Multi-Panel Arena Reveals at 9:15 AM</h2>
+                <p>Live presentation clocks, active jury scoring indicators, and real-time station queues across all 5 evaluation panels will officially reveal on this arena display in:</p>
+              </div>
 
-              return (
-                <div 
-                  key={panel.id} 
-                  className={`projector-panel-card ${currentSession ? 'is-evaluating' : 'is-idle'} ${isDragOver ? 'drag-over-active' : ''}`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    if (dragOverPanelId !== panel.id) setDragOverPanelId(panel.id);
-                  }}
-                  onDragLeave={() => setDragOverPanelId(null)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (draggedTeamId) {
-                      handleMoveTeam(draggedTeamId, panel.id);
-                    }
-                    setDraggedTeamId(null);
-                    setDraggedSourcePanelId(null);
-                    setDragOverPanelId(null);
-                  }}
-                >
-                  <div className='panel-card-top'>
-                    <div className='panel-badge-group'>
-                      <span className='panel-code-pill'>{panel.code || (`P${idx+1}`)}</span>
-                      <span className='panel-room-tag'>{panel.room}</span>
+              {/* Digital Countdown Dial Deck */}
+              <div className='projector-reveal-countdown-deck'>
+                <div className='reveal-dial-unit'>
+                  <span className='dial-digits'>{panelRevealCountdown.hrs}</span>
+                  <span className='dial-unit-lbl'>HOURS</span>
+                </div>
+                <span className='dial-sep'>:</span>
+                <div className='reveal-dial-unit'>
+                  <span className='dial-digits'>{panelRevealCountdown.mins}</span>
+                  <span className='dial-unit-lbl'>MINUTES</span>
+                </div>
+                <span className='dial-sep'>:</span>
+                <div className='reveal-dial-unit'>
+                  <span className='dial-digits'>{panelRevealCountdown.secs}</span>
+                  <span className='dial-unit-lbl'>SECONDS</span>
+                </div>
+              </div>
+
+              {/* Panel Status & Venue Overview Grid */}
+              <div className='reveal-panels-preview-grid'>
+                {evaluationPanels.map((p, idx) => (
+                  <div key={p.id} className='reveal-panel-preview-card'>
+                    <div className='preview-card-header'>
+                      <span className='preview-code-tag'>{p.code || `P${idx + 1}`}</span>
+                      <span className='preview-room-tag'>{p.room}</span>
                     </div>
-                    <span className={`panel-status-pill ${currentSession ? 'live' : 'idle'}`}>
-                      {currentSession ? 'LIVE EVALUATING' : 'AWAITING TEAM'}
-                    </span>
+                    <h4>{p.name.split('—')[1] || p.name}</h4>
+                    <div className='preview-jury-meta'>
+                      <span>👨‍⚖️ {p.juries ? p.juries.length : 2} Evaluators Assigned</span>
+                      <span>⏱ {p.presentMins || 20}m Pitch + {p.qaMins || 10}m Q&amp;A</span>
+                    </div>
                   </div>
+                ))}
+              </div>
 
-                  <h3 className='panel-name-heading'>{panel.name}</h3>
-                  <div className='panel-juries-row'>
-                    <span className='jury-label'>Jury Panel:</span>
-                    <span className='jury-names'>{(panel.juries || []).map(j => j.name).filter(Boolean).join(' • ') || 'Faculty Evaluators'}</span>
-                  </div>
+              {/* Master Control Override for Evaluators / Admins */}
+              <div className='reveal-override-strip'>
+                <span>⚡ <strong>Evaluation Authority:</strong> Live arena wall locked until 09:15 AM sharp.</span>
+                {!isAdminLoggedIn && (
+                  <button 
+                    type='button'
+                    className='btn-reveal-override-preview'
+                    onClick={() => setAdminPanelOverride(true)}
+                  >
+                    <Play size={13} />
+                    <span>Force Reveal Arena Screen</span>
+                  </button>
+                )}
+                {isAdminLoggedIn && (
+                  <button 
+                    type='button'
+                    className='btn-reveal-override-preview admin'
+                    onClick={() => setAdminPanelOverride(true)}
+                  >
+                    <Play size={13} />
+                    <span>Admin Unlock Screen</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className='projector-panels-grid'>
+              {evaluationPanels.map((panel, idx) => {
+                const currentSession = activeSessions[panel.id];
+                const timing = getSessionTimingInfo(currentSession);
+                const queuedTeams = panelQueues[panel.id] || [];
+                const isDragOver = dragOverPanelId === panel.id;
 
-                  {currentSession && timing ? (
-                    <div className='panel-active-eval-box'>
-                      <div className='active-eval-header'>
-                        <span className='live-eval-tag'>NOW PRESENTING</span>
-                        <span className={`phase-pill ${timing.phase.toLowerCase()}`}>
-                          {timing.phase === 'PRESENTATION' ? 'Pitch Phase' : timing.phase === 'QA' ? 'Jury Q&A' : 'Time Up'}
-                        </span>
+                return (
+                  <div 
+                    key={panel.id} 
+                    className={`projector-panel-card ${currentSession ? 'is-evaluating' : 'is-idle'} ${isDragOver ? 'drag-over-active' : ''}`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (dragOverPanelId !== panel.id) setDragOverPanelId(panel.id);
+                    }}
+                    onDragLeave={() => setDragOverPanelId(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedTeamId) {
+                        handleMoveTeam(draggedTeamId, panel.id);
+                      }
+                      setDraggedTeamId(null);
+                      setDraggedSourcePanelId(null);
+                      setDragOverPanelId(null);
+                    }}
+                  >
+                    <div className='panel-card-top'>
+                      <div className='panel-badge-group'>
+                        <span className='panel-code-pill'>{panel.code || (`P${idx+1}`)}</span>
+                        <span className='panel-room-tag'>{panel.room}</span>
                       </div>
-
-                      <div className={`projector-timer-display ${timing.phase === 'QA' ? 'qa-phase' : ''}`}>
-                        <Clock size={28} className='timer-ico' />
-                        <span className='big-countdown-digits'>{timing.timeDisplay}</span>
-                        {timing.isPaused && <span className='paused-label'>[PAUSED]</span>}
-                      </div>
-
-                      <div className='projector-progress-bar-wrap'>
-                        <div 
-                          className={`projector-progress-bar-fill ${timing.phase === 'QA' ? 'qa' : ''}`}
-                          style={{ width: `${timing.progressPct}%` }}
-                        ></div>
-                      </div>
-
-                      <div className='active-team-details'>
-                        <div className='active-team-id-row'>
-                          <span className='badge-team-id'>{currentSession.teamId}</span>
-                          <span className='active-ps-id'>{currentSession.psId}</span>
-                        </div>
-                        <h2 className='active-team-name-title'>{currentSession.teamName}</h2>
-                        {currentSession.psTitle && (
-                          <p className='active-ps-title'>{currentSession.psTitle}</p>
-                        )}
-                        <div className='active-leader-school'>
-                          <span>Leader: <strong>{currentSession.leaderName}</strong></span>
-                          <span>• {currentSession.school}</span>
-                        </div>
-
-                        {/* Live Multi-Jury Score Status Indicator */}
-                        {panel.juries && panel.juries.length > 0 && (
-                          <div className='panel-jury-status-badges-strip'>
-                            <span className='jury-status-lbl'>Juries Scoring Status:</span>
-                            <div className='jury-status-items'>
-                              {panel.juries.map((j, jIdx) => {
-                                const submission = (evaluationLedger || []).find(l => l.teamId === currentSession.teamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
-                                return (
-                                  <span 
-                                    key={jIdx} 
-                                    className={`live-jury-badge ${submission ? 'scored' : 'pending'}`}
-                                    title={submission ? `Score: ${submission.totalScore}/50 submitted at ${submission.evaluatedAtStr}` : 'Scoring in progress'}
-                                  >
-                                    {submission ? '✅' : '⏳'} {j.name.split(' ')[0]}: {submission ? `${submission.totalScore}/50` : 'Pending'}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Admin Timing Controls */}
-                      {isAdminLoggedIn && (
-                        <div className='admin-session-controls-strip'>
-                          <button 
-                            className='btn-session-ctrl pause'
-                            onClick={() => handleToggleTimerPause(panel.id)}
-                            title={timing.isPaused ? 'Resume Timer' : 'Pause Timer'}
-                          >
-                            {timing.isPaused ? <Play size={13} /> : <Pause size={13} />}
-                            <span>{timing.isPaused ? 'Resume' : 'Pause'}</span>
-                          </button>
-                          <button 
-                            className='btn-session-ctrl extend'
-                            onClick={() => handleExtendSession(panel.id, 5)}
-                            title='Extend +5 Minutes'
-                          >
-                            <Plus size={13} />
-                            <span>+5 Min</span>
-                          </button>
-                          <button 
-                            className='btn-session-ctrl delay'
-                            onClick={() => {
-                              if (window.confirm(`Skip & Delay active team "${activeSession.teamName}"? They will be placed at the end of the queue.`)) {
-                                handleDelayTeamSlot(activeSession.teamId, panel.id);
-                              }
-                            }}
-                            title='Skip / Delay Slot (Move active team to back of waiting queue)'
-                          >
-                            <FastForward size={13} />
-                            <span>Skip / Delay</span>
-                          </button>
-                          <button 
-                            className='btn-session-ctrl stop'
-                            onClick={() => handleConcludeSession(panel.id, true)}
-                            title='Stop & Auto-Complete Evaluation'
-                          >
-                            <Square size={13} />
-                            <span>Stop &amp; Conclude</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className='panel-idle-eval-box'>
-                      <div className='idle-icon-wrap'>
-                        <Users size={32} />
-                      </div>
-                      <h4>Panel Ready &amp; Standing By</h4>
-                      <p>Jury is awaiting next assigned team from the digital queue.</p>
-                      {queuedTeams.length > 0 && (
-                        isAdminLoggedIn ? (
-                          <button 
-                            className='btn-call-first-team'
-                            onClick={() => handleCallNextTeamInPanel(panel.id, false)}
-                          >
-                            <Megaphone size={14} />
-                            <span>Call Next: {queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</span>
-                          </button>
-                        ) : (
-                          <div className='idle-next-team-tag'>
-                            <span>Next on Deck: <strong>{queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</strong></span>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  )}
-
-                  {/* Panel Queue Preview with Drag & Drop / Reordering */}
-                  <div className='panel-queue-preview-section'>
-                    <div className='queue-section-title'>
-                      <div className='q-title-left'>
-                        <span>QUEUE ({queuedTeams.length})</span>
-                        {isAdminLoggedIn && <span className='drag-hint-pill'>Drag &amp; Swap</span>}
-                      </div>
-                      {queuedTeams.length > 0 && isAdminLoggedIn && (
-                        <button 
-                          className='btn-mini-call-next'
-                          onClick={() => handleCallNextTeamInPanel(panel.id, false)}
-                          title='Call next team over speaker'
-                        >
-                          <Megaphone size={12} />
-                          <span>Call Next</span>
-                        </button>
-                      )}
+                      <span className={`panel-status-pill ${currentSession ? 'live' : 'idle'}`}>
+                        {currentSession ? 'LIVE EVALUATING' : 'AWAITING TEAM'}
+                      </span>
                     </div>
 
-                    {queuedTeams.length === 0 ? (
-                      <div className='empty-queue-msg'>No teams in queue. Drag a team here to assign.</div>
-                    ) : (
-                      <div className='queued-teams-compact-list'>
-                        {queuedTeams.map((item, qIdx) => (
+                    <h3 className='panel-name-heading'>{panel.name}</h3>
+                    <div className='panel-juries-row'>
+                      <span className='jury-label'>Jury Panel:</span>
+                      <span className='jury-names'>{(panel.juries || []).map(j => j.name).filter(Boolean).join(' • ') || 'Faculty Evaluators'}</span>
+                    </div>
+
+                    {currentSession && timing ? (
+                      <div className='panel-active-eval-box'>
+                        <div className='active-eval-header'>
+                          <span className='live-eval-tag'>NOW PRESENTING</span>
+                          <span className={`phase-pill ${timing.phase.toLowerCase()}`}>
+                            {timing.phase === 'PRESENTATION' ? 'Pitch Phase' : timing.phase === 'QA' ? 'Jury Q&A' : 'Time Up'}
+                          </span>
+                        </div>
+
+                        <div className={`projector-timer-display ${timing.phase === 'QA' ? 'qa-phase' : ''}`}>
+                          <Clock size={28} className='timer-ico' />
+                          <span className='big-countdown-digits'>{timing.timeDisplay}</span>
+                          {timing.isPaused && <span className='paused-label'>[PAUSED]</span>}
+                        </div>
+
+                        <div className='projector-progress-bar-wrap'>
                           <div 
-                            key={item.teamId} 
-                            className={`queued-team-item-row ${item.status === 'CALLING' ? 'is-calling' : ''} ${item.status === 'DELAYED' ? 'is-delayed' : ''} ${draggedTeamId === item.teamId ? 'is-dragging' : ''} ${isAdminLoggedIn ? 'is-admin' : 'is-viewer'}`}
-                            draggable={isAdminLoggedIn}
-                            onDragStart={() => {
-                              if (!isAdminLoggedIn) return;
-                              setDraggedTeamId(item.teamId);
-                              setDraggedSourcePanelId(panel.id);
-                            }}
-                            onDragEnd={() => {
-                              setDraggedTeamId(null);
-                              setDraggedSourcePanelId(null);
-                              setDragOverPanelId(null);
-                            }}
-                          >
-                            <div className='q-item-main-content'>
-                              <div className='q-item-top-header'>
-                                {isAdminLoggedIn && (
-                                  <span className='drag-handle-grip' title='Drag to reorder or move across panels'>
-                                    <GripVertical size={13} />
-                                  </span>
-                                )}
-                                <span className='q-token-badge'>{item.tokenNumber}</span>
-                                <strong className='q-team-title' title={item.teamName}>{item.teamName}</strong>
-                                {item.status === 'CALLING' ? (
-                                  <span className='calling-indicator-badge'>📢 CALLING</span>
-                                ) : item.status === 'DELAYED' ? (
-                                  <span className='delayed-indicator-badge'>⏳ DELAYED ({item.delayedCount || 1}x)</span>
-                                ) : (
-                                  <span className='q-status-tag'>#{qIdx + 1}</span>
-                                )}
-                              </div>
-                              <div className='q-item-sub-info'>
-                                <span className='q-lead-sub'>{item.leaderName} ({item.teamId})</span>
+                            className={`projector-progress-bar-fill ${timing.phase === 'QA' ? 'qa' : ''}`}
+                            style={{ width: `${timing.progressPct}%` }}
+                          ></div>
+                        </div>
+
+                        <div className='active-team-details'>
+                          <div className='active-team-id-row'>
+                            <span className='badge-team-id'>{currentSession.teamId}</span>
+                            <span className='active-ps-id'>{currentSession.psId}</span>
+                          </div>
+                          <h2 className='active-team-name-title'>{currentSession.teamName}</h2>
+                          {currentSession.psTitle && (
+                            <p className='active-ps-title'>{currentSession.psTitle}</p>
+                          )}
+                          <div className='active-leader-school'>
+                            <span>Leader: <strong>{currentSession.leaderName}</strong></span>
+                            <span>• {currentSession.school}</span>
+                          </div>
+
+                          {/* Live Multi-Jury Score Status Indicator */}
+                          {panel.juries && panel.juries.length > 0 && (
+                            <div className='panel-jury-status-badges-strip'>
+                              <span className='jury-status-lbl'>Juries Scoring Status:</span>
+                              <div className='jury-status-items'>
+                                {panel.juries.map((j, jIdx) => {
+                                  const submission = (evaluationLedger || []).find(l => l.teamId === currentSession.teamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
+                                  return (
+                                    <span 
+                                      key={jIdx} 
+                                      className={`live-jury-badge ${submission ? 'scored' : 'pending'}`}
+                                      title={submission ? `Score: ${submission.totalScore}/50 submitted at ${submission.evaluatedAtStr}` : 'Scoring in progress'}
+                                    >
+                                      {submission ? '✅' : '⏳'} {j.name.split(' ')[0]}: {submission ? `${submission.totalScore}/50` : 'Pending'}
+                                    </span>
+                                  );
+                                })}
                               </div>
                             </div>
+                          )}
+                        </div>
 
-                            {isAdminLoggedIn && (
-                              <div className='q-item-admin-actions'>
-                                {/* Quick Reorder Up / Down */}
-                                <button 
-                                  className='btn-q-action'
-                                  onClick={() => handleSwapQueueOrder(item.teamId, 'up')}
-                                  disabled={qIdx === 0}
-                                  title='Move Up in Queue'
-                                >
-                                  <ArrowUp size={11} />
-                                </button>
-                                <button 
-                                  className='btn-q-action'
-                                  onClick={() => handleSwapQueueOrder(item.teamId, 'down')}
-                                  disabled={qIdx === queuedTeams.length - 1}
-                                  title='Move Down in Queue'
-                                >
-                                  <ArrowDown size={11} />
-                                </button>
-
-                                {/* Transfer Dropdown */}
-                                <select 
-                                  className='q-panel-transfer-select'
-                                  value={panel.id}
-                                  onChange={(e) => handleMoveTeam(item.teamId, e.target.value)}
-                                  title='Transfer to another panel'
-                                >
-                                  {evaluationPanels.map(p => (
-                                    <option key={p.id} value={p.id}>
-                                      {p.code}: {p.name.split('—')[1] || p.name}
-                                    </option>
-                                  ))}
-                                </select>
-
-                                {/* Skip / Delay Team */}
-                                <button 
-                                  className='btn-q-action delay'
-                                  onClick={() => handleDelayTeamSlot(item.teamId, panel.id)}
-                                  title='Skip / Delay Slot (Move to End of Queue)'
-                                >
-                                  <FastForward size={11} />
-                                </button>
-
-                                {/* Call Now */}
-                                <button 
-                                  className='btn-q-action call'
-                                  onClick={() => announceTeamCall(item, panel)}
-                                  title='Announce / Call Team'
-                                >
-                                  <Megaphone size={11} />
-                                </button>
-
-                                {/* Start Evaluation */}
-                                <button 
-                                  className='btn-q-action start'
-                                  onClick={() => handleStartPanelEvaluation(panel, item)}
-                                  title='Start Presentation'
-                                >
-                                  <Play size={11} />
-                                </button>
-
-                                {/* Delete */}
-                                <button 
-                                  className='btn-q-action delete'
-                                  onClick={() => handleDeleteFromQueue(item.teamId)}
-                                  title='Cancel & Remove from Queue'
-                                >
-                                  <Trash2 size={11} />
-                                </button>
-                              </div>
-                            )}
+                        {/* Admin Timing Controls */}
+                        {isAdminLoggedIn && (
+                          <div className='admin-session-controls-strip'>
+                            <button 
+                              className='btn-session-ctrl pause'
+                              onClick={() => handleToggleTimerPause(panel.id)}
+                              title={timing.isPaused ? 'Resume Timer' : 'Pause Timer'}
+                            >
+                              {timing.isPaused ? <Play size={13} /> : <Pause size={13} />}
+                              <span>{timing.isPaused ? 'Resume' : 'Pause'}</span>
+                            </button>
+                            <button 
+                              className='btn-session-ctrl extend'
+                              onClick={() => handleExtendSession(panel.id, 5)}
+                              title='Extend +5 Minutes'
+                            >
+                              <Plus size={13} />
+                              <span>+5 Min</span>
+                            </button>
+                            <button 
+                              className='btn-session-ctrl delay'
+                              onClick={() => {
+                                if (window.confirm(`Skip & Delay active team "${activeSession.teamName}"? They will be placed at the end of the queue.`)) {
+                                  handleDelayTeamSlot(activeSession.teamId, panel.id);
+                                }
+                              }}
+                              title='Skip / Delay Slot (Move active team to back of waiting queue)'
+                            >
+                              <FastForward size={13} />
+                              <span>Skip / Delay</span>
+                            </button>
+                            <button 
+                              className='btn-session-ctrl stop'
+                              onClick={() => handleConcludeSession(panel.id, true)}
+                              title='Stop & Auto-Complete Evaluation'
+                            >
+                              <Square size={13} />
+                              <span>Stop &amp; Conclude</span>
+                            </button>
                           </div>
-                        ))}
+                        )}
+                      </div>
+                    ) : (
+                      <div className='panel-idle-eval-box'>
+                        <div className='idle-icon-wrap'>
+                          <Users size={32} />
+                        </div>
+                        <h4>Panel Ready &amp; Standing By</h4>
+                        <p>Jury is awaiting next assigned team from the digital queue.</p>
+                        {queuedTeams.length > 0 && (
+                          isAdminLoggedIn ? (
+                            <button 
+                              className='btn-call-first-team'
+                              onClick={() => handleCallNextTeamInPanel(panel.id, false)}
+                            >
+                              <Megaphone size={14} />
+                              <span>Call Next: {queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</span>
+                            </button>
+                          ) : (
+                            <div className='idle-next-team-tag'>
+                              <span>Next on Deck: <strong>{queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</strong></span>
+                            </div>
+                          )
+                        )}
                       </div>
                     )}
+
+                    {/* Panel Queue Preview with Drag & Drop / Reordering */}
+                    <div className='panel-queue-preview-section'>
+                      <div className='queue-section-title'>
+                        <div className='q-title-left'>
+                          <span>QUEUE ({queuedTeams.length})</span>
+                          {isAdminLoggedIn && <span className='drag-hint-pill'>Drag &amp; Swap</span>}
+                        </div>
+                        {queuedTeams.length > 0 && isAdminLoggedIn && (
+                          <button 
+                            className='btn-mini-call-next'
+                            onClick={() => handleCallNextTeamInPanel(panel.id, false)}
+                            title='Call next team over speaker'
+                          >
+                            <Megaphone size={12} />
+                            <span>Call Next</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {queuedTeams.length === 0 ? (
+                        <div className='empty-queue-msg'>No teams in queue. Drag a team here to assign.</div>
+                      ) : (
+                        <div className='queued-teams-compact-list'>
+                          {queuedTeams.map((item, qIdx) => (
+                            <div 
+                              key={item.teamId} 
+                              className={`queued-team-item-row ${item.status === 'CALLING' ? 'is-calling' : ''} ${item.status === 'DELAYED' ? 'is-delayed' : ''} ${draggedTeamId === item.teamId ? 'is-dragging' : ''} ${isAdminLoggedIn ? 'is-admin' : 'is-viewer'}`}
+                              draggable={isAdminLoggedIn}
+                              onDragStart={() => {
+                                if (!isAdminLoggedIn) return;
+                                setDraggedTeamId(item.teamId);
+                                setDraggedSourcePanelId(panel.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggedTeamId(null);
+                                setDraggedSourcePanelId(null);
+                                setDragOverPanelId(null);
+                              }}
+                            >
+                              <div className='q-item-main-content'>
+                                <div className='q-item-top-header'>
+                                  {isAdminLoggedIn && (
+                                    <span className='drag-handle-grip' title='Drag to reorder or move across panels'>
+                                      <GripVertical size={13} />
+                                    </span>
+                                  )}
+                                  <span className='q-token-badge'>{item.tokenNumber}</span>
+                                  <strong className='q-team-title' title={item.teamName}>{item.teamName}</strong>
+                                  {item.status === 'CALLING' ? (
+                                    <span className='calling-indicator-badge'>📢 CALLING</span>
+                                  ) : item.status === 'DELAYED' ? (
+                                    <span className='delayed-indicator-badge'>⏳ DELAYED ({item.delayedCount || 1}x)</span>
+                                  ) : (
+                                    <span className='q-status-tag'>#{qIdx + 1}</span>
+                                  )}
+                                </div>
+                                <div className='q-item-sub-info'>
+                                  <span className='q-lead-sub'>{item.leaderName} ({item.teamId})</span>
+                                </div>
+                              </div>
+
+                              {isAdminLoggedIn && (
+                                <div className='q-item-admin-actions'>
+                                  {/* Quick Reorder Up / Down */}
+                                  <button 
+                                    className='btn-q-action'
+                                    onClick={() => handleSwapQueueOrder(item.teamId, 'up')}
+                                    disabled={qIdx === 0}
+                                    title='Move Up in Queue'
+                                  >
+                                    <ArrowUp size={11} />
+                                  </button>
+                                  <button 
+                                    className='btn-q-action'
+                                    onClick={() => handleSwapQueueOrder(item.teamId, 'down')}
+                                    disabled={qIdx === queuedTeams.length - 1}
+                                    title='Move Down in Queue'
+                                  >
+                                    <ArrowDown size={11} />
+                                  </button>
+
+                                  {/* Transfer Dropdown */}
+                                  <select 
+                                    className='q-panel-transfer-select'
+                                    value={panel.id}
+                                    onChange={(e) => handleMoveTeam(item.teamId, e.target.value)}
+                                    title='Transfer to another panel'
+                                  >
+                                    {evaluationPanels.map(p => (
+                                      <option key={p.id} value={p.id}>
+                                        {p.code}: {p.name.split('—')[1] || p.name}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  {/* Skip / Delay Team */}
+                                  <button 
+                                    className='btn-q-action delay'
+                                    onClick={() => handleDelayTeamSlot(item.teamId, panel.id)}
+                                    title='Skip / Delay Slot (Move to End of Queue)'
+                                  >
+                                    <FastForward size={11} />
+                                  </button>
+
+                                  {/* Call Now */}
+                                  <button 
+                                    className='btn-q-action call'
+                                    onClick={() => announceTeamCall(item, panel)}
+                                    title='Announce / Call Team'
+                                  >
+                                    <Megaphone size={11} />
+                                  </button>
+
+                                  {/* Start Evaluation */}
+                                  <button 
+                                    className='btn-q-action start'
+                                    onClick={() => handleStartPanelEvaluation(panel, item)}
+                                    title='Start Presentation'
+                                  >
+                                    <Play size={11} />
+                                  </button>
+
+                                  {/* Delete */}
+                                  <button 
+                                    className='btn-q-action delete'
+                                    onClick={() => handleDeleteFromQueue(item.teamId)}
+                                    title='Cancel & Remove from Queue'
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
