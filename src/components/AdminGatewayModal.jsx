@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   X, DoorOpen, LayoutDashboard, ShieldAlert, Clock, UserCheck, 
   Award, Database, Lock, Unlock, ExternalLink, LogOut, CheckCircle2,
-  Sparkles, ArrowRight, Sun, QrCode
+  Sparkles, ArrowRight, Sun, QrCode, Laptop
 } from 'lucide-react';
 
 export default function AdminGatewayModal({
@@ -19,47 +19,45 @@ export default function AdminGatewayModal({
   if (!isOpen) return null;
 
   return (
-    <div className="drawer-backdrop" onClick={onClose}>
-      <div className="modal-dialog-box admin-gateway-modal" onClick={e => e.stopPropagation()}>
-        {/* Top Header */}
-        <div className="modal-top-bar">
-          <div className="modal-title-left">
-            <div className="modal-icon-badge gateway-badge">
-              <ShieldAlert size={18} className="text-emerald" />
+    <div className="admin-gateway-modal-backdrop" onClick={onClose}>
+      <div className="admin-gateway-modal-card" onClick={e => e.stopPropagation()}>
+        <div className="gateway-modal-header">
+          <div className="gateway-header-left">
+            <div className="gateway-logo-icon">
+              <LayoutDashboard size={26} />
             </div>
             <div>
-              <span className="modal-title-text">SIH 2026 • Master Admin Gateway</span>
+              <h3>Institutional Admin Gateway</h3>
               <span className="modal-subtitle-text">Authorized Security Access &amp; Workplace Launcher</span>
             </div>
           </div>
-          <button className="btn-close-icon" onClick={onClose} aria-label="Close Gateway">
-            <X size={18} />
-          </button>
+          
+          <div className="gateway-header-right">
+            <div className="auth-status-pill">
+              <span className="auth-pulse-dot"></span>
+              <span className="auth-verified-tag">
+                <ShieldAlert size={13} className="text-emerald" />
+                <span>Administrator Authenticated</span>
+              </span>
+            </div>
+            <button className="gateway-close-btn" onClick={onClose}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}
         <div className="gateway-modal-body">
-          <div className="gateway-intro-banner">
-            <div className="gateway-intro-left">
-              <span className="auth-verified-tag">
-                <CheckCircle2 size={13} />
-                <span>Administrator Authenticated</span>
-              </span>
-              <h3>Select Workplace or Control Module</h3>
-              <p>Choose an administrative desk or operational workplace below to proceed.</p>
-            </div>
-            <div className="gateway-meta-pill">
-              <span><strong>{submittedCount}</strong> Forms Received / {totalTeamsCount} Teams</span>
-            </div>
-          </div>
+          <p className="gateway-section-label">SELECT WORKSPACE TO LAUNCH:</p>
 
-          {/* 5 Launch Cards Grid */}
-          <div className="gateway-cards-grid">
+          {/* Launch Cards Grid */}
+          <div className="gateway-grid">
             
-            {/* CARD 0: DIGITAL EVALUATION QUEUE & LIVE JURY WORKSPACE */}
+            {/* CARD 0A: LIVE EVALUATION QUEUE & MULTI-PANEL ARENA */}
             <div 
               className={`gateway-card eval-card ${currentView === 'eval_queue' ? 'active-gateway-card' : ''}`}
               onClick={() => {
+                window.location.hash = '#projector';
                 onSelectView('eval_queue');
                 onClose();
               }}
@@ -71,13 +69,39 @@ export default function AdminGatewayModal({
                 </div>
                 <span className="gateway-status-pill pill-indigo">
                   <span className="pulsing-dot indigo" style={{ background: '#4f46e5' }}></span>
-                  <span>Live 20+10m Arena</span>
+                  <span>Live Arena Wall</span>
                 </span>
               </div>
-              <h4 style={{ color: '#1e1b4b' }}>Digital Queue &amp; Multi-Panel Evaluation</h4>
-              <p>Arena Projector Wall, Jury Live Dual-Timer (20m Pitch + 10m Q&A), Student Auto Slot Booking, and 50-pt Rubric Ledger.</p>
+              <h4 style={{ color: '#1e1b4b' }}>Live Panel Evaluation &amp; Projector</h4>
+              <p>Multi-panel arena projector screen, real-time live timers, and student queue slot dispatch.</p>
               <div className="card-bottom-action" style={{ color: '#4f46e5', fontWeight: 'bold' }}>
-                <span>Launch Live Evaluation Arena</span>
+                <span>Launch Live Arena Monitor</span>
+                <ArrowRight size={15} />
+              </div>
+            </div>
+
+            {/* CARD 0B: STANDALONE JURY EVALUATION STATION */}
+            <div 
+              className="gateway-card jury-card"
+              onClick={() => {
+                window.location.hash = '#jury';
+                onSelectView('eval_queue');
+                onClose();
+              }}
+              style={{ border: '2px solid #2563eb', background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)' }}
+            >
+              <div className="card-top-icon-row">
+                <div className="gateway-card-icon" style={{ background: '#dbeafe', color: '#2563eb' }}>
+                  <Laptop size={22} />
+                </div>
+                <span className="gateway-status-pill" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                  <span>Dedicated Jury Terminal</span>
+                </span>
+              </div>
+              <h4 style={{ color: '#1e3a8a' }}>Jury Evaluation Station (Link: /#jury)</h4>
+              <p>Confidential evaluator workstation: PIN login, 1-10 Rubric, AI Copilot, and Section 65B score submission.</p>
+              <div className="card-bottom-action" style={{ color: '#2563eb', fontWeight: 'bold' }}>
+                <span>Open Jury Terminal (/#jury)</span>
                 <ArrowRight size={15} />
               </div>
             </div>

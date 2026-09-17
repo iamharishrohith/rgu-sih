@@ -323,12 +323,23 @@ export default function EvaluationQueuePortal({
   onOpenAdminGateway,
   onBackToMain
 }) {
+  const isJuryRoute = useMemo(() => {
+    try {
+      const pathname = window.location.pathname.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      return pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury');
+    } catch {
+      return false;
+    }
+  }, []);
+
   const [activeView, setActiveView] = useState(() => {
     try {
       const pathname = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (isAdminLoggedIn && (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury'))) return 'jury';
+      if (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury')) return 'jury';
       if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) return 'student';
       if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) return 'ledger';
       if (pathname.includes('/projector') || pathname.includes('/live') || search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector') || hash.includes('live')) return 'projector';
@@ -343,13 +354,13 @@ export default function EvaluationQueuePortal({
         const pathname = window.location.pathname.toLowerCase();
         const search = window.location.search.toLowerCase();
         const hash = window.location.hash.toLowerCase();
-        if (isAdminLoggedIn && (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury'))) {
+        if (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury')) {
           setActiveView('jury');
         } else if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) {
           setActiveView('student');
         } else if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) {
           setActiveView('ledger');
-        } else {
+        } else if (!isJuryRoute) {
           setActiveView('projector');
         }
       } catch (e) {}
@@ -361,11 +372,11 @@ export default function EvaluationQueuePortal({
       window.removeEventListener('hashchange', handleUrlSync);
       window.removeEventListener('popstate', handleUrlSync);
     };
-  }, [isAdminLoggedIn]);
+  }, [isAdminLoggedIn, isJuryRoute]);
 
-  // Ensure unauthenticated users are kept out of jury/ledger views
+  // Ensure unauthenticated users are kept out of ledger view
   useEffect(() => {
-    if (!isAdminLoggedIn && (activeView === 'jury' || activeView === 'ledger')) {
+    if (!isAdminLoggedIn && activeView === 'ledger') {
       setActiveView('projector');
     }
   }, [isAdminLoggedIn, activeView]);
@@ -839,7 +850,7 @@ export default function EvaluationQueuePortal({
         <div className='eval-nav-left'>
           <button className='btn-eval-back' onClick={onBackToMain}>
             <ArrowLeft size={16} />
-            <span>Main Shortlist Portal</span>
+            <span>Main Portal</span>
           </button>
           <div className='eval-portal-brand'>
             <div className='eval-pulse-indicator'>
@@ -847,70 +858,71 @@ export default function EvaluationQueuePortal({
               <span className='eval-live-dot'></span>
             </div>
             <div>
-              <span className='eval-brand-title'>SIH 2026 • DIGITAL EVALUATION QUEUE</span>
-              <span className='eval-brand-sub'>Multi-Panel Synchronous Evaluation & Live Timing</span>
+              <span className='eval-brand-title'>
+                {isJuryRoute ? 'SIH 2026 • JURY EVALUATION STATION' : 'SIH 2026 • DIGITAL EVALUATION QUEUE'}
+              </span>
+              <span className='eval-brand-sub'>
+                {isJuryRoute ? 'Dedicated Confidential Evaluator Terminal' : 'Multi-Panel Synchronous Evaluation & Live Timing'}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className='eval-nav-center'>
-          <div className='eval-mode-tabs'>
-            <button 
-              className={`eval-tab-btn ${activeView === 'projector' ? 'active projector' : ''}`}
-              onClick={() => handleSwitchTab('projector')}
-            >
-              <Monitor size={15} />
-              <span>Live Panel Evaluation</span>
-            </button>
-            {isAdminLoggedIn && (
+        {/* Center Tabs: Hidden for isolated Jury Station link */}
+        {!isJuryRoute && (
+          <div className='eval-nav-center'>
+            <div className='eval-mode-tabs'>
               <button 
-                className={`eval-tab-btn ${activeView === 'jury' ? 'active jury' : ''}`}
-                onClick={() => handleSwitchTab('jury')}
+                className={`eval-tab-btn ${activeView === 'projector' ? 'active projector' : ''}`}
+                onClick={() => handleSwitchTab('projector')}
               >
-                <Laptop size={15} />
-                <span>Jury Workspace</span>
+                <Monitor size={15} />
+                <span>Live Panel Evaluation</span>
               </button>
-            )}
-            <button 
-              className={`eval-tab-btn ${activeView === 'student' ? 'active student' : ''}`}
-              onClick={() => handleSwitchTab('student')}
-            >
-              <Smartphone size={15} />
-              <span>Student Slot Booking</span>
-            </button>
-            {isAdminLoggedIn && (
               <button 
-                className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
-                onClick={() => handleSwitchTab('ledger')}
+                className={`eval-tab-btn ${activeView === 'student' ? 'active student' : ''}`}
+                onClick={() => handleSwitchTab('student')}
               >
-                <FileText size={15} />
-                <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
+                <Smartphone size={15} />
+                <span>Student Slot Booking</span>
               </button>
-            )}
+              {isAdminLoggedIn && (
+                <button 
+                  className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
+                  onClick={() => handleSwitchTab('ledger')}
+                >
+                  <FileText size={15} />
+                  <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className='eval-nav-right'>
-          {isAdminLoggedIn && (
-            <button 
-              className='btn-eval-manage-panels' 
-              onClick={() => setIsPanelModalOpen(true)}
-              title='Configure Panels, Juries, and Timing'
-            >
-              <Layers size={15} />
-              <span>Manage Panels</span>
-            </button>
-          )}
+          {/* Admin Management Actions: Strictly restricted to Admin only */}
+          {!isJuryRoute && isAdminLoggedIn && (
+            <>
+              <button 
+                className='btn-eval-manage-panels' 
+                onClick={() => setIsPanelModalOpen(true)}
+                title='Configure Panels, Juries, and Timing'
+              >
+                <Layers size={15} />
+                <span>Manage Panels</span>
+              </button>
 
-          {onOpenAdminGateway && (
-            <button 
-              className='btn-nav-admin active-admin'
-              onClick={onOpenAdminGateway}
-              title='Open Master Admin Gateway (Ctrl+Shift+A)'
-            >
-              <LayoutDashboard size={15} />
-              <span>Admin Gateway</span>
-            </button>
+              {onOpenAdminGateway && (
+                <button 
+                  className='btn-nav-admin active-admin'
+                  onClick={onOpenAdminGateway}
+                  title='Open Master Admin Gateway (Ctrl+Shift+A)'
+                >
+                  <LayoutDashboard size={15} />
+                  <span>Admin Gateway</span>
+                </button>
+              )}
+            </>
           )}
 
           <button 
