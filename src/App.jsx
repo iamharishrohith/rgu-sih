@@ -1038,7 +1038,7 @@ export default function App() {
           onUpdateQueue={handleUpdateEvaluationQueue}
           onUpdateLedger={handleUpdateEvaluationLedger}
           onUpdateSessions={handleUpdateEvaluationSessions}
-          onOpenAdminGateway={triggerSecretAdmin}
+          onOpenAdminGateway={isAdminLoggedIn ? triggerSecretAdmin : null}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');

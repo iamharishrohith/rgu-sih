@@ -75,17 +75,6 @@ export default function GrandLandingShowcase({
               <span>Live Evaluation Queue (Arena)</span>
             </button>
 
-            {onOpenAdminGateway && (
-              <button 
-                className="btn-grand-secondary-cta" 
-                onClick={onOpenAdminGateway}
-                title="Master Admin Gateway & Security Workplace Launcher"
-              >
-                <LayoutDashboard size={18} className="text-emerald" />
-                <span>Admin Gateway</span>
-              </button>
-            )}
-
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />
               <span>Bench Pool ({benchCount})</span>
