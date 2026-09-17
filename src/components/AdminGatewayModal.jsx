@@ -84,6 +84,32 @@ export default function AdminGatewayModal({
               </div>
             </div>
 
+            {/* CARD 0.5: DEDICATED JURY STATION (STANDALONE ISOLATED PAGE) */}
+            <div 
+              className={`gateway-card jury-card ${currentView === 'jury_station' ? 'active-gateway-card' : ''}`}
+              onClick={() => {
+                window.open('/#jury', '_blank');
+                onClose();
+              }}
+              style={{ border: '2px solid #0284c7', background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)' }}
+            >
+              <div className="card-top-icon-row">
+                <div className="gateway-card-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                  <Laptop size={22} />
+                </div>
+                <span className="gateway-status-pill pill-cyan" style={{ background: '#e0f2fe', color: '#0369a1' }}>
+                  <ExternalLink size={12} />
+                  <span>Isolated Link</span>
+                </span>
+              </div>
+              <h4 style={{ color: '#0c4a6e' }}>Dedicated Jury Evaluation Station</h4>
+              <p>Confidential evaluator workstation with 28+ AI inquiry questions, chooseable 1-10 scoring rubric, and zero admin buttons.</p>
+              <div className="card-bottom-action" style={{ color: '#0284c7', fontWeight: 'bold' }}>
+                <span>Open Standalone Station (#jury)</span>
+                <ExternalLink size={15} />
+              </div>
+            </div>
+
             {/* CARD 1: SIH ARENA WORKPLACE */}
             <div 
               className={`gateway-card arena-card ${currentView === 'inout_portal' ? 'active-gateway-card' : ''}`}

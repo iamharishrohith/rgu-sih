@@ -11,6 +11,7 @@ import PortalClosedView from './components/PortalClosedView.jsx';
 import PortalTimerModal from './components/PortalTimerModal.jsx';
 import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
 import EvaluationQueuePortal, { DEFAULT_EVALUATION_PANELS } from './components/EvaluationQueuePortal.jsx';
+import JuryStationPortal from './components/JuryStationPortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
@@ -29,7 +30,8 @@ export default function App() {
   // Subbranch Routing:
   // Root URL ('/') -> 'landing' (Official Shortlist & Selection Announcement Portal)
   // '/arena' or '#arena' -> 'inout_portal' (SIH Arena In-Out Gate Pass & Movement Workplace)
-  // '/queue', '/eval', '/jury', '#queue', '#eval' -> 'eval_queue' (Digital Queue & Live Multi-Panel Evaluation)
+  // '/queue', '/eval', '#queue', '#eval' -> 'eval_queue' (Digital Queue & Live Multi-Panel Evaluation)
+  // '/jury', '#jury', '?view=jury' -> 'jury_station' (Standalone Dedicated Jury Station & Workspace)
   // '/desk' or '#desk' -> 'candidate_desk'
   // '/admin' or '#admin' -> 'admin'
   const [currentView, setCurrentView] = useState(() => {
@@ -38,6 +40,10 @@ export default function App() {
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
 
+      // Check for standalone jury station page (strictly isolated)
+      if (pathname.includes('/jury') || search.includes('jury') || hash.includes('jury')) {
+        return 'jury_station';
+      }
       // Only open inout_portal if scanning a candidate QR code (?action=out or ?action=in)
       if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         return 'inout_portal';
@@ -46,11 +52,11 @@ export default function App() {
       if (pathname.includes('/arena') || pathname.includes('/inout') || search.includes('arena') || hash.includes('arena') || hash.includes('inout')) {
         return 'inout_portal';
       }
-      // Check for eval queue, jury, projector, student booking, ledger
+      // Check for eval queue, projector, student booking, ledger
       if (
-        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/jury') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
-        search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
-        hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
+        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
+        search.includes('queue') || search.includes('eval') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
+        hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
       ) {
         return 'eval_queue';
       }
@@ -393,15 +399,20 @@ export default function App() {
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
 
+      // Standalone Jury Station check (strictly isolated)
+      if (pathname.includes('/jury') || search.includes('jury') || hash.includes('jury')) {
+        setCurrentView('jury_station');
+        return;
+      }
       // Gate Pass action check
       if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         setCurrentView('inout_portal');
       } else if (pathname.includes('/arena') || pathname.includes('/inout') || search.includes('arena') || hash.includes('arena') || hash.includes('inout')) {
         setCurrentView('inout_portal');
       } else if (
-        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/jury') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
-        search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
-        hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
+        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
+        search.includes('queue') || search.includes('eval') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
+        hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
       ) {
         setCurrentView('eval_queue');
       } else if (pathname.includes('/admin') || pathname.includes('/gateway') || hash.includes('admin') || hash.includes('gateway') || search.includes('admin')) {
@@ -952,41 +963,43 @@ export default function App() {
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && <FlowerConfettiRain />}
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && <FlowerConfettiRain />}
 
-      <Navbar
-        registeredCount={finalizedSubmittedCount}
-        totalFinalizedCount={tierCounts.totalFinalized}
-        onSecretAdminTrigger={triggerSecretAdmin}
-        onOpenAdminGateway={triggerSecretAdmin}
-        isAdminLoggedIn={isAdminLoggedIn}
-        onOpenLandingView={() => {
-          setIsReadOnlyAfterClosure(false);
-          setCurrentView('landing');
-        }}
-        onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
-        onOpenInOutPortal={() => {
-          setIsReadOnlyAfterClosure(false);
-          setCurrentView('inout_portal');
-        }}
-        onOpenEvaluationQueue={() => {
-          setIsReadOnlyAfterClosure(false);
-          setCurrentView('eval_queue');
-        }}
-        currentView={currentView}
-        isPortalClosed={isPortalClosed}
-        onOpenTimerModal={() => {
-          if (isAdminLoggedIn) {
-            setIsTimerModalOpen(true);
-          } else {
-            setOpenTimerAfterAuth(true);
-            setIsPasscodeModalOpen(true);
-          }
-        }}
-      />
+      {currentView !== 'jury_station' && (
+        <Navbar
+          registeredCount={finalizedSubmittedCount}
+          totalFinalizedCount={tierCounts.totalFinalized}
+          onSecretAdminTrigger={triggerSecretAdmin}
+          onOpenAdminGateway={triggerSecretAdmin}
+          isAdminLoggedIn={isAdminLoggedIn}
+          onOpenLandingView={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('landing');
+          }}
+          onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
+          onOpenInOutPortal={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('inout_portal');
+          }}
+          onOpenEvaluationQueue={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('eval_queue');
+          }}
+          currentView={currentView}
+          isPortalClosed={isPortalClosed}
+          onOpenTimerModal={() => {
+            if (isAdminLoggedIn) {
+              setIsTimerModalOpen(true);
+            } else {
+              setOpenTimerAfterAuth(true);
+              setIsPasscodeModalOpen(true);
+            }
+          }}
+        />
+      )}
 
       {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && (
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && (
         <MidnightCountdownBanner 
           onActionClick={() => {
             if (currentView !== 'candidate_desk') {
@@ -998,8 +1011,21 @@ export default function App() {
         />
       )}
 
-      {/* VIEW 1: ADMIN DASHBOARD */}
-      {currentView === 'admin' && isAdminLoggedIn ? (
+      {/* VIEW 0: STANDALONE DEDICATED JURY STATION (ZERO OTHER BUTTON ACCESS) */}
+      {currentView === 'jury_station' ? (
+        <JuryStationPortal
+          allTeams={masterTeamsList}
+          registrationsMap={registrationsMap}
+          evaluationPanels={evaluationPanels}
+          evaluationQueue={evaluationQueue}
+          evaluationLedger={evaluationLedger}
+          activeSessions={evaluationSessions}
+          onUpdateSessions={handleUpdateEvaluationSessions}
+          onUpdateQueue={handleUpdateEvaluationQueue}
+          onUpdateLedger={handleUpdateEvaluationLedger}
+        />
+      ) : currentView === 'admin' && isAdminLoggedIn ? (
+        /* VIEW 1: ADMIN DASHBOARD */
         <AdminDashboard
           allMasterTeams={masterTeamsList}
           registrationsMap={registrationsMap}
