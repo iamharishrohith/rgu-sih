@@ -57,7 +57,7 @@ export default function AdminGatewayModal({
           {/* Launch Cards Grid */}
           <div className="gateway-cards-grid">
             
-            {/* CARD 0A: LIVE EVALUATION QUEUE & MULTI-PANEL ARENA */}
+            {/* CARD 0: LIVE EVALUATION QUEUE & MULTI-PANEL ARENA */}
             <div 
               className={`gateway-card eval-card ${currentView === 'eval_queue' ? 'active-gateway-card' : ''}`}
               onClick={() => {
@@ -77,35 +77,9 @@ export default function AdminGatewayModal({
                 </span>
               </div>
               <h4 style={{ color: '#1e1b4b' }}>Live Panel Evaluation &amp; Projector</h4>
-              <p>Multi-panel arena projector screen, real-time live timers, and student queue slot dispatch.</p>
+              <p>Multi-panel arena projector screen, real-time live timers, student queue slot dispatch, and 50-pt Section 65B evaluation ledger.</p>
               <div className="card-bottom-action" style={{ color: '#4f46e5', fontWeight: 'bold' }}>
-                <span>Launch Live Arena Monitor</span>
-                <ArrowRight size={15} />
-              </div>
-            </div>
-
-            {/* CARD 0B: STANDALONE JURY EVALUATION STATION */}
-            <div 
-              className="gateway-card jury-card"
-              onClick={() => {
-                window.location.hash = '#jury';
-                onSelectView('eval_queue');
-                onClose();
-              }}
-              style={{ border: '2px solid #2563eb', background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)' }}
-            >
-              <div className="card-top-icon-row">
-                <div className="gateway-card-icon" style={{ background: '#dbeafe', color: '#2563eb' }}>
-                  <Laptop size={22} />
-                </div>
-                <span className="gateway-status-pill" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
-                  <span>Dedicated Jury Terminal</span>
-                </span>
-              </div>
-              <h4 style={{ color: '#1e3a8a' }}>Jury Evaluation Station (Link: /#jury)</h4>
-              <p>Confidential evaluator workstation: PIN login, 1-10 Rubric, AI Copilot, and Section 65B score submission.</p>
-              <div className="card-bottom-action" style={{ color: '#2563eb', fontWeight: 'bold' }}>
-                <span>Open Jury Terminal (/#jury)</span>
+                <span>Launch Live Evaluation Arena</span>
                 <ArrowRight size={15} />
               </div>
             </div>
