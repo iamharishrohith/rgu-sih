@@ -421,9 +421,26 @@ export default function JuryStationPortal({
   const [studentSearchInput, setStudentSearchInput] = useState('');
   const [bookingSuccessToken, setBookingSuccessToken] = useState(null);
 
-  // Ledger Filter
+  // Ledger Filter & View Mode
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [ledgerPanelFilter, setLedgerPanelFilter] = useState('ALL');
+  const [ledgerViewMode, setLedgerViewMode] = useState('individual'); // 'individual' | 'consolidated'
+
+  // Active Evaluator within Current Panel (supports multi-jury scoring per panel)
+  const [activeEvaluatorName, setActiveEvaluatorName] = useState(() => {
+    return authenticatedJury?.juryName || '';
+  });
+
+  useEffect(() => {
+    if (authenticatedJury?.juryName) {
+      setActiveEvaluatorName(authenticatedJury.juryName);
+    } else {
+      const p = evaluationPanels.find(item => item.id === selectedJuryPanelId) || evaluationPanels[0];
+      if (p && p.juries?.length > 0) {
+        setActiveEvaluatorName(p.juries[0].name);
+      }
+    }
+  }, [authenticatedJury, selectedJuryPanelId, evaluationPanels]);
 
   // Live Timer Tick
   const [currentTimeMs, setCurrentTimeMs] = useState(Date.now());
@@ -650,20 +667,25 @@ export default function JuryStationPortal({
     playSoundAlert('chime');
   };
 
-  // Submit Rubric Evaluation (Auto-completes timing & triggers next team calling)
-  const handleSubmitEvaluationScore = () => {
+  // Submit Rubric Evaluation (Supports multiple evaluations per team across all panel juries)
+  const handleSubmitEvaluationScore = (conclude = false) => {
     const current = activeSessions[activePanelObj.id];
     if (!current) return;
 
     const total = Object.values(rubricScores).reduce((acc, v) => acc + (parseInt(v) || 0), 0);
     const now = new Date();
 
+    const selectedJuryObj = (activePanelObj.juries || []).find(j => j.name === activeEvaluatorName) || 
+      activePanelObj.juries?.[0] || { name: activeEvaluatorName || 'Evaluator Jury', role: 'Evaluator' };
+
     const ledgerEntry = {
-      id: `EVAL-${Date.now()}`,
+      id: `EVAL-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       panelId: activePanelObj.id,
       panelName: activePanelObj.name,
       room: activePanelObj.room,
       juries: activePanelObj.juries || [],
+      evaluatorName: selectedJuryObj.name,
+      evaluatorRole: selectedJuryObj.role || selectedJuryObj.designation || 'Evaluator',
       teamId: current.teamId,
       teamName: current.teamName,
       leaderName: current.leaderName,
@@ -683,38 +705,51 @@ export default function JuryStationPortal({
     const nextLedger = [ledgerEntry, ...(evaluationLedger || [])];
     if (onUpdateLedger) onUpdateLedger(nextLedger);
 
-    // 2. Auto-complete and clear active session (stops timing)
-    const nextSessions = { ...activeSessions };
-    delete nextSessions[activePanelObj.id];
-    if (onUpdateSessions) onUpdateSessions(nextSessions);
+    const teamEvaluations = nextLedger.filter(l => l.teamId === current.teamId);
+    const totalPanelJuries = (activePanelObj.juries || []).length || 1;
 
-    // 3. Remove evaluated team from queue
-    const nextQueue = { ...evaluationQueue };
-    delete nextQueue[current.teamId];
-    if (onUpdateQueue) onUpdateQueue(nextQueue);
+    // If conclude requested OR all juries in panel have evaluated:
+    if (conclude || teamEvaluations.length >= totalPanelJuries) {
+      // Auto-complete and clear active session (stops timing)
+      const nextSessions = { ...activeSessions };
+      delete nextSessions[activePanelObj.id];
+      if (onUpdateSessions) onUpdateSessions(nextSessions);
 
-    // 4. Reset rubric form
+      // Remove evaluated team from queue
+      const nextQueue = { ...evaluationQueue };
+      delete nextQueue[current.teamId];
+      if (onUpdateQueue) onUpdateQueue(nextQueue);
+
+      // Next Team Calling Automation
+      const remainingQueued = (panelQueues[activePanelObj.id] || []).filter(item => item.teamId !== current.teamId && (item.status === 'WAITING' || item.status === 'CALLING'));
+      if (remainingQueued.length > 0) {
+        const nextTeam = remainingQueued[0];
+        try {
+          if ('speechSynthesis' in window && soundEnabled) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(`Attention please. Team ${nextTeam.teamName}, Token ${nextTeam.tokenNumber}, please report to ${activePanelObj.name}, ${activePanelObj.room} for your evaluation.`);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+          }
+        } catch (e) {}
+      }
+
+      alert(`✅ Evaluation submitted by ${selectedJuryObj.name} for ${current.teamName}! (Score: ${total}/50)\n\nAll ${teamEvaluations.length} evaluation(s) concluded. Next team is now called.`);
+    } else {
+      // Switch active evaluator to the other panel jury for convenience
+      const otherJury = (activePanelObj.juries || []).find(j => j.name !== selectedJuryObj.name);
+      if (otherJury) {
+        setActiveEvaluatorName(otherJury.name);
+      }
+      alert(`✅ Evaluation score recorded for ${selectedJuryObj.name} (${total}/50)!\n\nPitch session remains active for the 2nd Evaluator (${otherJury?.name || 'co-evaluator'}).`);
+    }
+
+    // Reset rubric form for next entry
     setRubricScores({ innovation: 8, feasibility: 8, prototype: 8, presentation: 8, defense: 8 });
     setEvalFeedback('');
     playSoundAlert('phase_switch');
-
-    // 5. Next Team Calling Automation
-    const remainingQueued = (panelQueues[activePanelObj.id] || []).filter(item => item.teamId !== current.teamId && (item.status === 'WAITING' || item.status === 'CALLING'));
-    if (remainingQueued.length > 0) {
-      const nextTeam = remainingQueued[0];
-      try {
-        if ('speechSynthesis' in window && soundEnabled) {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(`Attention please. Team ${nextTeam.teamName}, Token ${nextTeam.tokenNumber}, please report to ${activePanelObj.name}, ${activePanelObj.room} for your evaluation.`);
-          utterance.rate = 1.0;
-          utterance.pitch = 1.0;
-          utterance.lang = 'en-US';
-          window.speechSynthesis.speak(utterance);
-        }
-      } catch (e) {}
-    }
-
-    alert(`Evaluation submitted successfully for ${current.teamName}! Final Score: ${total}/50`);
   };
 
   const getSessionTimingInfo = (session) => {
@@ -1226,6 +1261,57 @@ export default function JuryStationPortal({
                       </div>
                     </div>
 
+                    {/* Evaluator Selector Strip for Panels with Multiple Juries */}
+                    <div className='evaluator-selector-strip'>
+                      <span className='eval-label'>Active Jury Evaluator (Click to switch evaluator):</span>
+                      <div className='evaluator-pills-row'>
+                        {(activePanelObj.juries || []).map((j, idx) => {
+                          const isSelected = activeEvaluatorName === j.name;
+                          const currentTeamId = activeSessions[activePanelObj.id]?.teamId;
+                          const alreadyScored = (evaluationLedger || []).some(l => l.teamId === currentTeamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
+                          return (
+                            <button
+                              key={idx}
+                              type='button'
+                              className={`evaluator-pill ${isSelected ? 'selected' : ''}`}
+                              onClick={() => setActiveEvaluatorName(j.name)}
+                            >
+                              <span className='eval-name'>{j.name}</span>
+                              <span className='eval-role'>({j.role || j.designation})</span>
+                              {alreadyScored && (
+                                <span className='scored-dot' title='Score already submitted by this evaluator'>✓ Scored</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Prior Recorded Evaluations for this Team */}
+                    {(() => {
+                      const currentTeamId = activeSessions[activePanelObj.id]?.teamId;
+                      if (!currentTeamId) return null;
+                      const teamRecords = (evaluationLedger || []).filter(l => l.teamId === currentTeamId);
+                      if (teamRecords.length === 0) return null;
+                      return (
+                        <div className='prior-evaluations-banner'>
+                          <div className='prior-eval-header'>
+                            <CheckCircle2 size={15} className='text-emerald' />
+                            <strong>Recorded Evaluations for this Team ({teamRecords.length}):</strong>
+                          </div>
+                          <div className='prior-eval-list'>
+                            {teamRecords.map((rec, rIdx) => (
+                              <div key={rec.id || rIdx} className='prior-eval-chip'>
+                                <span className='evaluator-name'>{rec.evaluatorName || 'Jury Member'}:</span>
+                                <strong className='evaluator-score'>{rec.totalScore}/50 ({rec.percentage}%)</strong>
+                                <span className='evaluator-time'>at {rec.evaluatedAtStr}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     <div className='rubric-parameters-list'>
                       {/* Parameter 1: Innovation */}
                       <div className='rubric-parameter-row'>
@@ -1354,13 +1440,28 @@ export default function JuryStationPortal({
                     </div>
 
                     <div className='rubric-submit-actions'>
+                      {(activePanelObj.juries || []).length > 1 && (
+                        <button 
+                          type='button'
+                          className='btn-submit-evaluation-secondary'
+                          disabled={!activeSessions[activePanelObj.id]}
+                          onClick={() => handleSubmitEvaluationScore(false)}
+                          title='Save this jury evaluation score while keeping pitch timer open for co-evaluator'
+                        >
+                          <Check size={16} />
+                          <span>Submit Score for {activeEvaluatorName ? activeEvaluatorName.split(' ')[0] : 'Evaluator'} (Keep Pitch Open)</span>
+                        </button>
+                      )}
+
                       <button 
+                        type='button'
                         className='btn-submit-evaluation-primary'
                         disabled={!activeSessions[activePanelObj.id]}
-                        onClick={handleSubmitEvaluationScore}
+                        onClick={() => handleSubmitEvaluationScore(true)}
+                        title='Save evaluation score, complete session, and call next team'
                       >
                         <CheckCircle2 size={18} />
-                        <span>Submit Score &amp; Conclude Evaluation</span>
+                        <span>Submit Score &amp; Conclude Team Pitch</span>
                       </button>
                     </div>
                   </div>

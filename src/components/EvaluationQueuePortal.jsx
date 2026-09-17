@@ -343,9 +343,10 @@ export default function EvaluationQueuePortal({
   const [draggedSourcePanelId, setDraggedSourcePanelId] = useState(null);
   const [dragOverPanelId, setDragOverPanelId] = useState(null);
 
-  // Ledger Filter
+  // Ledger Filter & View Mode
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [ledgerPanelFilter, setLedgerPanelFilter] = useState('ALL');
+  const [ledgerViewMode, setLedgerViewMode] = useState('individual'); // 'individual' | 'consolidated'
 
   const handleResetAllEvaluation = () => {
     if (window.confirm('Are you sure you want to RESET ALL EVALUATION DATA (Queues, Tokens, Active Pitch Timers, and Ledger Scores)? Panels and theme configurations will be preserved.')) {
@@ -870,17 +871,56 @@ export default function EvaluationQueuePortal({
         item.teamName.toLowerCase().includes(q) ||
         item.leaderName.toLowerCase().includes(q) ||
         item.psId.toLowerCase().includes(q) ||
+        (item.evaluatorName && item.evaluatorName.toLowerCase().includes(q)) ||
         (item.school && item.school.toLowerCase().includes(q))
       );
     });
   }, [evaluationLedger, ledgerPanelFilter, ledgerSearch]);
 
+  // Multi-Jury Consolidated Team Averages Leaderboard
+  const consolidatedLedger = useMemo(() => {
+    const map = {};
+    (filteredLedger || []).forEach(entry => {
+      if (!map[entry.teamId]) {
+        map[entry.teamId] = {
+          teamId: entry.teamId,
+          teamName: entry.teamName,
+          leaderName: entry.leaderName,
+          regNo: entry.regNo,
+          psId: entry.psId,
+          panelId: entry.panelId,
+          panelName: entry.panelName,
+          room: entry.room,
+          evaluations: []
+        };
+      }
+      map[entry.teamId].evaluations.push(entry);
+    });
+
+    return Object.values(map).map(team => {
+      const evals = team.evaluations;
+      const count = evals.length;
+      const totalSum = evals.reduce((acc, ev) => acc + (ev.totalScore || 0), 0);
+      const avgScore = count > 0 ? (totalSum / count).toFixed(1) : '0';
+      const avgPct = count > 0 ? Math.round((parseFloat(avgScore) / 50) * 100) : 0;
+      return {
+        ...team,
+        evalCount: count,
+        avgScore: parseFloat(avgScore),
+        avgScoreStr: avgScore,
+        avgPercentage: avgPct
+      };
+    }).sort((a, b) => b.avgScore - a.avgScore);
+  }, [filteredLedger]);
+
   const handleExportLedgerCSV = () => {
-    const headers = ['Evaluation ID', 'Panel', 'Room', 'Team ID', 'Team Name', 'Leader Name', 'Reg No', 'PS ID', 'Innovation (10)', 'Feasibility (10)', 'Prototype (10)', 'Pitch (10)', 'Q&A Defense (10)', 'Total / 50', 'Score %', 'Time', 'Feedback'];
+    const headers = ['Evaluation ID', 'Panel', 'Room', 'Evaluator Jury', 'Role', 'Team ID', 'Team Name', 'Leader Name', 'Reg No', 'PS ID', 'Innovation (10)', 'Feasibility (10)', 'Prototype (10)', 'Pitch (10)', 'Q&A Defense (10)', 'Total / 50', 'Score %', 'Time', 'Feedback'];
     const rows = (evaluationLedger || []).map(l => [
       `"${l.id}"`,
       `"${l.panelName}"`,
       `"${l.room}"`,
+      `"${l.evaluatorName || l.juries?.[0]?.name || 'Evaluator Jury'}"`,
+      `"${l.evaluatorRole || 'Evaluator'}"`,
       `"${l.teamId}"`,
       `"${(l.teamName || '').replace(/"/g, '""')}"`,
       `"${(l.leaderName || '').replace(/"/g, '""')}"`,
@@ -901,7 +941,7 @@ export default function EvaluationQueuePortal({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `SIH_Evaluation_Ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `SIH_MultiJury_Evaluation_Ledger_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1511,7 +1551,8 @@ export default function EvaluationQueuePortal({
                       .map(team => {
                         const teamId = team.temp_team_id;
                         const isQueued = evaluationQueue[teamId];
-                        const isEvaluated = (evaluationLedger || []).find(l => l.teamId === teamId);
+                        const teamEvals = (evaluationLedger || []).filter(l => l.teamId === teamId);
+                        const isEvaluated = teamEvals.length > 0;
 
                         return (
                           <div 
@@ -1541,7 +1582,7 @@ export default function EvaluationQueuePortal({
                               {isEvaluated ? (
                                 <span className='status-evaluated-badge'>
                                   <CheckCircle2 size={14} />
-                                  <span>Evaluation Completed</span>
+                                  <span>{teamEvals.length} Evaluation{teamEvals.length > 1 ? 's' : ''} Completed</span>
                                 </span>
                               ) : isQueued ? (
                                 <button 
@@ -1936,7 +1977,25 @@ export default function EvaluationQueuePortal({
             <div className='ledger-card-header'>
               <div className='ledger-title-group'>
                 <h3>Section 65B Cryptographic Evaluation Ledger</h3>
-                <span className='ledger-count-pill'>{(evaluationLedger || []).length} Completed Evaluations</span>
+                <span className='ledger-count-pill'>{(evaluationLedger || []).length} Recorded Evaluations</span>
+              </div>
+
+              {/* View Mode Toggle: Individual Records vs Consolidated Team Averages */}
+              <div className='ledger-mode-toggle-group'>
+                <button
+                  type='button'
+                  className={`btn-ledger-mode ${ledgerViewMode === 'individual' ? 'active' : ''}`}
+                  onClick={() => setLedgerViewMode('individual')}
+                >
+                  All Evaluator Logs ({(evaluationLedger || []).length})
+                </button>
+                <button
+                  type='button'
+                  className={`btn-ledger-mode ${ledgerViewMode === 'consolidated' ? 'active' : ''}`}
+                  onClick={() => setLedgerViewMode('consolidated')}
+                >
+                  Consolidated Team Averages ({consolidatedLedger.length})
+                </button>
               </div>
 
               <div className='ledger-actions-group'>
@@ -1953,7 +2012,7 @@ export default function EvaluationQueuePortal({
 
                 <input 
                   type='text' 
-                  placeholder='Filter by team or leader...'
+                  placeholder='Filter by team, jury or leader...'
                   value={ledgerSearch}
                   onChange={e => setLedgerSearch(e.target.value)}
                   className='ledger-search-input'
@@ -1961,7 +2020,7 @@ export default function EvaluationQueuePortal({
 
                 <button className='btn-export-ledger-csv' onClick={handleExportLedgerCSV}>
                   <Download size={14} />
-                  <span>Export Scores CSV</span>
+                  <span>Export CSV</span>
                 </button>
 
                 {isAdminLoggedIn && (evaluationLedger || []).length > 0 && (
@@ -1994,59 +2053,125 @@ export default function EvaluationQueuePortal({
               </div>
             </div>
 
-            <table className='eval-master-table'>
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Panel & Room</th>
-                  <th>Team & Problem Statement</th>
-                  <th>Scores Breakdown</th>
-                  <th>Total / 50</th>
-                  <th>Verdict</th>
-                  <th>Evaluator Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLedger.map((row, idx) => (
-                  <tr key={row.id || idx}>
-                    <td className='col-time font-mono'>{row.evaluatedAtStr}</td>
-                    <td>
-                      <strong>{row.panelName}</strong>
-                      <div className='text-muted small'>{row.room}</div>
-                    </td>
-                    <td>
-                      <strong>{row.teamName}</strong>
-                      <div className='text-muted small'>{row.teamId} • {row.leaderName} ({row.psId})</div>
-                    </td>
-                    <td>
-                      <div className='scores-mini-pills'>
-                        <span>Innov: {row.scores?.innovation}/10</span>
-                        <span>Tech: {row.scores?.feasibility}/10</span>
-                        <span>Demo: {row.scores?.prototype}/10</span>
-                        <span>Pitch: {row.scores?.presentation}/10</span>
-                        <span>Q&A: {row.scores?.defense}/10</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className='total-score-badge'>{row.totalScore} / 50</span>
-                    </td>
-                    <td>
-                      <span className={`verdict-pill ${row.percentage >= 80 ? 'top' : row.percentage >= 60 ? 'pass' : 'bench'}`}>
-                        {row.percentage}% Score
-                      </span>
-                    </td>
-                    <td className='col-remarks'>{row.feedback}</td>
-                  </tr>
-                ))}
-                {filteredLedger.length === 0 && (
+            {ledgerViewMode === 'individual' ? (
+              /* TAB 1: INDIVIDUAL EVALUATOR ENTRIES */
+              <table className='eval-master-table'>
+                <thead>
                   <tr>
-                    <td colSpan='7' className='empty-ledger-cell'>
-                      No evaluations recorded yet. Juries can start evaluations in the Jury Workspace tab.
-                    </td>
+                    <th>Time</th>
+                    <th>Panel &amp; Room</th>
+                    <th>Evaluator Jury</th>
+                    <th>Team &amp; Problem Statement</th>
+                    <th>Scores Breakdown</th>
+                    <th>Total / 50</th>
+                    <th>Verdict</th>
+                    <th>Evaluator Remarks</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredLedger.map((row, idx) => (
+                    <tr key={row.id || idx}>
+                      <td className='col-time font-mono'>{row.evaluatedAtStr}</td>
+                      <td>
+                        <strong>{row.panelName}</strong>
+                        <div className='text-muted small'>{row.room}</div>
+                      </td>
+                      <td>
+                        <strong>{row.evaluatorName || row.juries?.[0]?.name || 'Evaluator Jury'}</strong>
+                        <div className='text-muted small'>{row.evaluatorRole || 'Jury Member'}</div>
+                      </td>
+                      <td>
+                        <strong>{row.teamName}</strong>
+                        <div className='text-muted small'>{row.teamId} • {row.leaderName} ({row.psId})</div>
+                      </td>
+                      <td>
+                        <div className='scores-mini-pills'>
+                          <span>Innov: {row.scores?.innovation}/10</span>
+                          <span>Tech: {row.scores?.feasibility}/10</span>
+                          <span>Demo: {row.scores?.prototype}/10</span>
+                          <span>Pitch: {row.scores?.presentation}/10</span>
+                          <span>Q&amp;A: {row.scores?.defense}/10</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className='total-score-badge'>{row.totalScore} / 50</span>
+                      </td>
+                      <td>
+                        <span className={`verdict-pill ${row.percentage >= 80 ? 'top' : row.percentage >= 60 ? 'pass' : 'bench'}`}>
+                          {row.percentage}% Score
+                        </span>
+                      </td>
+                      <td className='col-remarks'>{row.feedback}</td>
+                    </tr>
+                  ))}
+                  {filteredLedger.length === 0 && (
+                    <tr>
+                      <td colSpan='8' className='empty-ledger-cell'>
+                        No evaluations recorded yet. Juries can start evaluations in the Jury Workspace.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              /* TAB 2: CONSOLIDATED MULTI-JURY TEAM AVERAGES */
+              <table className='eval-master-table'>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Team &amp; Problem Statement</th>
+                    <th>Panel &amp; Room</th>
+                    <th>Evaluations &amp; Jury Breakdown</th>
+                    <th>Consolidated Average</th>
+                    <th>Overall Standing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {consolidatedLedger.map((team, idx) => (
+                    <tr key={team.teamId}>
+                      <td className='col-rank'>
+                        <span className='rank-pill'>#{idx + 1}</span>
+                      </td>
+                      <td>
+                        <strong>{team.teamName}</strong>
+                        <div className='text-muted small'>{team.teamId} • {team.leaderName} ({team.psId})</div>
+                      </td>
+                      <td>
+                        <strong>{team.panelName}</strong>
+                        <div className='text-muted small'>{team.room}</div>
+                      </td>
+                      <td>
+                        <div className='multi-jury-eval-pills-list'>
+                          {team.evaluations.map((ev, eIdx) => (
+                            <span key={eIdx} className='jury-individual-score-chip'>
+                              <strong>{ev.evaluatorName || `Jury ${eIdx + 1}`}:</strong> {ev.totalScore}/50 ({ev.percentage}%)
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <div className='consolidated-score-box'>
+                          <span className='avg-total-badge'>{team.avgScoreStr} / 50</span>
+                          <span className='text-muted small'>({team.evalCount} Evaluation{team.evalCount > 1 ? 's' : ''})</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`verdict-pill ${team.avgPercentage >= 80 ? 'top' : team.avgPercentage >= 60 ? 'pass' : 'bench'}`}>
+                          {team.avgPercentage}% Average
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {consolidatedLedger.length === 0 && (
+                    <tr>
+                      <td colSpan='6' className='empty-ledger-cell'>
+                        No evaluations recorded yet. Juries can start evaluations in the Jury Workspace.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
