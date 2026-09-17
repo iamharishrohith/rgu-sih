@@ -17004,25 +17004,25 @@ body {
 }
 
 /* ==========================================================================
-   DIGITAL EVALUATION QUEUE: JURY LOGIN PORTAL, 1-10 RUBRIC PILLS & AI COPILOT
+   DIGITAL EVALUATION QUEUE: JURY LOGIN PORTAL, JURY STATION & 65B LEDGER
    ========================================================================== */
 
-/* Jury Login Portal Screen */
+/* 1. Jury Login Portal Screen */
 .jury-login-portal-screen {
-  min-height: 520px;
+  min-height: 540px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #e2e8f0;
 }
 
 .jury-login-card {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
-  border-radius: 18px;
+  border-radius: 20px;
   padding: 36px 32px;
   width: 100%;
   max-width: 480px;
@@ -17031,13 +17031,13 @@ body {
 
 .jury-login-header {
   text-align: center;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
 }
 
 .jury-login-icon-badge {
-  width: 58px;
-  height: 58px;
-  margin: 0 auto 16px auto;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px auto;
   border-radius: 16px;
   background: #eff6ff;
   border: 1.5px solid #bfdbfe;
@@ -17072,7 +17072,7 @@ body {
   align-items: center;
   gap: 8px;
   background: #fff1f2;
-  border: 1px solid #fecdd3;
+  border: 1.5px solid #fecdd3;
   color: #e11d48;
   padding: 10px 14px;
   border-radius: 10px;
@@ -17080,24 +17080,25 @@ body {
   font-weight: 700;
 }
 
-.jury-field-group {
+.jury-login-form .input-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.jury-field-group label {
-  font-size: 0.78rem;
+.jury-login-form .input-group label {
+  font-size: 0.76rem;
   font-weight: 800;
   color: #334155;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.jury-field-select,
-.jury-field-input {
+.jury-login-select,
+.jury-login-form input[type="text"],
+.jury-login-form input[type="password"] {
   width: 100%;
-  padding: 12px 14px;
+  padding: 11px 14px;
   border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   background: #ffffff;
@@ -17106,15 +17107,31 @@ body {
   color: #0f172a;
   outline: none;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
-.jury-field-select:focus,
-.jury-field-input:focus {
+.jury-login-select:focus,
+.jury-login-form input[type="text"]:focus,
+.jury-login-form input[type="password"]:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.jury-login-submit-btn {
+.input-hint-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.input-hint-sub code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.btn-enter-jury-station {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17129,127 +17146,955 @@ body {
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
   transition: all 0.2s ease;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-.jury-login-submit-btn:hover {
+.btn-enter-jury-station:hover {
   background: #1d4ed8;
   transform: translateY(-1px);
 }
 
-.jury-login-submit-btn:active {
-  transform: translateY(0);
+/* 2. Authenticated Dedicated Jury Station Banner */
+.jury-station-auth-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.jury-login-footer-note {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
-  text-align: center;
-  font-size: 0.74rem;
-  color: #94a3b8;
-}
-
-/* Jury Active Station Header Bar */
-.jury-station-pill {
+.station-info-left {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 16px;
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
 }
 
-.active-evaluator-badge {
-  display: flex;
-  flex-direction: column;
-}
-
-.evaluator-role {
-  font-size: 0.65rem;
+.station-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 800;
-  text-transform: uppercase;
-  color: #2563eb;
   letter-spacing: 0.5px;
 }
 
-.evaluator-name {
-  font-size: 0.88rem;
+.station-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.station-meta-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.station-panel-title {
+  font-size: 0.92rem;
   font-weight: 800;
   color: #0f172a;
 }
 
-.evaluator-panel {
-  font-size: 0.72rem;
+.station-room {
+  font-size: 0.8rem;
   font-weight: 600;
   color: #64748b;
 }
 
-.btn-jury-station-exit {
+.station-info-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.evaluator-profile-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.evaluator-profile-pill strong {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.btn-jury-logout-station {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
   background: #fff1f2;
-  color: #e11d48;
-  border: 1px solid #fecdd3;
+  color: #be123c;
+  border: 1.5px solid #fecdd3;
   border-radius: 8px;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.btn-jury-station-exit:hover {
-  background: #ffe4e6;
+.btn-jury-logout-station:hover {
+  background: #be123c;
+  color: #ffffff;
+  border-color: #be123c;
 }
 
-/* 1-10 Rubric Pill Selector */
-.rubric-parameter-row {
+/* 3. Main Jury Workspace Grid Layout */
+.jury-workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .jury-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.jury-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jury-col-right {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Left Column Nav Tabs (Copilot vs Queue) */
+.jury-left-nav-tabs {
+  display: flex;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.jury-left-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jury-left-tab-btn:hover {
+  color: #0f172a;
+}
+
+.jury-left-tab-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 4. Active Session Card & Timer Box */
+.jury-live-card {
+  background: #ffffff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jury-card-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panel-meta-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.panel-meta-badge .code-tag {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+
+.eval-phase-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.eval-phase-tag.presentation {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.eval-phase-tag.qa {
+  background: #fdf2f8;
+  color: #be185d;
+  border: 1px solid #fbcfe8;
+}
+
+.jury-timer-hero-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.timer-big-circle {
+  display: flex;
+  flex-direction: column;
+}
+
+.timer-num-digits {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.timer-phase-caption {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.timer-buttons-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-timer-ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-timer-ctrl.btn-pause {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.btn-timer-ctrl.btn-resume {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.btn-timer-ctrl.btn-extend {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.jury-team-dossier-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.dossier-header-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.dossier-id-badge {
+  background: #2563eb;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-mono, monospace);
+}
+
+.dossier-ps-id {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dossier-team-name {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 4px 0 2px 0;
+}
+
+.dossier-ps-title {
+  font-size: 0.76rem;
+  color: #475569;
+  margin: 0 0 8px 0;
+  line-height: 1.35;
+}
+
+.dossier-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 0.74rem;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dossier-meta-grid .m-label {
+  color: #64748b;
+  display: block;
+}
+
+.dossier-meta-grid .m-val {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* 5. No Active Session Card & Direct Team Lookup */
+.jury-no-session-card {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 14px;
   padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease;
+  text-align: center;
 }
 
-.rubric-parameter-row:hover {
+.jury-no-session-card .no-session-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 8px auto;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jury-no-session-card h3 {
+  font-size: 0.96rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.jury-no-session-card p {
+  font-size: 0.76rem;
+  color: #64748b;
+  margin: 0 0 12px 0;
+}
+
+.jury-manual-search-box {
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.jury-manual-search-box label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrap .search-icon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.search-input-wrap input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  outline: none;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.search-input-wrap input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.manual-search-results-dropdown {
+  margin-top: 8px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.manual-search-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.manual-search-result-row:hover {
+  background: #f8fafc;
+}
+
+.manual-search-result-row .sub-lead {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.btn-quick-start-eval {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-quick-start-eval:hover {
+  background: #047857;
+}
+
+/* 6. AI Questions Copilot Panel & Clean Scroll */
+.ai-questions-copilot-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.ai-copilot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-sparkle-badge {
+  width: 32px;
+  height: 32px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ai-sparkle-badge .sparkle-sub {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: #f59e0b;
+}
+
+.ai-header-left h4 {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ai-header-left p {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin: 1px 0 0 0;
+}
+
+.ai-search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+.ai-search-ico {
+  color: #94a3b8;
+}
+
+.ai-search-box input {
+  border: none;
+  background: transparent;
+  font-size: 0.76rem;
+  outline: none;
+  width: 140px;
+  color: #0f172a;
+}
+
+.ai-category-filter-strip {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.ai-cat-pill {
+  padding: 4px 9px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.ai-cat-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.ai-cat-pill.active {
+  background: #2563eb;
+  border-color: #1d4ed8;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.ai-questions-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 420px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.ai-question-item-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.ai-question-item-card:hover {
+  background: #ffffff;
   border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.ai-question-item-card.is-asked {
+  background: #f0fdf4;
+  border-color: #a7f3d0;
+}
+
+.q-top-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.q-tags-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.q-category-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.q-subtag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.q-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-mark-asked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-mark-asked:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-mark-asked.active {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+  font-weight: 800;
+}
+
+.btn-copy-to-feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-to-feedback:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.q-text-body {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.q-rationale-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: #78350f;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1.3;
+}
+
+/* 7. Waiting Queue Card */
+.jury-panel-queue-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.queue-card-header h4 {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+
+.empty-queue-callout {
+  padding: 16px;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.jury-queue-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.jury-queue-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jury-queue-item-row .item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jury-queue-item-row .item-token {
+  font-family: var(--font-mono, monospace);
+  font-weight: 900;
+  font-size: 0.75rem;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.jury-queue-item-row .item-meta {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.btn-call-team-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-call-team-start:hover:not(:disabled) {
+  background: #047857;
+}
+
+.btn-call-team-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 8. Rubric Scoring Card & Compact 1-10 Selectors */
+.jury-rubric-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rubric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.rubric-header h3 {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.rubric-header p {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.rubric-total-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 4px 12px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 12px;
+}
+
+.total-score-num {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #1d4ed8;
+  font-family: var(--font-mono, monospace);
+  line-height: 1;
+}
+
+.total-score-denom {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.rubric-parameters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rubric-parameter-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .param-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
 }
 
 .param-title-row strong {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   color: #0f172a;
   font-weight: 800;
 }
 
 .param-info span {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   color: #64748b;
   display: block;
-  margin-bottom: 12px;
 }
 
 .param-selected-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  padding: 2px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   color: #1d4ed8;
-  border-radius: 16px;
-  font-size: 0.75rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
   font-weight: 900;
   font-family: var(--font-mono, monospace);
 }
@@ -17257,17 +18102,17 @@ body {
 .param-score-pill-selector {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 6px;
+  gap: 4px;
 }
 
 .score-pill-btn {
-  padding: 8px 0;
-  background: #f8fafc;
+  padding: 5px 0;
+  background: #ffffff;
   border: 1.5px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
   font-weight: 800;
-  color: #475569;
+  color: #334155;
   cursor: pointer;
   text-align: center;
   transition: all 0.15s ease;
@@ -17277,160 +18122,256 @@ body {
   background: #e2e8f0;
   color: #0f172a;
   border-color: #94a3b8;
-  transform: translateY(-1px);
 }
 
 .score-pill-btn.active-score {
   background: #2563eb;
   border-color: #1d4ed8;
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
   font-weight: 900;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
 }
 
-/* AI Questions Copilot Panel */
-.ai-questions-copilot-card {
+.rubric-feedback-box label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.rubric-feedback-box textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  box-sizing: border-box;
+}
+
+.rubric-feedback-box textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.btn-submit-evaluation-primary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-submit-evaluation-primary:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.btn-submit-evaluation-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 9. Clean Section 65B Evaluation Ledger Table */
+.eval-ledger-container {
+  padding: 6px 0 24px 0;
+}
+
+.ledger-table-card {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 16px;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  max-height: 820px;
 }
 
-.ai-copilot-header {
+.ledger-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding-bottom: 16px;
   border-bottom: 1.5px solid #f1f5f9;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.ai-copilot-title-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ai-copilot-title-group h3 {
-  font-size: 1rem;
+.ledger-title-group h3 {
+  font-size: 1.15rem;
   font-weight: 900;
   color: #0f172a;
-  margin: 0;
+  margin: 0 0 4px 0;
 }
 
-.ai-copilot-title-group p {
+.ledger-count-pill {
   font-size: 0.74rem;
-  color: #64748b;
-  margin: 2px 0 0 0;
-}
-
-.ai-cat-filter-scroll {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-}
-
-.ai-cat-pill {
-  padding: 5px 11px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 16px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #475569;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.ai-cat-pill:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-.ai-cat-pill.active-cat {
-  background: #4f46e5;
-  border-color: #4338ca;
-  color: #ffffff;
   font-weight: 800;
-}
-
-.ai-questions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-  max-height: 640px;
-  padding-right: 4px;
-}
-
-.ai-question-item-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: all 0.2s ease;
-}
-
-.ai-question-item-card:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}
-
-.ai-q-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.ai-q-cat-tag {
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: #4f46e5;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
   padding: 2px 8px;
   border-radius: 12px;
-  text-transform: uppercase;
 }
 
-.ai-q-text {
-  font-size: 0.82rem;
+.ledger-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ledger-select-filter,
+.ledger-search-input {
+  padding: 8px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #1e293b;
-  line-height: 1.4;
+  color: #0f172a;
+  outline: none;
+  background: #ffffff;
 }
 
-.ai-q-insert-btn {
-  align-self: flex-start;
+.ledger-select-filter:focus,
+.ledger-search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.btn-export-ledger-csv {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #2563eb;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.ai-q-insert-btn:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+.btn-export-ledger-csv:hover {
+  background: #1e293b;
 }
 
-/* Public Evaluation Completed Status Badge */
+.eval-master-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.eval-master-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 800;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  border-bottom: 1.5px solid #e2e8f0;
+  text-align: left;
+}
+
+.eval-master-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.eval-master-table tr:hover td {
+  background: #f8fafc;
+}
+
+.scores-mini-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.scores-mini-pills span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #334155;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.total-score-badge {
+  display: inline-flex;
+  padding: 3px 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-weight: 900;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82rem;
+}
+
+.verdict-pill {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.verdict-pill.top {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.verdict-pill.pass {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.verdict-pill.bench {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.col-remarks {
+  font-size: 0.75rem;
+  color: #475569;
+  max-width: 220px;
+  line-height: 1.35;
+}
+
+.empty-ledger-cell {
+  text-align: center;
+  padding: 32px 16px !important;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+/* 10. Student Slot Booking Completed Status Badge */
 .status-evaluated-badge {
   display: inline-flex;
   align-items: center;
@@ -17443,6 +18384,7 @@ body {
   font-size: 0.78rem;
   font-weight: 800;
 }
+
 
 
 

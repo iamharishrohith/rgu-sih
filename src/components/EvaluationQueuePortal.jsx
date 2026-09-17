@@ -5,7 +5,7 @@ import {
   Search, ShieldCheck, Download, Sparkles, Monitor, Laptop, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Bot, Brain, MessageSquare, Lightbulb, CheckSquare, 
-  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu
+  Square, Copy, Award, HelpCircle, Check, Compass, ShieldAlert, Cpu, LogOut
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -398,6 +398,7 @@ export default function EvaluationQueuePortal({
   const [selectedQuestionCategory, setSelectedQuestionCategory] = useState('ALL');
   const [questionSearchQuery, setQuestionSearchQuery] = useState('');
   const [askedQuestionIds, setAskedQuestionIds] = useState(new Set());
+  const [juryLeftTab, setJuryLeftTab] = useState('copilot'); // 'copilot' | 'queue'
 
   const [selectedJuryPanelId, setSelectedJuryPanelId] = useState(() => {
     try {
@@ -1177,6 +1178,7 @@ export default function EvaluationQueuePortal({
                     onClick={handleJuryLogout}
                     title='Exit this Jury Panel Station'
                   >
+                    <LogOut size={14} />
                     <span>Exit Station</span>
                   </button>
                 </div>
@@ -1305,147 +1307,172 @@ export default function EvaluationQueuePortal({
                     </div>
                   )}
 
-                  {/* AI COPILOT: 28+ SUGGESTED EVALUATION QUESTIONS BY THEME */}
-                  <div className='ai-questions-copilot-card'>
-                    <div className='ai-copilot-header'>
-                      <div className='ai-header-left'>
-                        <div className='ai-sparkle-badge'>
-                          <Bot size={18} className='text-primary' />
-                          <Sparkles size={14} className='sparkle-sub' />
-                        </div>
-                        <div>
-                          <h4>AI Jury Inquiry Copilot</h4>
-                          <p>28+ Theme-Tailored Evaluation Questions across 10 Critical Engineering Dimensions</p>
-                        </div>
-                      </div>
+                  {/* JURY LEFT COLUMN TABS */}
+                  <div className='jury-left-nav-tabs'>
+                    <button
+                      type='button'
+                      className={`jury-left-tab-btn ${juryLeftTab === 'copilot' ? 'active' : ''}`}
+                      onClick={() => setJuryLeftTab('copilot')}
+                    >
+                      <Bot size={15} />
+                      <span>AI Inquiry Copilot (28+)</span>
+                    </button>
 
-                      <div className='ai-search-box'>
-                        <Search size={14} className='ai-search-ico' />
-                        <input 
-                          type='text' 
-                          placeholder='Search questions (e.g. offline, patent, scale)...'
-                          value={questionSearchQuery}
-                          onChange={e => setQuestionSearchQuery(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Category Filter Pills */}
-                    <div className='ai-category-filter-strip'>
-                      {[
-                        { id: 'ALL', label: 'All (28+)' },
-                        { id: 'Field Research', label: 'Field Research' },
-                        { id: 'Solution', label: 'Solution & Flow' },
-                        { id: 'Innovation', label: 'Innovation / IP' },
-                        { id: 'Tech Stack', label: 'Tech Stack' },
-                        { id: 'Feasibility', label: 'Feasibility Demo' },
-                        { id: 'Viability', label: 'Viability' },
-                        { id: 'Scalability', label: 'Scalability' },
-                        { id: 'Reliability', label: 'Security / 65B' },
-                        { id: 'Competitors', label: 'Competitors' },
-                        { id: 'Risk Analysis', label: 'Risk Analysis' },
-                      ].map(cat => (
-                        <button
-                          key={cat.id}
-                          type='button'
-                          className={`ai-cat-pill ${selectedQuestionCategory === cat.id ? 'active' : ''}`}
-                          onClick={() => setSelectedQuestionCategory(cat.id)}
-                        >
-                          {cat.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Questions List */}
-                    <div className='ai-questions-scroll-list'>
-                      {AI_EVALUATION_QUESTIONS_BY_THEME
-                        .filter(q => {
-                          if (selectedQuestionCategory !== 'ALL' && q.category !== selectedQuestionCategory) return false;
-                          if (!questionSearchQuery.trim()) return true;
-                          const term = questionSearchQuery.toLowerCase();
-                          return (
-                            q.question.toLowerCase().includes(term) ||
-                            q.tag.toLowerCase().includes(term) ||
-                            q.categoryLabel.toLowerCase().includes(term) ||
-                            q.rationale.toLowerCase().includes(term)
-                          );
-                        })
-                        .map(item => {
-                          const isAsked = askedQuestionIds.has(item.id);
-
-                          return (
-                            <div key={item.id} className={`ai-question-item-card ${isAsked ? 'is-asked' : ''}`}>
-                              <div className='q-top-meta-row'>
-                                <div className='q-tags-group'>
-                                  <span className='q-category-tag'>{item.categoryLabel}</span>
-                                  <span className='q-subtag'>{item.tag}</span>
-                                </div>
-                                <div className='q-actions-group'>
-                                  <button
-                                    type='button'
-                                    className={`btn-mark-asked ${isAsked ? 'active' : ''}`}
-                                    onClick={() => handleToggleQuestionAsked(item.id)}
-                                    title={isAsked ? 'Marked as Asked' : 'Click to Mark as Asked'}
-                                  >
-                                    {isAsked ? <CheckSquare size={14} /> : <Square size={14} />}
-                                    <span>{isAsked ? 'Asked' : 'Mark Asked'}</span>
-                                  </button>
-
-                                  <button
-                                    type='button'
-                                    className='btn-copy-to-feedback'
-                                    onClick={() => handleInsertQuestionToFeedback(item.question, item.tag)}
-                                    title='Insert question into Evaluator Feedback Remarks'
-                                  >
-                                    <Copy size={13} />
-                                    <span>Insert to Remarks</span>
-                                  </button>
-                                </div>
-                              </div>
-
-                              <p className='q-text-body'>"{item.question}"</p>
-                              <div className='q-rationale-row'>
-                                <Lightbulb size={12} className='text-amber' />
-                                <span><strong>Why ask:</strong> {item.rationale}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
+                    <button
+                      type='button'
+                      className={`jury-left-tab-btn ${juryLeftTab === 'queue' ? 'active' : ''}`}
+                      onClick={() => setJuryLeftTab('queue')}
+                    >
+                      <Users size={15} />
+                      <span>Panel Queue ({(panelQueues[activePanelObj.id] || []).length})</span>
+                    </button>
                   </div>
 
-                  {/* Panel Waiting Queue */}
-                  <div className='jury-panel-queue-card'>
-                    <div className='queue-card-header'>
-                      <h4>Waiting Queue for {activePanelObj.code} ({(panelQueues[activePanelObj.id] || []).length} Teams)</h4>
-                    </div>
-
-                    {(panelQueues[activePanelObj.id] || []).length === 0 ? (
-                      <div className='empty-queue-callout'>No teams currently queued for this panel.</div>
-                    ) : (
-                      <div className='jury-queue-items-list'>
-                        {(panelQueues[activePanelObj.id] || []).map((item) => (
-                          <div key={item.teamId} className='jury-queue-item-row'>
-                            <div className='item-left'>
-                              <span className='item-token'>{item.tokenNumber}</span>
-                              <div>
-                                <strong>{item.teamName}</strong>
-                                <span className='item-meta'>{item.leaderName} • {item.psId}</span>
-                              </div>
-                            </div>
-                            <button 
-                              className='btn-call-team-start'
-                              disabled={!!activeSessions[activePanelObj.id]}
-                              onClick={() => handleStartJuryEvaluation(item)}
-                            >
-                              <Play size={14} />
-                              <span>Start Evaluation</span>
-                            </button>
+                  {/* TAB 1: AI COPILOT */}
+                  {juryLeftTab === 'copilot' && (
+                    <div className='ai-questions-copilot-card'>
+                      <div className='ai-copilot-header'>
+                        <div className='ai-header-left'>
+                          <div className='ai-sparkle-badge'>
+                            <Bot size={18} className='text-primary' />
+                            <Sparkles size={14} className='sparkle-sub' />
                           </div>
+                          <div>
+                            <h4>AI Jury Inquiry Copilot</h4>
+                            <p>28+ Theme-Tailored Evaluation Questions across 10 Engineering Dimensions</p>
+                          </div>
+                        </div>
+
+                        <div className='ai-search-box'>
+                          <Search size={14} className='ai-search-ico' />
+                          <input 
+                            type='text' 
+                            placeholder='Search questions (e.g. offline, patent, scale)...'
+                            value={questionSearchQuery}
+                            onChange={e => setQuestionSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Category Filter Pills */}
+                      <div className='ai-category-filter-strip'>
+                        {[
+                          { id: 'ALL', label: 'All (28+)' },
+                          { id: 'Field Research', label: 'Field Research' },
+                          { id: 'Solution', label: 'Solution & Flow' },
+                          { id: 'Innovation', label: 'Innovation / IP' },
+                          { id: 'Tech Stack', label: 'Tech Stack' },
+                          { id: 'Feasibility', label: 'Feasibility Demo' },
+                          { id: 'Viability', label: 'Viability' },
+                          { id: 'Scalability', label: 'Scalability' },
+                          { id: 'Reliability', label: 'Security / 65B' },
+                          { id: 'Competitors', label: 'Competitors' },
+                          { id: 'Risk Analysis', label: 'Risk Analysis' },
+                        ].map(cat => (
+                          <button
+                            key={cat.id}
+                            type='button'
+                            className={`ai-cat-pill ${selectedQuestionCategory === cat.id ? 'active' : ''}`}
+                            onClick={() => setSelectedQuestionCategory(cat.id)}
+                          >
+                            {cat.label}
+                          </button>
                         ))}
                       </div>
-                    )}
-                  </div>
+
+                      {/* Questions List */}
+                      <div className='ai-questions-scroll-list'>
+                        {AI_EVALUATION_QUESTIONS_BY_THEME
+                          .filter(q => {
+                            if (selectedQuestionCategory !== 'ALL' && q.category !== selectedQuestionCategory) return false;
+                            if (!questionSearchQuery.trim()) return true;
+                            const term = questionSearchQuery.toLowerCase();
+                            return (
+                              q.question.toLowerCase().includes(term) ||
+                              q.tag.toLowerCase().includes(term) ||
+                              q.categoryLabel.toLowerCase().includes(term) ||
+                              q.rationale.toLowerCase().includes(term)
+                            );
+                          })
+                          .map(item => {
+                            const isAsked = askedQuestionIds.has(item.id);
+
+                            return (
+                              <div key={item.id} className={`ai-question-item-card ${isAsked ? 'is-asked' : ''}`}>
+                                <div className='q-top-meta-row'>
+                                  <div className='q-tags-group'>
+                                    <span className='q-category-tag'>{item.categoryLabel}</span>
+                                    <span className='q-subtag'>{item.tag}</span>
+                                  </div>
+                                  <div className='q-actions-group'>
+                                    <button
+                                      type='button'
+                                      className={`btn-mark-asked ${isAsked ? 'active' : ''}`}
+                                      onClick={() => handleToggleQuestionAsked(item.id)}
+                                      title={isAsked ? 'Marked as Asked' : 'Click to Mark as Asked'}
+                                    >
+                                      {isAsked ? <CheckSquare size={14} /> : <Square size={14} />}
+                                      <span>{isAsked ? 'Asked' : 'Mark Asked'}</span>
+                                    </button>
+
+                                    <button
+                                      type='button'
+                                      className='btn-copy-to-feedback'
+                                      onClick={() => handleInsertQuestionToFeedback(item.question, item.tag)}
+                                      title='Insert question into Evaluator Feedback Remarks'
+                                    >
+                                      <Copy size={13} />
+                                      <span>Insert to Remarks</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <p className='q-text-body'>"{item.question}"</p>
+                                <div className='q-rationale-row'>
+                                  <Lightbulb size={12} className='text-amber' />
+                                  <span><strong>Why ask:</strong> {item.rationale}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TAB 2: PANEL WAITING QUEUE */}
+                  {juryLeftTab === 'queue' && (
+                    <div className='jury-panel-queue-card'>
+                      <div className='queue-card-header'>
+                        <h4>Waiting Queue for {activePanelObj.code} ({(panelQueues[activePanelObj.id] || []).length} Teams)</h4>
+                      </div>
+
+                      {(panelQueues[activePanelObj.id] || []).length === 0 ? (
+                        <div className='empty-queue-callout'>No teams currently queued for this panel. Teams can book slots in the Student Booking tab or you can look up any team above.</div>
+                      ) : (
+                        <div className='jury-queue-items-list'>
+                          {(panelQueues[activePanelObj.id] || []).map((item) => (
+                            <div key={item.teamId} className='jury-queue-item-row'>
+                              <div className='item-left'>
+                                <span className='item-token'>{item.tokenNumber}</span>
+                                <div>
+                                  <strong>{item.teamName}</strong>
+                                  <span className='item-meta'>{item.leaderName} • {item.psId}</span>
+                                </div>
+                              </div>
+                              <button 
+                                className='btn-call-team-start'
+                                disabled={!!activeSessions[activePanelObj.id]}
+                                onClick={() => handleStartJuryEvaluation(item)}
+                              >
+                                <Play size={14} />
+                                <span>Start Evaluation</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* RIGHT COLUMN: RUBRIC SCORING WITH CHOOSEABLE 1-10 NUMBER PILLS */}
