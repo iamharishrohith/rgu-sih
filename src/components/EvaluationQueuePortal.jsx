@@ -13,58 +13,58 @@ import PanelManagerModal from './PanelManagerModal.jsx';
 export const DEFAULT_EVALUATION_PANELS = [
   {
     id: 'panel_1',
-    name: 'Panel 1 — Software, AI & WebTech',
+    name: 'Panel 1 — Data Science & Analytics',
     code: 'P1',
     room: 'Hall A (Room 101)',
-    domain: 'Software & AI',
+    domain: 'Data Engineering & Data Science',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
     juries: [
-      { name: 'Dr. R. Kumar', role: 'Chief Jury', designation: 'Professor & AI Lead, RGU' },
-      { name: 'Er. S. Vignesh', role: 'Technical Evaluator', designation: 'Senior Architect, TechCorp' }
+      { name: 'Mr. Manikandan S', role: 'Chief Jury', designation: 'Data Engineering / Data Science', theme: 'Data Science & Analytics' },
+      { name: 'Mr. Rajesh Kumar G', role: 'Technical Evaluator', designation: 'Python / Data Analytics', theme: 'Python & Analytics' }
     ]
   },
   {
     id: 'panel_2',
-    name: 'Panel 2 — Hardware, Embedded & IoT',
+    name: 'Panel 2 — Full Stack & Cyber Security',
     code: 'P2',
-    room: 'Hardware Lab (Room 102)',
-    domain: 'Hardware & IoT',
+    room: 'Hall B (Room 102)',
+    domain: 'MERN Full Stack & Cyber Security',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
     juries: [
-      { name: 'Prof. M. Anitha', role: 'Chief Jury', designation: 'Head of Robotics, RGU' },
-      { name: 'Er. K. Rajesh', role: 'Technical Evaluator', designation: 'IoT Systems Specialist' }
+      { name: 'Mr. Rajesh T', role: 'Chief Jury', designation: 'MERN Full Stack', theme: 'Full Stack & Web' },
+      { name: 'Mr. Raja G', role: 'Technical Evaluator', designation: 'Cyber Security', theme: 'Cyber Security & Systems' }
     ]
   },
   {
     id: 'panel_3',
-    name: 'Panel 3 — AgriTech & Disaster Sentinel',
+    name: 'Panel 3 — IoT, Embedded & Cloud',
     code: 'P3',
-    room: 'Hall B (Room 103)',
-    domain: 'AgriTech & Disaster',
+    room: 'Hardware Lab (Room 103)',
+    domain: 'IoT & Cloud',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
     juries: [
-      { name: 'Dr. P. Suresh', role: 'Chief Jury', designation: 'Dean of Research, RGU' },
-      { name: 'Er. N. Divya', role: 'Technical Evaluator', designation: 'Data Scientist' }
+      { name: 'Mr. Ramesh Marivendhan', role: 'Chief Jury', designation: 'IoT', theme: 'IoT & Embedded Systems' },
+      { name: 'Mr. Selvarajalingam S', role: 'Technical Evaluator', designation: 'Cloud', theme: 'Cloud Infrastructure' }
     ]
   },
   {
     id: 'panel_4',
-    name: 'Panel 4 — FinTech, LegalTech & Smart Governance',
+    name: 'Panel 4 — Cloud & Cyber Security',
     code: 'P4',
     room: 'Mini Auditorium (Room 104)',
-    domain: 'FinTech & Governance',
+    domain: 'Cloud & Cyber Security',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
     juries: [
-      { name: 'Dr. V. Karthik', role: 'Chief Jury', designation: 'FinTech Chair & LegalTech Consultant' },
-      { name: 'Er. T. Meenakshi', role: 'Technical Evaluator', designation: 'Cybersecurity Auditor' }
+      { name: 'Mr. Sunil Kumar S', role: 'Chief Jury', designation: 'Cyber Security', theme: 'Cyber Security' },
+      { name: 'Mr. Aravind S', role: 'Technical Evaluator', designation: 'Cloud', theme: 'Cloud Architecture' }
     ]
   }
 ];
