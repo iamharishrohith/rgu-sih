@@ -15776,6 +15776,276 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
+/* Pre-Evaluation 08:00 AM Countdown Gate */
+.student-countdown-gate-card {
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+  border: 1.5px solid #dbeafe;
+}
+
+.countdown-gate-header {
+  margin-bottom: 24px;
+}
+
+.countdown-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.countdown-status-pill .pulse-dot {
+  color: #2563eb;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.countdown-gate-header h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.countdown-gate-header p {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin-top: 6px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Digital Countdown Dial Deck */
+.booking-countdown-deck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 28px 0;
+  padding: 24px;
+  background: #0f172a;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+.countdown-dial-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+
+.countdown-dial-unit .dial-digits {
+  font-family: var(--font-mono);
+  font-size: 3.6rem;
+  font-weight: 900;
+  color: #38bdf8;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+}
+
+.countdown-dial-unit .dial-unit-lbl {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
+  margin-top: 8px;
+}
+
+.booking-countdown-deck .dial-sep {
+  font-family: var(--font-mono);
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #64748b;
+  line-height: 1;
+  margin-top: -12px;
+}
+
+/* Info Chips Grid */
+.countdown-info-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.c-info-chip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.c-info-chip strong {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.c-info-chip span {
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+/* Advance Preview Search Box */
+.countdown-preview-search-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 22px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.countdown-preview-search-box h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.preview-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.preview-input-wrap .search-ico {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+}
+
+.preview-input-wrap input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s;
+  background: #ffffff;
+}
+
+.preview-input-wrap input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.preview-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.preview-team-res-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-team-res-card .res-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preview-team-res-card .t-badge {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.preview-team-res-card .t-name {
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.preview-team-res-card .t-tier {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+.preview-team-res-card .res-meta {
+  font-size: 0.78rem;
+  color: #475569;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.preview-team-res-card .res-status-tag {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #d97706;
+  margin-top: 2px;
+}
+
+/* Admin Override Bar */
+.admin-countdown-override-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fffbeb;
+  border: 1px dashed #f59e0b;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 0.85rem;
+  color: #92400e;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-admin-unlock-early {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #d97706;
+  color: #ffffff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-admin-unlock-early:hover {
+  background: #b45309;
+}
+
 .student-header-block {
   text-align: center;
   margin-bottom: 28px;

@@ -385,6 +385,32 @@ export default function EvaluationQueuePortal({
     return () => clearInterval(timer);
   }, []);
 
+  // 8:00 AM Slot Booking Opening Countdown Gate
+  const [adminBookingOverride, setAdminBookingOverride] = useState(false);
+
+  const getSlotBookingOpeningTime = () => {
+    const d = new Date(currentTimeMs);
+    const target = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 8, 0, 0, 0);
+    return target.getTime();
+  };
+
+  const slotOpeningTimeMs = useMemo(() => getSlotBookingOpeningTime(), [currentTimeMs]);
+  const isBookingOpen = currentTimeMs >= slotOpeningTimeMs || adminBookingOverride || isAdminLoggedIn;
+  const timeUntilOpenMs = Math.max(0, slotOpeningTimeMs - currentTimeMs);
+
+  const openCountdown = useMemo(() => {
+    const totalSecs = Math.floor(timeUntilOpenMs / 1000);
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    return {
+      hrs: String(hrs).padStart(2, '0'),
+      mins: String(mins).padStart(2, '0'),
+      secs: String(secs).padStart(2, '0'),
+      totalSecs
+    };
+  }, [timeUntilOpenMs]);
+
   const playSoundAlert = (type = 'chime') => {
     if (!soundEnabled) return;
     playEvalSound(type);
@@ -1564,6 +1590,114 @@ export default function EvaluationQueuePortal({
       {/* VIEW 3: STUDENT SLOT BOOKING — 3-STEP PROGRESSIVE WIZARD FLOW */}
       {activeView === 'student' && (
         <div className='eval-student-container'>
+          {!isBookingOpen && !bookingSuccessToken ? (
+            /* PRE-EVALUATION 08:00 AM COUNTDOWN GATE */
+            <div className='student-booking-card student-countdown-gate-card'>
+              <div className='countdown-gate-header'>
+                <div className='countdown-status-pill'>
+                  <Clock size={15} className='pulse-dot' />
+                  <span>PRE-EVALUATION GATEWAY • 08:00 AM DISPATCH</span>
+                </div>
+                <h2>Evaluation Slot Booking Opens at 8:00 AM</h2>
+                <p>The automated smart load-balanced queue for all 109 teams across 5 Panels will officially unlock in:</p>
+              </div>
+
+              {/* Digital Countdown Dial Deck */}
+              <div className='booking-countdown-deck'>
+                <div className='countdown-dial-unit'>
+                  <span className='dial-digits'>{openCountdown.hrs}</span>
+                  <span className='dial-unit-lbl'>HOURS</span>
+                </div>
+                <span className='dial-sep'>:</span>
+                <div className='countdown-dial-unit'>
+                  <span className='dial-digits'>{openCountdown.mins}</span>
+                  <span className='dial-unit-lbl'>MINUTES</span>
+                </div>
+                <span className='dial-sep'>:</span>
+                <div className='countdown-dial-unit'>
+                  <span className='dial-digits'>{openCountdown.secs}</span>
+                  <span className='dial-unit-lbl'>SECONDS</span>
+                </div>
+              </div>
+
+              {/* Info & Rule Chips */}
+              <div className='countdown-info-chips-grid'>
+                <div className='c-info-chip'>
+                  <strong>👥 109 Finalized Teams</strong>
+                  <span>Pre-registered in Master Roster</span>
+                </div>
+                <div className='c-info-chip'>
+                  <strong>🏛 5 Expert Panels</strong>
+                  <span>Smart Load-Balanced Allocation</span>
+                </div>
+                <div className='c-info-chip'>
+                  <strong>⏱ 20m Pitch + 10m Q&amp;A</strong>
+                  <span>Section 65B Digital Rubric</span>
+                </div>
+              </div>
+
+              {/* Advance Team Search & Preview */}
+              <div className='countdown-preview-search-box'>
+                <h4>🔍 Check Team Registration Status &amp; Assigned Theme</h4>
+                <div className='preview-input-wrap'>
+                  <Search size={16} className='search-ico' />
+                  <input 
+                    type='text'
+                    placeholder='Search Team ID (SIH26-TM-xxx), Team Name, or Leader Name to preview...'
+                    value={studentSearchInput}
+                    onChange={e => setStudentSearchInput(e.target.value)}
+                  />
+                </div>
+
+                {studentSearchInput.trim() && (
+                  <div className='preview-results-list'>
+                    {allTeams
+                      .filter(t => {
+                        const q = studentSearchInput.toLowerCase();
+                        return t.temp_team_id.toLowerCase().includes(q) || t.team_name.toLowerCase().includes(q) || t.leader_name.toLowerCase().includes(q);
+                      })
+                      .slice(0, 4)
+                      .map(t => {
+                        const enriched = getEnrichedTeam(t.temp_team_id) || t;
+                        const defaultTheme = getTeamDefaultTheme(enriched);
+                        return (
+                          <div key={t.temp_team_id} className='preview-team-res-card'>
+                            <div className='res-header'>
+                              <span className='t-badge'>{t.temp_team_id}</span>
+                              <strong className='t-name'>{enriched.team_name}</strong>
+                              <span className='t-tier'>{t.status}</span>
+                            </div>
+                            <div className='res-meta'>
+                              <span>Leader: <strong>{enriched.leader_name}</strong> ({enriched.reg_no || 'Registered'})</span>
+                              <span>College: {enriched.school}</span>
+                              <span>Theme: <strong className='text-primary'>{defaultTheme}</strong></span>
+                            </div>
+                            <div className='res-status-tag'>
+                              <span>Ready for 8:00 AM Token Generation</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+
+              {/* Admin Early Access Unlock */}
+              {isAdminLoggedIn && (
+                <div className='admin-countdown-override-bar'>
+                  <span>⚡ <strong>Admin Override:</strong> You have master administrative access.</span>
+                  <button 
+                    type='button' 
+                    className='btn-admin-unlock-early'
+                    onClick={() => setAdminBookingOverride(true)}
+                  >
+                    <Play size={13} />
+                    <span>Unlock Booking Desk Now</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className='student-booking-card'>
             <div className='student-header-block'>
               <div className='student-badge'>
@@ -2144,6 +2278,7 @@ export default function EvaluationQueuePortal({
               })()
             ) : null}
           </div>
+          )}
         </div>
       )}
 
