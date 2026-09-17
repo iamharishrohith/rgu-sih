@@ -1038,6 +1038,7 @@ export default function App() {
           onUpdateQueue={handleUpdateEvaluationQueue}
           onUpdateLedger={handleUpdateEvaluationLedger}
           onUpdateSessions={handleUpdateEvaluationSessions}
+          isAdminLoggedIn={isAdminLoggedIn}
           onOpenAdminGateway={isAdminLoggedIn ? triggerSecretAdmin : null}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');

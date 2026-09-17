@@ -76,6 +76,7 @@ export default function EvaluationQueuePortal({
   evaluationQueue = {},
   evaluationLedger = [],
   activeSessions = {},
+  isAdminLoggedIn = false,
   onUpdatePanels,
   onUpdateQueue,
   onUpdateLedger,
@@ -88,10 +89,10 @@ export default function EvaluationQueuePortal({
       const pathname = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-      if (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury')) return 'jury';
+      if (isAdminLoggedIn && (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury'))) return 'jury';
       if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) return 'student';
-      if (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger')) return 'ledger';
-      if (pathname.includes('/projector') || search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector')) return 'projector';
+      if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) return 'ledger';
+      if (pathname.includes('/projector') || pathname.includes('/live') || search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector') || hash.includes('live')) return 'projector';
     } catch (e) {}
     return 'projector';
   });
@@ -103,13 +104,13 @@ export default function EvaluationQueuePortal({
         const pathname = window.location.pathname.toLowerCase();
         const search = window.location.search.toLowerCase();
         const hash = window.location.hash.toLowerCase();
-        if (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury')) {
+        if (isAdminLoggedIn && (pathname.includes('/jury') || search.includes('view=jury') || hash.includes('jury'))) {
           setActiveView('jury');
         } else if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) {
           setActiveView('student');
-        } else if (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger')) {
+        } else if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) {
           setActiveView('ledger');
-        } else if (pathname.includes('/projector') || search.includes('view=projector') || hash.includes('projector')) {
+        } else {
           setActiveView('projector');
         }
       } catch (e) {}
@@ -121,7 +122,14 @@ export default function EvaluationQueuePortal({
       window.removeEventListener('hashchange', handleUrlSync);
       window.removeEventListener('popstate', handleUrlSync);
     };
-  }, []);
+  }, [isAdminLoggedIn]);
+
+  // Ensure unauthenticated users are kept out of jury/ledger views
+  useEffect(() => {
+    if (!isAdminLoggedIn && (activeView === 'jury' || activeView === 'ledger')) {
+      setActiveView('projector');
+    }
+  }, [isAdminLoggedIn, activeView]);
 
   const handleSwitchTab = (tabName) => {
     setActiveView(tabName);
@@ -528,15 +536,17 @@ export default function EvaluationQueuePortal({
               onClick={() => handleSwitchTab('projector')}
             >
               <Monitor size={15} />
-              <span>Arena Projector Wall</span>
+              <span>Live Panel Evaluation</span>
             </button>
-            <button 
-              className={`eval-tab-btn ${activeView === 'jury' ? 'active jury' : ''}`}
-              onClick={() => handleSwitchTab('jury')}
-            >
-              <Laptop size={15} />
-              <span>Jury Workspace</span>
-            </button>
+            {isAdminLoggedIn && (
+              <button 
+                className={`eval-tab-btn ${activeView === 'jury' ? 'active jury' : ''}`}
+                onClick={() => handleSwitchTab('jury')}
+              >
+                <Laptop size={15} />
+                <span>Jury Workspace</span>
+              </button>
+            )}
             <button 
               className={`eval-tab-btn ${activeView === 'student' ? 'active student' : ''}`}
               onClick={() => handleSwitchTab('student')}
@@ -544,25 +554,29 @@ export default function EvaluationQueuePortal({
               <Smartphone size={15} />
               <span>Student Slot Booking</span>
             </button>
-            <button 
-              className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
-              onClick={() => handleSwitchTab('ledger')}
-            >
-              <FileText size={15} />
-              <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
-            </button>
+            {isAdminLoggedIn && (
+              <button 
+                className={`eval-tab-btn ${activeView === 'ledger' ? 'active ledger' : ''}`}
+                onClick={() => handleSwitchTab('ledger')}
+              >
+                <FileText size={15} />
+                <span>Evaluation Ledger ({(evaluationLedger || []).length})</span>
+              </button>
+            )}
           </div>
         </div>
 
         <div className='eval-nav-right'>
-          <button 
-            className='btn-eval-manage-panels' 
-            onClick={() => setIsPanelModalOpen(true)}
-            title='Configure Panels, Juries, and Timing'
-          >
-            <Layers size={15} />
-            <span>Manage Panels</span>
-          </button>
+          {isAdminLoggedIn && (
+            <button 
+              className='btn-eval-manage-panels' 
+              onClick={() => setIsPanelModalOpen(true)}
+              title='Configure Panels, Juries, and Timing'
+            >
+              <Layers size={15} />
+              <span>Manage Panels</span>
+            </button>
+          )}
 
           {onOpenAdminGateway && (
             <button 
