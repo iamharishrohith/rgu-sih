@@ -4,7 +4,7 @@ import {
   Search, Filter, ShieldCheck, UserCheck, Eye, Edit3, Save, X, ExternalLink,
   LogOut, RefreshCw, Layers, BarChart3, PieChart, Award, FileText, Send, Check,
   Lock, Unlock, Hourglass, Zap, Calendar, DoorOpen, DoorClosed, ArrowRight, LogIn,
-  RotateCcw, AlertTriangle
+  RotateCcw, AlertTriangle, Radio
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { sanitizeCSVField } from '../crypto_security';
@@ -437,21 +437,55 @@ export default function AdminDashboard({
     document.body.removeChild(link);
   };
 
+  // Arena Reveal State for 09:45 AM Gate
+  const [isArenaRevealed, setIsArenaRevealed] = useState(() => {
+    try {
+      return localStorage.getItem('sih_arena_panel_revealed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleArenaReveal = () => {
+    const nextState = !isArenaRevealed;
+    setIsArenaRevealed(nextState);
+    try {
+      localStorage.setItem('sih_arena_panel_revealed', nextState ? 'true' : 'false');
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {}
+  };
+
   return (
-    <div className="admin-dashboard-wrapper">
-      {/* Top Admin Sub-Header */}
-      <div className="admin-header-strip">
-        <div className="admin-title-group">
-          <div className="admin-badge-icon">
-            <Layers size={22} />
+    <div className="admin-dashboard-container">
+      {/* Top Header Banner */}
+      <div className="admin-header-banner">
+        <div className="admin-header-left">
+          <div className="admin-logo-pill">
+            <span className="live-dot-green"></span>
+            <span>SIH 2026 INTERNAL CONTROL</span>
           </div>
-          <div>
-            <h2>SIH 2026 Finalist Administration &amp; Master Desk</h2>
+          <div className="admin-title-wrap">
+            <h1>Administrative Command Desk</h1>
             <p>110 Finalized Teams • 80 Unique Problem Statements • Real-Time Roster Manager</p>
           </div>
         </div>
 
-                        <div className="admin-top-actions">
+        <div className="admin-top-actions">
+          {/* Live Arena Screen Reveal Toggle */}
+          <button 
+            className={`btn-admin-portal-pill ${isArenaRevealed ? 'revealed' : 'locked'}`}
+            style={{
+              background: isArenaRevealed ? '#ecfdf5' : '#eff6ff',
+              color: isArenaRevealed ? '#059669' : '#1d4ed8',
+              borderColor: isArenaRevealed ? '#a7f3d0' : '#bfdbfe'
+            }}
+            onClick={handleToggleArenaReveal}
+            title={isArenaRevealed ? 'Live Arena Screen is REVEALED. Click to Re-lock to 09:45 AM countdown.' : 'Live Arena Screen is LOCKED until 09:45 AM. Click to Force Reveal early.'}
+          >
+            <Radio size={15} className={isArenaRevealed ? 'text-emerald animate-pulse' : 'text-primary'} />
+            <span>Arena Screen: {isArenaRevealed ? 'Revealed (Live)' : 'Locked (Reveal Now)'}</span>
+          </button>
+
           <button 
             className={`btn-admin-portal-pill ${portalSettings?.isClosed ? 'locked' : 'active'}`}
             onClick={onOpenTimerModal}

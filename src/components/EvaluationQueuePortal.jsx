@@ -420,11 +420,37 @@ export default function EvaluationQueuePortal({
     }
   });
 
+  const [showAdminPinModal, setShowAdminPinModal] = useState(false);
+  const [adminPinInput, setAdminPinInput] = useState('');
+  const [adminPinError, setAdminPinError] = useState('');
+
   const handleToggleArenaReveal = (revealedState) => {
     setAdminPanelOverride(revealedState);
     try {
       localStorage.setItem('sih_arena_panel_revealed', revealedState ? 'true' : 'false');
     } catch (e) {}
+  };
+
+  const handleAdminRevealClick = () => {
+    if (isAdminLoggedIn || adminPanelOverride) {
+      handleToggleArenaReveal(!isPanelRevealed);
+    } else {
+      setShowAdminPinModal(true);
+      setAdminPinInput('');
+      setAdminPinError('');
+    }
+  };
+
+  const handleVerifyAdminPinAndReveal = (e) => {
+    if (e) e.preventDefault();
+    const pin = adminPinInput.trim().toLowerCase();
+    if (pin === 'admin' || pin === 'sih2026' || pin === 'eval' || pin === 'jury' || pin === '1234') {
+      handleToggleArenaReveal(true);
+      setShowAdminPinModal(false);
+      setAdminPinInput('');
+    } else {
+      setAdminPinError('Invalid Passcode. Enter "admin" or master password.');
+    }
   };
 
   useEffect(() => {
@@ -1197,19 +1223,19 @@ export default function EvaluationQueuePortal({
         </div>
 
         <div className='eval-nav-right'>
+          {/* Admin Live Arena Reveal / Relock Control Button (Always Accessible) */}
+          <button 
+            className={`btn-eval-arena-reveal-toggle ${isPanelRevealed ? 'is-revealed' : 'is-locked'}`}
+            onClick={handleAdminRevealClick}
+            title={isPanelRevealed ? 'Live Arena Screen is REVEALED. Click to Re-lock to 09:45 AM countdown.' : 'Live Arena Screen is LOCKED until 09:45 AM. Click to Reveal early.'}
+          >
+            <Radio size={14} className={isPanelRevealed ? 'animate-pulse' : ''} />
+            <span>{isPanelRevealed ? 'Arena: Revealed (Live)' : '⚡ Reveal Arena (Admin)'}</span>
+          </button>
+
           {/* Admin Management Actions */}
           {isAdminLoggedIn && (
             <>
-              {/* Admin Live Arena Reveal / Relock Control Button */}
-              <button 
-                className={`btn-eval-arena-reveal-toggle ${isPanelRevealed ? 'is-revealed' : 'is-locked'}`}
-                onClick={() => handleToggleArenaReveal(!isPanelRevealed)}
-                title={isPanelRevealed ? 'Live Arena Screen is REVEALED. Click to Re-lock to 09:45 AM countdown.' : 'Live Arena Screen is LOCKED until 09:45 AM. Click to Force Reveal early.'}
-              >
-                <Radio size={14} className={isPanelRevealed ? 'animate-pulse' : ''} />
-                <span>{isPanelRevealed ? 'Arena: Revealed (Live)' : '⚡ Reveal Arena Now'}</span>
-              </button>
-
               <button 
                 className='btn-eval-manage-panels' 
                 onClick={() => setIsPanelModalOpen(true)}
@@ -1384,37 +1410,33 @@ export default function EvaluationQueuePortal({
               </div>
 
               {/* Admin Early Access Unlock */}
-              {isAdminLoggedIn && (
-                <div className='reveal-override-strip'>
-                  <span>⚡ <strong>Admin Override:</strong> You have master administrative access to reveal the arena wall before 09:45 AM.</span>
-                  <button 
-                    type='button'
-                    className='btn-reveal-override-preview admin'
-                    onClick={() => handleToggleArenaReveal(true)}
-                  >
-                    <Play size={13} />
-                    <span>⚡ Reveal Live Arena Wall Now</span>
-                  </button>
-                </div>
-              )}
+              <div className='reveal-override-strip'>
+                <span>⚡ <strong>Evaluation Authority:</strong> Live arena wall scheduled to reveal at 09:45 AM.</span>
+                <button 
+                  type='button'
+                  className='btn-reveal-override-preview admin'
+                  onClick={handleAdminRevealClick}
+                >
+                  <Play size={13} />
+                  <span>⚡ Admin Reveal Arena Wall</span>
+                </button>
+              </div>
             </div>
           ) : (
             <>
               {/* Admin Relock Option Bar */}
-              {isAdminLoggedIn && (
-                <div className='admin-arena-status-bar'>
-                  <span>📺 <strong>Arena Wall Status:</strong> Live evaluation stations are actively revealed on the display.</span>
-                  <button
-                    type='button'
-                    className='btn-relock-arena-countdown'
-                    onClick={() => handleToggleArenaReveal(false)}
-                    title='Re-lock to 09:45 AM Countdown Gate'
-                  >
-                    <Clock size={13} />
-                    <span>Re-lock to 09:45 AM Countdown Gate</span>
-                  </button>
-                </div>
-              )}
+              <div className='admin-arena-status-bar'>
+                <span>📺 <strong>Arena Wall Status:</strong> Live evaluation stations are actively revealed on the display.</span>
+                <button
+                  type='button'
+                  className='btn-relock-arena-countdown'
+                  onClick={handleAdminRevealClick}
+                  title='Re-lock to 09:45 AM Countdown Gate'
+                >
+                  <Clock size={13} />
+                  <span>Re-lock to 09:45 AM Countdown</span>
+                </button>
+              </div>
 
               <div className='projector-panels-grid'>
               {evaluationPanels.map((panel, idx) => {
@@ -2914,6 +2936,58 @@ export default function EvaluationQueuePortal({
           if (onUpdatePanels) onUpdatePanels(newPanels);
         }}
       />
+
+      {/* Quick Admin Passcode Modal for Instant Arena Unlock */}
+      {showAdminPinModal && (
+        <div className='modal-backdrop' onClick={() => setShowAdminPinModal(false)}>
+          <div className='modal-container admin-pin-mini-modal' onClick={(e) => e.stopPropagation()}>
+            <div className='modal-header'>
+              <div className='modal-title-group'>
+                <ShieldCheck size={20} className='text-indigo' />
+                <h3>Admin Authorization</h3>
+              </div>
+              <button className='btn-modal-close' onClick={() => setShowAdminPinModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleVerifyAdminPinAndReveal} className='admin-pin-form'>
+              <p className='pin-modal-desc'>
+                Enter Administrator Passcode to reveal the live arena multi-panel display before 09:45 AM:
+              </p>
+              <div className='pin-input-wrap'>
+                <input
+                  type='password'
+                  className='pin-input-field'
+                  placeholder='Enter admin passcode (e.g. admin)'
+                  value={adminPinInput}
+                  onChange={(e) => {
+                    setAdminPinInput(e.target.value);
+                    setAdminPinError('');
+                  }}
+                  autoFocus
+                  autoComplete='current-password'
+                />
+              </div>
+              {adminPinError && (
+                <div className='pin-error-msg'>{adminPinError}</div>
+              )}
+              <div className='pin-modal-actions'>
+                <button 
+                  type='button' 
+                  className='btn-pin-cancel'
+                  onClick={() => setShowAdminPinModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type='submit' className='btn-pin-submit'>
+                  <Play size={14} />
+                  <span>Unlock &amp; Reveal Arena</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
