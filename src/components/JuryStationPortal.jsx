@@ -1261,25 +1261,43 @@ export default function JuryStationPortal({
                   )}
                 </div>
 
-                {/* RIGHT COLUMN: RUBRIC SCORING WITH CHOOSEABLE 1-10 NUMBER PILLS */}
+                {/* RIGHT COLUMN: RUBRIC SCORING WITH REFINED INTUITIVE SCORE MATRIX */}
                 <div className='jury-col-right'>
                   <div className='jury-rubric-card'>
+                    {/* Rubric Header with Live Score Gauge */}
                     <div className='rubric-header'>
-                      <div>
-                        <h3>Section 65B Live Evaluation Rubric</h3>
-                        <p>Official 5-Parameter Campus Rubric (Choose 1 to 10 for each criteria)</p>
+                      <div className='rubric-title-wrap'>
+                        <div className='rubric-kicker'>
+                          <ShieldCheck size={14} className='text-primary' />
+                          <span>SECTION 65B OFFICIAL DIGITAL RUBRIC</span>
+                        </div>
+                        <h3>Evaluation Scorecard</h3>
+                        <p>Grade each parameter from 1 (lowest) to 10 (highest)</p>
                       </div>
-                      <div className='rubric-total-badge'>
-                        <span className='total-score-num'>
-                          {Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0)}
-                        </span>
-                        <span className='total-score-denom'>/ 50</span>
-                      </div>
+
+                      {(() => {
+                        const totalScore = Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0);
+                        const pct = Math.round((totalScore / 50) * 100);
+                        const isTop = pct >= 80;
+                        const isMid = pct >= 60;
+                        return (
+                          <div className={`rubric-total-badge ${isTop ? 'tier-top' : isMid ? 'tier-mid' : 'tier-base'}`}>
+                            <div className='badge-score-main'>
+                              <span className='total-score-num'>{totalScore}</span>
+                              <span className='total-score-denom'>/ 50</span>
+                            </div>
+                            <span className='badge-pct-tag'>{pct}% • {isTop ? 'Distinction' : isMid ? 'Proficient' : 'Standard'}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Evaluator Selector Strip for Panels with Multiple Juries */}
                     <div className='evaluator-selector-strip'>
-                      <span className='eval-label'>Active Jury Evaluator (Click to switch evaluator):</span>
+                      <div className='eval-label-row'>
+                        <span className='eval-label'>Active Evaluator Terminal:</span>
+                        <span className='eval-hint'>Click to score as another jury</span>
+                      </div>
                       <div className='evaluator-pills-row'>
                         {(activePanelObj.juries || []).map((j, idx) => {
                           const isSelected = activeEvaluatorName === j.name;
@@ -1292,11 +1310,18 @@ export default function JuryStationPortal({
                               className={`evaluator-pill ${isSelected ? 'selected' : ''}`}
                               onClick={() => setActiveEvaluatorName(j.name)}
                             >
-                              <span className='eval-name'>{j.name}</span>
-                              <span className='eval-role'>({j.role || j.designation})</span>
-                              {alreadyScored && (
+                              <div className='eval-avatar-circle'>
+                                {j.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              </div>
+                              <div className='eval-pill-content'>
+                                <span className='eval-name'>{j.name}</span>
+                                <span className='eval-role'>{j.role || j.designation}</span>
+                              </div>
+                              {alreadyScored ? (
                                 <span className='scored-dot' title='Score already submitted by this evaluator'>✓ Scored</span>
-                              )}
+                              ) : isSelected ? (
+                                <span className='active-indicator-tag'>Scoring Now</span>
+                              ) : null}
                             </button>
                           );
                         })}
@@ -1313,7 +1338,7 @@ export default function JuryStationPortal({
                         <div className='prior-evaluations-banner'>
                           <div className='prior-eval-header'>
                             <CheckCircle2 size={15} className='text-emerald' />
-                            <strong>Recorded Evaluations for this Team ({teamRecords.length}):</strong>
+                            <strong>Completed Scorecards for this Team ({teamRecords.length}):</strong>
                           </div>
                           <div className='prior-eval-list'>
                             {teamRecords.map((rec, rIdx) => (
@@ -1328,121 +1353,96 @@ export default function JuryStationPortal({
                       );
                     })()}
 
+                    {/* 5-Parameter Rubric Scoring Cards */}
                     <div className='rubric-parameters-list'>
-                      {/* Parameter 1: Innovation */}
-                      <div className='rubric-parameter-row'>
-                        <div className='param-info'>
-                          <div className='param-title-row'>
-                            <strong>1. Innovation &amp; Novelty</strong>
-                            <span className='param-selected-badge'>{rubricScores.innovation} / 10</span>
-                          </div>
-                          <span>Uniqueness of the approach, creativity, and original intellectual merit.</span>
-                        </div>
-                        <div className='param-score-pill-selector'>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                            <button 
-                              key={num}
-                              type='button'
-                              className={`score-pill-btn ${rubricScores.innovation === num ? 'active-score' : ''}`}
-                              onClick={() => setRubricScores(prev => ({ ...prev, innovation: num }))}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      {[
+                        {
+                          key: 'innovation',
+                          num: '01',
+                          title: 'Innovation & Novelty',
+                          desc: 'Uniqueness of the approach, creativity, and original intellectual merit.'
+                        },
+                        {
+                          key: 'feasibility',
+                          num: '02',
+                          title: 'Technical Architecture & Feasibility',
+                          desc: 'System design, stack choices, engineering soundness, and scalability.'
+                        },
+                        {
+                          key: 'prototype',
+                          num: '03',
+                          title: 'Working Demo & Prototype Completeness',
+                          desc: 'Real implementation, live code/hardware demonstration, and functional UI.'
+                        },
+                        {
+                          key: 'presentation',
+                          num: '04',
+                          title: 'Presentation & Pitch Delivery',
+                          desc: 'Time management, clarity of speech, slide deck quality, and team synergy.'
+                        },
+                        {
+                          key: 'defense',
+                          num: '05',
+                          title: 'Q&A Defense & Domain Knowledge',
+                          desc: 'Confidence during jury cross-examination and domain depth.'
+                        }
+                      ].map(param => {
+                        const score = rubricScores[param.key] || 0;
+                        const getBadgeTier = (s) => {
+                          if (s >= 9) return { label: 'Outstanding', cls: 'tier-high' };
+                          if (s >= 7) return { label: 'Good', cls: 'tier-good' };
+                          if (s >= 5) return { label: 'Moderate', cls: 'tier-mod' };
+                          return { label: 'Needs Work', cls: 'tier-low' };
+                        };
+                        const tier = getBadgeTier(score);
 
-                      {/* Parameter 2: Feasibility */}
-                      <div className='rubric-parameter-row'>
-                        <div className='param-info'>
-                          <div className='param-title-row'>
-                            <strong>2. Technical Architecture &amp; Feasibility</strong>
-                            <span className='param-selected-badge'>{rubricScores.feasibility} / 10</span>
-                          </div>
-                          <span>System design, stack choices, engineering soundness, and scalability.</span>
-                        </div>
-                        <div className='param-score-pill-selector'>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                            <button 
-                              key={num}
-                              type='button'
-                              className={`score-pill-btn ${rubricScores.feasibility === num ? 'active-score' : ''}`}
-                              onClick={() => setRubricScores(prev => ({ ...prev, feasibility: num }))}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                        return (
+                          <div key={param.key} className='rubric-parameter-card'>
+                            <div className='param-card-header'>
+                              <div className='param-title-group'>
+                                <span className='param-seq-badge'>{param.num}</span>
+                                <div>
+                                  <h4 className='param-title'>{param.title}</h4>
+                                  <p className='param-desc'>{param.desc}</p>
+                                </div>
+                              </div>
+                              <div className={`param-score-display-pill ${tier.cls}`}>
+                                <span className='score-digits'>{score} <span className='denom'>/ 10</span></span>
+                                <span className='score-tier-label'>{tier.label}</span>
+                              </div>
+                            </div>
 
-                      {/* Parameter 3: Working Demo */}
-                      <div className='rubric-parameter-row'>
-                        <div className='param-info'>
-                          <div className='param-title-row'>
-                            <strong>3. Working Demo &amp; Prototype Completeness</strong>
-                            <span className='param-selected-badge'>{rubricScores.prototype} / 10</span>
-                          </div>
-                          <span>Real implementation, live code/hardware demonstration, and functional UI.</span>
-                        </div>
-                        <div className='param-score-pill-selector'>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                            <button 
-                              key={num}
-                              type='button'
-                              className={`score-pill-btn ${rubricScores.prototype === num ? 'active-score' : ''}`}
-                              onClick={() => setRubricScores(prev => ({ ...prev, prototype: num }))}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                            {/* 10-Point Score Grid Selector */}
+                            <div className='score-matrix-selector-wrap'>
+                              <div className='score-matrix-grid'>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => {
+                                  const isSelected = score === num;
+                                  return (
+                                    <button
+                                      key={num}
+                                      type='button'
+                                      className={`matrix-score-btn ${isSelected ? 'selected' : ''}`}
+                                      onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: num }))}
+                                      title={`Set ${param.title} score to ${num}/10`}
+                                    >
+                                      <span className='btn-score-num'>{num}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
 
-                      {/* Parameter 4: Presentation & Pitch */}
-                      <div className='rubric-parameter-row'>
-                        <div className='param-info'>
-                          <div className='param-title-row'>
-                            <strong>4. Presentation &amp; Pitch Delivery</strong>
-                            <span className='param-selected-badge'>{rubricScores.presentation} / 10</span>
+                              {/* Quick Presets */}
+                              <div className='score-quick-presets'>
+                                <span className='preset-lbl'>Quick Set:</span>
+                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 4 }))}>Pass (4)</button>
+                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 6 }))}>Average (6)</button>
+                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 8 }))}>Good (8)</button>
+                                <button type='button' className='btn-preset' onClick={() => setRubricScores(prev => ({ ...prev, [param.key]: 10 }))}>Max (10)</button>
+                              </div>
+                            </div>
                           </div>
-                          <span>Time management, clarity of speech, slide deck quality, and team synergy.</span>
-                        </div>
-                        <div className='param-score-pill-selector'>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                            <button 
-                              key={num}
-                              type='button'
-                              className={`score-pill-btn ${rubricScores.presentation === num ? 'active-score' : ''}`}
-                              onClick={() => setRubricScores(prev => ({ ...prev, presentation: num }))}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Parameter 5: Q&A Defense */}
-                      <div className='rubric-parameter-row'>
-                        <div className='param-info'>
-                          <div className='param-title-row'>
-                            <strong>5. Q&amp;A Defense &amp; Domain Knowledge</strong>
-                            <span className='param-selected-badge'>{rubricScores.defense} / 10</span>
-                          </div>
-                          <span>Confidence during jury cross-examination and domain depth.</span>
-                        </div>
-                        <div className='param-score-pill-selector'>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                            <button 
-                              key={num}
-                              type='button'
-                              className={`score-pill-btn ${rubricScores.defense === num ? 'active-score' : ''}`}
-                              onClick={() => setRubricScores(prev => ({ ...prev, defense: num }))}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
 
                     <div className='rubric-feedback-box'>
