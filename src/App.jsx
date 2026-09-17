@@ -944,6 +944,10 @@ export default function App() {
           setIsReadOnlyAfterClosure(false);
           setCurrentView('inout_portal');
         }}
+        onOpenEvaluationQueue={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('eval_queue');
+        }}
         currentView={currentView}
         isPortalClosed={isPortalClosed}
         onOpenTimerModal={() => {
@@ -993,6 +997,7 @@ export default function App() {
           portalSettings={portalSettings}
           onOpenTimerModal={() => setIsTimerModalOpen(true)}
           onUpdatePortalSettings={handleUpdatePortalSettings}
+          onOpenEvaluationQueue={() => setCurrentView('eval_queue')}
         />
       ) : currentView === 'eval_queue' ? (
         /* VIEW 2: DIGITAL EVALUATION QUEUE & MULTI-PANEL LIVE TIMING */
@@ -1027,6 +1032,10 @@ export default function App() {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');
           }}
+          onOpenEvaluationQueue={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('eval_queue');
+          }}
         />
       ) : isPortalClosed && !isReadOnlyAfterClosure ? (
         /* PORTAL CLOSED VIEW (Active when portal is locked) */
@@ -1058,6 +1067,10 @@ export default function App() {
           onOpenInOutPortal={() => {
             setIsReadOnlyAfterClosure(false);
             setCurrentView('inout_portal');
+          }}
+          onOpenEvaluationQueue={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('eval_queue');
           }}
           allTeams={publicTeamsList}
           onOpenTeamRegistration={(team) => {

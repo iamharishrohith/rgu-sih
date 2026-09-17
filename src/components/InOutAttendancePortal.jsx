@@ -41,7 +41,8 @@ export default function InOutAttendancePortal({
   onUpdateSessions,
   onUpdateActiveOuts,
   onUpdateLogs,
-  onBackToMain
+  onBackToMain,
+  onOpenEvaluationQueue
 }) {
   // Mode: If opened via QR code (?action=out or ?action=in), show dedicated minimal mobile form box!
   const [viewMode, setViewMode] = useState(() => {
@@ -1721,6 +1722,19 @@ export default function InOutAttendancePortal({
             <Smartphone size={14} />
             <span>Candidate Form Box</span>
           </button>
+
+          {/* Live Evaluation Queue & Arena Projector */}
+          {onOpenEvaluationQueue && (
+            <button 
+              className="btn-self-pass-trigger"
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#ffffff', borderColor: '#6366f1' }}
+              onClick={onOpenEvaluationQueue}
+              title="Open Digital Evaluation Queue & Live Multi-Panel Timer"
+            >
+              <Clock size={14} />
+              <span>Evaluation Queue</span>
+            </button>
+          )}
 
           <button 
             className={`btn-sound-toggle ${soundEnabled ? 'active' : ''}`} 

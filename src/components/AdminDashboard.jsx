@@ -34,7 +34,8 @@ export default function AdminDashboard({
   onToggleTeamVisibility,
   portalSettings,
   onOpenTimerModal,
-  onUpdatePortalSettings
+  onUpdatePortalSettings,
+  onOpenEvaluationQueue
 }) {
   // Navigation Tabs: 'analytics' | 'arena' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload' | 'whatsapp'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -457,6 +458,15 @@ export default function AdminDashboard({
           >
             {portalSettings?.isClosed ? <Lock size={15} className="text-rose" /> : <Unlock size={15} className="text-emerald" />}
             <span>Portal: {portalSettings?.isClosed ? 'Locked / Closed' : 'Open (Active)'}</span>
+          </button>
+          <button 
+            className="btn-admin-portal-pill"
+            style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
+            onClick={onOpenEvaluationQueue}
+            title="Launch Digital Evaluation Queue & Live Multi-Panel Timing"
+          >
+            <Clock size={15} />
+            <span>Evaluation Queue</span>
           </button>
           <button className="btn-admin-add-team" onClick={handleOpenCreateModal}>
             <Plus size={15} />

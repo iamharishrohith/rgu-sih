@@ -10,6 +10,7 @@ export default function Navbar({
   onOpenLandingView,
   onOpenCandidateDesk, 
   onOpenInOutPortal,
+  onOpenEvaluationQueue,
   currentView,
   isPortalClosed,
   onOpenTimerModal
@@ -94,6 +95,16 @@ export default function Navbar({
                 <CheckCircle2 size={15} className="text-emerald" />
                 <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
               </div>
+
+              <button 
+                className="btn-nav-admin"
+                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
+                onClick={onOpenEvaluationQueue || onOpenAdminGateway}
+                title="Launch Live Evaluation Queue & Arena Projector Wall"
+              >
+                <Clock size={15} />
+                <span>Evaluation Queue</span>
+              </button>
 
               <button 
                 className="btn-nav-admin active-admin" 

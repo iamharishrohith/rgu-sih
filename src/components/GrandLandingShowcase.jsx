@@ -9,6 +9,7 @@ export default function GrandLandingShowcase({
   onExploreBench, 
   onExploreWaitlist, 
   onOpenInOutPortal,
+  onOpenEvaluationQueue,
   allTeams,
   onOpenTeamRegistration
 }) {
@@ -24,42 +25,36 @@ export default function GrandLandingShowcase({
   const handleInstantLookup = (e) => {
     e.preventDefault();
     if (!quickSearch.trim()) return;
-    setHasSearched(true);
-
-    const q = quickSearch.trim().toLowerCase();
-    const match = allTeams.find(t => 
+    const q = quickSearch.toLowerCase().trim();
+    const found = allTeams.find(t => 
+      t.temp_team_id.toLowerCase().includes(q) ||
       t.reg_no.toLowerCase().includes(q) ||
       t.leader_name.toLowerCase().includes(q) ||
-      t.team_name.toLowerCase().includes(q) ||
-      t.temp_team_id.toLowerCase().includes(q)
+      (t.team_name && t.team_name.toLowerCase().includes(q))
     );
-
-    setSearchedTeam(match || null);
+    setSearchedTeam(found || null);
+    setHasSearched(true);
   };
 
   return (
-    <div className="grand-landing-viewport">
-      {/* Hero Grand Announcement Section */}
+    <div className="landing-showcase-viewport">
+      {/* Grand Hero Header Banner */}
       <section className="grand-hero-section">
-        <div className="grand-hero-container">
-          {/* Official Badge & Live Status */}
-          <div className="grand-announcement-badge-row">
-            <div className="celebrate-pill-badge">
-              <Sparkles size={14} className="text-emerald" />
-              <span>OFFICIAL SELECTION RESULTS ANNOUNCED</span>
-            </div>
+        <div className="hero-atmosphere-radial"></div>
+
+        <div className="hero-container">
+          <div className="hero-badge-pill">
+            <Sparkles size={14} className="text-amber" />
+            <span>MINISTRY OF EDUCATION &bull; AICTE &bull; SIH 2026</span>
           </div>
 
-          <h1 className="grand-main-headline">
-            Smart India Hackathon <span className="gradient-text-hero">2026</span>
+          <h1 className="grand-hero-title">
+            Smart India Hackathon 2026
+            <span className="gradient-highlight-text">Finalist Selection &amp; Evaluation</span>
           </h1>
-          
-          <div className="grand-sub-headline">
-            Campus Evaluation Authority Finalist Registry
-          </div>
 
-          <p className="grand-hero-description">
-            Congratulations to all student innovators! Rathinam Global University proudly presents the finalized candidate selections. <strong>{shortlistCount} primary finalists</strong> with <strong>100% unique problem statements</strong>, accompanied by top-tier bench standby and waitlisted teams.
+          <p className="grand-hero-subtitle">
+            Official selection results for <strong>{totalCount} Finalized Teams</strong> ({shortlistCount} Shortlisted with 100% unique problem statements, {benchCount} Bench Standby, and {waitlistCount} Waitlist). Live evaluation queue and Section 65B electronic proof ledger.
           </p>
 
           {/* Interactive Fast CTAs */}
@@ -69,9 +64,18 @@ export default function GrandLandingShowcase({
               <ArrowRight size={18} />
             </button>
 
+            <button 
+              className="btn-grand-secondary-cta" 
+              onClick={onOpenEvaluationQueue}
+              style={{ background: '#4f46e5', color: '#ffffff', borderColor: '#6366f1' }}
+            >
+              <Sparkles size={18} className="text-amber" />
+              <span>Live Evaluation Queue (Arena)</span>
+            </button>
+
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />
-              <span>Bench Standby Pool ({benchCount})</span>
+              <span>Bench Pool ({benchCount})</span>
             </button>
 
             <button className="btn-grand-secondary-cta" onClick={() => onExploreWaitlist('waitlist')}>
