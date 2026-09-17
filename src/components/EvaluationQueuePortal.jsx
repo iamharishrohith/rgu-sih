@@ -411,17 +411,41 @@ export default function EvaluationQueuePortal({
     };
   }, [timeUntilOpenMs]);
 
-  // 9:15 AM Live Panel Reveal Countdown Gate
-  const [adminPanelOverride, setAdminPanelOverride] = useState(false);
+  // 9:45 AM Live Panel Reveal Countdown Gate (Admin override syncs across all screens)
+  const [adminPanelOverride, setAdminPanelOverride] = useState(() => {
+    try {
+      return localStorage.getItem('sih_arena_panel_revealed') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const handleToggleArenaReveal = (revealedState) => {
+    setAdminPanelOverride(revealedState);
+    try {
+      localStorage.setItem('sih_arena_panel_revealed', revealedState ? 'true' : 'false');
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'sih_arena_panel_revealed') {
+        setAdminPanelOverride(e.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const getPanelRevealTime = () => {
     const d = new Date(currentTimeMs);
-    const target = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 15, 0, 0);
+    const target = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 45, 0, 0);
     return target.getTime();
   };
 
   const panelRevealTimeMs = useMemo(() => getPanelRevealTime(), [currentTimeMs]);
-  const isPanelRevealed = currentTimeMs >= panelRevealTimeMs || adminPanelOverride || isAdminLoggedIn;
+  const isTimeRevealed = currentTimeMs >= panelRevealTimeMs;
+  const isPanelRevealed = isTimeRevealed || adminPanelOverride;
   const timeUntilPanelRevealMs = Math.max(0, panelRevealTimeMs - currentTimeMs);
 
   const panelRevealCountdown = useMemo(() => {
@@ -1176,6 +1200,16 @@ export default function EvaluationQueuePortal({
           {/* Admin Management Actions */}
           {isAdminLoggedIn && (
             <>
+              {/* Admin Live Arena Reveal / Relock Control Button */}
+              <button 
+                className={`btn-eval-arena-reveal-toggle ${isPanelRevealed ? 'is-revealed' : 'is-locked'}`}
+                onClick={() => handleToggleArenaReveal(!isPanelRevealed)}
+                title={isPanelRevealed ? 'Live Arena Screen is REVEALED. Click to Re-lock to 09:45 AM countdown.' : 'Live Arena Screen is LOCKED until 09:45 AM. Click to Force Reveal early.'}
+              >
+                <Radio size={14} className={isPanelRevealed ? 'animate-pulse' : ''} />
+                <span>{isPanelRevealed ? 'Arena: Revealed (Live)' : '⚡ Reveal Arena Now'}</span>
+              </button>
+
               <button 
                 className='btn-eval-manage-panels' 
                 onClick={() => setIsPanelModalOpen(true)}
@@ -1303,14 +1337,14 @@ export default function EvaluationQueuePortal({
           </div>
 
           {!isPanelRevealed ? (
-            /* PRE-EVALUATION 09:15 AM LIVE PANEL REVEAL GATE */
+            /* PRE-EVALUATION 09:45 AM LIVE PANEL REVEAL GATE */
             <div className='projector-reveal-gate-card'>
               <div className='reveal-gate-header'>
                 <div className='reveal-status-pill'>
                   <Radio size={16} className='pulse-dot live' />
-                  <span>ARENA LIVE BROADCAST • 09:15 AM STAGE REVEAL</span>
+                  <span>ARENA LIVE BROADCAST • 09:45 AM STAGE REVEAL</span>
                 </div>
-                <h2>Live Multi-Panel Arena Reveals at 9:15 AM</h2>
+                <h2>Live Multi-Panel Arena Reveals at 9:45 AM</h2>
                 <p>Live presentation clocks, active jury scoring indicators, and real-time station queues across all 5 evaluation panels will officially reveal on this arena display in:</p>
               </div>
 
@@ -1352,20 +1386,37 @@ export default function EvaluationQueuePortal({
               {/* Admin Early Access Unlock */}
               {isAdminLoggedIn && (
                 <div className='reveal-override-strip'>
-                  <span>⚡ <strong>Admin Override:</strong> You have master administrative access.</span>
+                  <span>⚡ <strong>Admin Override:</strong> You have master administrative access to reveal the arena wall before 09:45 AM.</span>
                   <button 
                     type='button'
                     className='btn-reveal-override-preview admin'
-                    onClick={() => setAdminPanelOverride(true)}
+                    onClick={() => handleToggleArenaReveal(true)}
                   >
                     <Play size={13} />
-                    <span>Admin Unlock Arena Screen</span>
+                    <span>⚡ Reveal Live Arena Wall Now</span>
                   </button>
                 </div>
               )}
             </div>
           ) : (
-            <div className='projector-panels-grid'>
+            <>
+              {/* Admin Relock Option Bar */}
+              {isAdminLoggedIn && (
+                <div className='admin-arena-status-bar'>
+                  <span>📺 <strong>Arena Wall Status:</strong> Live evaluation stations are actively revealed on the display.</span>
+                  <button
+                    type='button'
+                    className='btn-relock-arena-countdown'
+                    onClick={() => handleToggleArenaReveal(false)}
+                    title='Re-lock to 09:45 AM Countdown Gate'
+                  >
+                    <Clock size={13} />
+                    <span>Re-lock to 09:45 AM Countdown Gate</span>
+                  </button>
+                </div>
+              )}
+
+              <div className='projector-panels-grid'>
               {evaluationPanels.map((panel, idx) => {
                 const currentSession = activeSessions[panel.id];
                 const timing = getSessionTimingInfo(currentSession);
@@ -1673,6 +1724,7 @@ export default function EvaluationQueuePortal({
                 );
               })}
             </div>
+            </>
           )}
         </div>
       )}

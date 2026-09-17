@@ -22723,3 +22723,76 @@ body {
     min-height: 42px;
   }
 }
+
+/* Admin Top Nav Arena Screen Toggle Button */
+.btn-eval-arena-reveal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1.5px solid transparent;
+}
+
+.btn-eval-arena-reveal-toggle.is-locked {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.btn-eval-arena-reveal-toggle.is-locked:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+.btn-eval-arena-reveal-toggle.is-revealed {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.btn-eval-arena-reveal-toggle.is-revealed:hover {
+  background: #d1fae5;
+  border-color: #10b981;
+}
+
+/* Admin Revealed Arena Status Bar */
+.admin-arena-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 16px;
+  font-size: 0.84rem;
+  color: #334155;
+}
+
+.btn-relock-arena-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #dc2626;
+  border: 1.5px solid #fecaca;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-relock-arena-countdown:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
