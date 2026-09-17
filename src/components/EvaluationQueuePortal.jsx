@@ -11,6 +11,7 @@ import {
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
 import PanelManagerModal from './PanelManagerModal.jsx';
+import { playEvalSound } from '../utils/evalSoundEffects.js';
 
 export const DEFAULT_EVALUATION_PANELS = [
   {
@@ -383,32 +384,10 @@ export default function EvaluationQueuePortal({
 
   const playSoundAlert = (type = 'chime') => {
     if (!soundEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      if (type === 'phase_switch') {
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
-        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.5);
-      } else {
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.3);
-      }
-    } catch (e) {}
+    playEvalSound(type);
   };
 
-  // Next Team Speech & Audio Broadcast Announcer
+  // Next Team Audio Broadcast Announcer (Zero TTS, Pure Audio Alert Chime)
   const announceTeamCall = (team, panel) => {
     if (!team || !panel) return;
     const alertObj = {
@@ -425,18 +404,7 @@ export default function EvaluationQueuePortal({
     setCallingTeamAlert(alertObj);
 
     if (soundEnabled) {
-      playSoundAlert('phase_switch');
-      try {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const speechText = `Attention please. Team ${alertObj.teamName}, Token ${alertObj.tokenNumber}, please report to ${alertObj.panelName}, ${alertObj.room} for evaluation.`;
-          const utterance = new SpeechSynthesisUtterance(speechText);
-          utterance.rate = 1.0;
-          utterance.pitch = 1.0;
-          utterance.lang = 'en-US';
-          window.speechSynthesis.speak(utterance);
-        }
-      } catch (e) {}
+      playSoundAlert('call');
     }
   };
 
@@ -612,7 +580,7 @@ export default function EvaluationQueuePortal({
       if (onUpdateQueue) onUpdateQueue(nextQ);
     }
 
-    playSoundAlert('phase_switch');
+    playSoundAlert('start');
   };
 
   // Calling Automation: Call next waiting team in panel queue
@@ -705,14 +673,14 @@ export default function EvaluationQueuePortal({
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (targetIdx < 0 || targetIdx >= list.length) return;
 
-    const temp = list[idx];
-    list[idx] = list[targetIdx];
-    list[targetIdx] = temp;
+    const nextQueue = { ...evaluationQueue };
+    const currentList = [...list];
+    const [moved] = currentList.splice(idx, 1);
+    currentList.splice(targetIdx, 0, moved);
 
     const targetPanel = evaluationPanels.find(p => p.id === panelId) || evaluationPanels[0];
-    const nextQueue = { ...evaluationQueue };
-    const baseTime = Date.now() - (list.length * 60000);
-    list.forEach((t, i) => {
+    const baseTime = Date.now() - (currentList.length * 60000);
+    currentList.forEach((t, i) => {
       nextQueue[t.teamId] = {
         ...nextQueue[t.teamId],
         bookedTimestamp: baseTime + (i * 60000),
@@ -729,7 +697,7 @@ export default function EvaluationQueuePortal({
       const nextQueue = { ...evaluationQueue };
       delete nextQueue[teamId];
       if (onUpdateQueue) onUpdateQueue(nextQueue);
-      playSoundAlert('chime');
+      playSoundAlert('delete');
     }
   };
 
@@ -749,6 +717,7 @@ export default function EvaluationQueuePortal({
         presentationEndMs: current.currentPhase === 'PRESENTATION' ? now + Math.min(remaining, current.presentMins * 60000) : current.presentationEndMs,
         pausedRemainingMs: null
       };
+      playSoundAlert('resume');
     } else {
       const remaining = Math.max(0, current.totalEndMs - now);
       updated = {
@@ -756,6 +725,7 @@ export default function EvaluationQueuePortal({
         isPaused: true,
         pausedRemainingMs: remaining
       };
+      playSoundAlert('pause');
     }
 
     const nextSessions = { ...activeSessions, [panelId]: updated };
@@ -775,7 +745,7 @@ export default function EvaluationQueuePortal({
 
     const nextSessions = { ...activeSessions, [panelId]: updated };
     if (onUpdateSessions) onUpdateSessions(nextSessions);
-    playSoundAlert('chime');
+    playSoundAlert('extend');
   };
 
   // Conclude Panel Evaluation & Save to Ledger (Auto-completes timing & calls next team)
@@ -820,7 +790,7 @@ export default function EvaluationQueuePortal({
     delete nextQueue[current.teamId];
     if (onUpdateQueue) onUpdateQueue(nextQueue);
 
-    playSoundAlert('phase_switch');
+    playSoundAlert('team_conclude');
 
     // Next Team Calling Automation
     if (autoCallNext) {
@@ -1207,6 +1177,27 @@ export default function EvaluationQueuePortal({
                           <span>Leader: <strong>{currentSession.leaderName}</strong></span>
                           <span>• {currentSession.school}</span>
                         </div>
+
+                        {/* Live Multi-Jury Score Status Indicator */}
+                        {panel.juries && panel.juries.length > 0 && (
+                          <div className='panel-jury-status-badges-strip'>
+                            <span className='jury-status-lbl'>Juries Scoring Status:</span>
+                            <div className='jury-status-items'>
+                              {panel.juries.map((j, jIdx) => {
+                                const submission = (evaluationLedger || []).find(l => l.teamId === currentSession.teamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
+                                return (
+                                  <span 
+                                    key={jIdx} 
+                                    className={`live-jury-badge ${submission ? 'scored' : 'pending'}`}
+                                    title={submission ? `Score: ${submission.totalScore}/50 submitted at ${submission.evaluatedAtStr}` : 'Scoring in progress'}
+                                  >
+                                    {submission ? '✅' : '⏳'} {j.name.split(' ')[0]}: {submission ? `${submission.totalScore}/50` : 'Pending'}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Admin Timing Controls */}

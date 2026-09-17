@@ -11,6 +11,7 @@ import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
 import PanelManagerModal from './PanelManagerModal.jsx';
 import { DEFAULT_EVALUATION_PANELS } from './EvaluationQueuePortal.jsx';
+import { playEvalSound } from '../utils/evalSoundEffects.js';
 
 export const AI_EVALUATION_QUESTIONS_BY_THEME = [
   // 1. Field Research & Ground Reality
@@ -397,29 +398,7 @@ export default function JuryStationPortal({
 
   const playSoundAlert = (type = 'chime') => {
     if (!soundEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      if (type === 'phase_switch') {
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
-        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.5);
-      } else {
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.3);
-      }
-    } catch (e) {}
+    playEvalSound(type);
   };
 
   const getEnrichedTeam = (teamId) => {
@@ -561,10 +540,10 @@ export default function JuryStationPortal({
 
     setManualSelectedTeam(null);
     setManualSearchQuery('');
-    playSoundAlert('phase_switch');
+    playSoundAlert('start');
   };
 
-  // Timer Controls
+  // Timer Controls (Shared across Panel Juries)
   const handleToggleTimerPause = (panelId) => {
     const current = activeSessions[panelId];
     if (!current) return;
@@ -580,6 +559,7 @@ export default function JuryStationPortal({
         presentationEndMs: current.currentPhase === 'PRESENTATION' ? now + Math.min(remaining, current.presentMins * 60000) : current.presentationEndMs,
         pausedRemainingMs: null
       };
+      playSoundAlert('resume');
     } else {
       const remaining = Math.max(0, current.totalEndMs - now);
       updated = {
@@ -587,6 +567,7 @@ export default function JuryStationPortal({
         isPaused: true,
         pausedRemainingMs: remaining
       };
+      playSoundAlert('pause');
     }
 
     const nextSessions = { ...activeSessions, [panelId]: updated };
@@ -606,11 +587,19 @@ export default function JuryStationPortal({
 
     const nextSessions = { ...activeSessions, [panelId]: updated };
     if (onUpdateSessions) onUpdateSessions(nextSessions);
-    playSoundAlert('chime');
+    playSoundAlert('extend');
   };
 
-  // Submit Rubric Evaluation (Supports multiple evaluations per team across all panel juries)
-  const handleSubmitEvaluationScore = (conclude = false) => {
+  // Stop Active Session Timer (Manual Stop)
+  const handleStopSessionOnly = (panelId) => {
+    const nextSessions = { ...activeSessions };
+    delete nextSessions[panelId];
+    if (onUpdateSessions) onUpdateSessions(nextSessions);
+    playSoundAlert('pause');
+  };
+
+  // Submit Rubric Evaluation (Separate Marks for Each Individual Jury)
+  const handleSubmitEvaluationScore = (forceConclude = false) => {
     const current = activeSessions[activePanelObj.id];
     if (!current) return;
 
@@ -643,15 +632,20 @@ export default function JuryStationPortal({
       evaluatedAtMs: now.getTime()
     };
 
-    // 1. Save Section 65B evaluation to ledger
+    // 1. Save this Jury's Individual Section 65B evaluation to ledger
     const nextLedger = [ledgerEntry, ...(evaluationLedger || [])];
     if (onUpdateLedger) onUpdateLedger(nextLedger);
 
     const teamEvaluations = nextLedger.filter(l => l.teamId === current.teamId);
     const totalPanelJuries = (activePanelObj.juries || []).length || 1;
+    const allPanelJuriesSubmitted = teamEvaluations.length >= totalPanelJuries;
 
-    // If conclude requested OR all juries in panel have evaluated:
-    if (conclude || teamEvaluations.length >= totalPanelJuries) {
+    // Reset current evaluator's form for next use
+    setRubricScores({ innovation: 8, feasibility: 8, prototype: 8, presentation: 8, defense: 8 });
+    setEvalFeedback('');
+
+    // If all juries in this panel have now submitted their scores, OR if force conclude was triggered:
+    if (forceConclude || allPanelJuriesSubmitted) {
       // Auto-complete and clear active session (stops timing)
       const nextSessions = { ...activeSessions };
       delete nextSessions[activePanelObj.id];
@@ -662,36 +656,26 @@ export default function JuryStationPortal({
       delete nextQueue[current.teamId];
       if (onUpdateQueue) onUpdateQueue(nextQueue);
 
-      // Next Team Calling Automation
+      playSoundAlert('team_conclude');
+
+      // Next Team Audio Chime Call (Pure Sound, Zero TTS)
       const remainingQueued = (panelQueues[activePanelObj.id] || []).filter(item => item.teamId !== current.teamId && (item.status === 'WAITING' || item.status === 'CALLING'));
       if (remainingQueued.length > 0) {
-        const nextTeam = remainingQueued[0];
-        try {
-          if ('speechSynthesis' in window && soundEnabled) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(`Attention please. Team ${nextTeam.teamName}, Token ${nextTeam.tokenNumber}, please report to ${activePanelObj.name}, ${activePanelObj.room} for your evaluation.`);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            utterance.lang = 'en-US';
-            window.speechSynthesis.speak(utterance);
-          }
-        } catch (e) {}
+        setTimeout(() => {
+          playSoundAlert('call');
+        }, 600);
       }
 
-      alert(`✅ Evaluation submitted by ${selectedJuryObj.name} for ${current.teamName}! (Score: ${total}/50)\n\nAll ${teamEvaluations.length} evaluation(s) concluded. Next team is now called.`);
+      alert(`✅ Evaluation score submitted for ${selectedJuryObj.name} (${total}/50)!\n\nAll ${teamEvaluations.length} panel evaluation(s) completed for ${current.teamName}. Pitch session is concluded and next team is queued.`);
     } else {
-      // Switch active evaluator to the other panel jury for convenience
+      // Score recorded for this jury, keep session active for the 2nd jury
+      playSoundAlert('score_submit');
       const otherJury = (activePanelObj.juries || []).find(j => j.name !== selectedJuryObj.name);
       if (otherJury) {
         setActiveEvaluatorName(otherJury.name);
       }
-      alert(`✅ Evaluation score recorded for ${selectedJuryObj.name} (${total}/50)!\n\nPitch session remains active for the 2nd Evaluator (${otherJury?.name || 'co-evaluator'}).`);
+      alert(`✅ Evaluation score saved for ${selectedJuryObj.name} (${total}/50)!\n\nPitch session remains active. ${otherJury?.name || 'Co-Evaluator'} can now fill and submit their separate score.`);
     }
-
-    // Reset rubric form for next entry
-    setRubricScores({ innovation: 8, feasibility: 8, prototype: 8, presentation: 8, defense: 8 });
-    setEvalFeedback('');
-    playSoundAlert('phase_switch');
   };
 
   const getSessionTimingInfo = (session) => {
@@ -1382,29 +1366,33 @@ export default function JuryStationPortal({
                     </div>
 
                     <div className='rubric-submit-actions'>
+                      <button 
+                        type='button'
+                        className='btn-submit-evaluation-primary'
+                        disabled={!activeSessions[activePanelObj.id]}
+                        onClick={() => handleSubmitEvaluationScore(false)}
+                        title={`Save individual evaluation score for ${activeEvaluatorName}`}
+                      >
+                        <CheckCircle2 size={18} />
+                        <span>Submit &amp; Complete Score for {activeEvaluatorName || 'Evaluator'}</span>
+                      </button>
+
                       {(activePanelObj.juries || []).length > 1 && (
                         <button 
                           type='button'
                           className='btn-submit-evaluation-secondary'
                           disabled={!activeSessions[activePanelObj.id]}
-                          onClick={() => handleSubmitEvaluationScore(false)}
-                          title='Save this jury evaluation score while keeping pitch timer open for co-evaluator'
+                          onClick={() => {
+                            if (window.confirm('Force conclude evaluation for this team and advance to the next team in queue?')) {
+                              handleSubmitEvaluationScore(true);
+                            }
+                          }}
+                          title='Force finalize team evaluation and call next team immediately'
                         >
-                          <Check size={16} />
-                          <span>Submit Score for {activeEvaluatorName ? activeEvaluatorName.split(' ')[0] : 'Evaluator'} (Keep Pitch Open)</span>
+                          <Square size={15} />
+                          <span>Force Conclude &amp; Call Next</span>
                         </button>
                       )}
-
-                      <button 
-                        type='button'
-                        className='btn-submit-evaluation-primary'
-                        disabled={!activeSessions[activePanelObj.id]}
-                        onClick={() => handleSubmitEvaluationScore(true)}
-                        title='Save evaluation score, complete session, and call next team'
-                      >
-                        <CheckCircle2 size={18} />
-                        <span>Submit Score &amp; Conclude Team Pitch</span>
-                      </button>
                     </div>
                   </div>
                 </div>
