@@ -117,13 +117,20 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
   const validateStep = (stepIdx) => {
     const errors = {};
     if (stepIdx === 0) {
-      if (!formData.team_name.trim()) errors.team_name = 'Official Team Name is required';
-      if (!formData.sih_ps_id.trim()) errors.sih_ps_id = 'Problem Statement ID is required';
-      if (!formData.ps_title.trim()) errors.ps_title = 'Problem Statement Title is required';
+      if (!formData.team_name || !formData.team_name.trim()) {
+        errors.team_name = 'Official Team Name is required';
+      }
+      if (!formData.sih_ps_id || !formData.sih_ps_id.trim()) {
+        errors.sih_ps_id = 'Problem Statement ID is required';
+      }
     } else if (stepIdx === 1) {
-      if (!formData.leader_name.trim()) errors.leader_name = 'Leader Name is required';
-      if (!formData.leader_reg_no.trim()) errors.leader_reg_no = 'Leader Register Number is required';
-      if (!formData.leader_personal_email.trim() || !formData.leader_personal_email.includes('@')) {
+      if (!formData.leader_name || !formData.leader_name.trim()) {
+        errors.leader_name = 'Leader Name is required';
+      }
+      if (!formData.leader_reg_no || !formData.leader_reg_no.trim()) {
+        errors.leader_reg_no = 'Leader Register Number is required';
+      }
+      if (!formData.leader_personal_email || !formData.leader_personal_email.trim() || !formData.leader_personal_email.includes('@')) {
         errors.leader_personal_email = 'Valid personal email (with @) is required';
       }
       const phoneDigits = (formData.leader_phone || '').replace(/\D/g, '');
@@ -132,11 +139,14 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       }
     } else if (stepIdx === 2) {
       // Check members
-      formData.members.forEach((m, idx) => {
-        if (m.name && !m.reg_no) {
-          errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number missing`;
-        }
-      });
+      if (Array.isArray(formData.members)) {
+        formData.members.forEach((m, idx) => {
+          if (m.name && !m.reg_no) {
+            errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number is missing`;
+            setActiveMemberTab(idx);
+          }
+        });
+      }
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -147,7 +157,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     if (validateStep(activeStep)) {
       setActiveStep(targetStep);
     } else {
-      setErrorMsg('Please correct the highlighted errors before continuing.');
+      setErrorMsg('Please correct the highlighted fields before continuing.');
     }
   };
 
@@ -158,57 +168,74 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
     // Comprehensive Full Form Validation
     const errors = {};
-    if (!formData.team_name.trim()) errors.team_name = 'Official Team Name is required';
-    if (!formData.sih_ps_id.trim()) errors.sih_ps_id = 'Problem Statement ID is required';
-    if (!formData.ps_title.trim()) errors.ps_title = 'Problem Statement Title is required';
-    if (!formData.leader_name.trim()) errors.leader_name = 'Leader Name is required';
-    if (!formData.leader_reg_no.trim()) errors.leader_reg_no = 'Leader Register Number is required';
-    if (!formData.leader_personal_email.trim() || !formData.leader_personal_email.includes('@')) {
+    const cleanTeamName = (formData.team_name || '').trim() || (team.team_name !== 'Team Unknown' ? team.team_name : `Team ${formData.leader_name ? formData.leader_name.split(' ')[0] : 'Innovators'}`);
+    const cleanPsId = (formData.sih_ps_id || team.ps_id || 'SIH26001').trim();
+    const cleanPsTitle = (formData.ps_title || team.ps_title || team.domain || 'Smart India Hackathon 2026 Solution').trim();
+    const cleanLeaderName = (formData.leader_name || team.leader_name || '').trim();
+    const cleanLeaderReg = (formData.leader_reg_no || team.reg_no || '').trim();
+    const cleanLeaderEmail = (formData.leader_personal_email || '').trim();
+    const cleanLeaderPhone = (formData.leader_phone || team.mobile || '').trim();
+
+    if (!cleanTeamName) errors.team_name = 'Official Team Name is required';
+    if (!cleanLeaderName) errors.leader_name = 'Leader Name is required';
+    if (!cleanLeaderReg) errors.leader_reg_no = 'Leader Register Number is required';
+    if (!cleanLeaderEmail || !cleanLeaderEmail.includes('@')) {
       errors.leader_personal_email = 'Valid Leader personal email is required';
     }
-    const phoneDigits = (formData.leader_phone || '').replace(/\D/g, '');
+    const phoneDigits = cleanLeaderPhone.replace(/\D/g, '');
     if (phoneDigits.length < 10) {
       errors.leader_phone = 'Valid 10-digit Leader phone number is required';
+    }
+
+    // Check member errors
+    if (Array.isArray(formData.members)) {
+      formData.members.forEach((m, idx) => {
+        if (m.name && !m.reg_no) {
+          errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number is missing`;
+        }
+      });
     }
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       setErrorMsg('Form contains incomplete required fields. Please review the highlighted steps.');
-      if (errors.team_name || errors.sih_ps_id || errors.ps_title) {
+      if (errors.team_name || errors.sih_ps_id) {
         setActiveStep(0);
       } else if (errors.leader_name || errors.leader_reg_no || errors.leader_personal_email || errors.leader_phone) {
         setActiveStep(1);
+      } else {
+        const memberErrKey = Object.keys(errors).find(k => k.startsWith('member_'));
+        if (memberErrKey) {
+          const mIdx = parseInt(memberErrKey.split('_')[1], 10);
+          if (!isNaN(mIdx)) setActiveMemberTab(mIdx);
+          setActiveStep(2);
+        }
       }
       return;
     }
 
     setIsSubmitting(true);
 
-    const cleanTeamName = formData.team_name.trim();
-    const cleanPsTitle = formData.ps_title.trim();
-    const cleanLeaderEmail = formData.leader_personal_email.trim();
-    const cleanLeaderPhone = formData.leader_phone.trim();
-
     const payload = {
       temp_team_id: formData.temp_team_id || team.temp_team_id,
       team_name: cleanTeamName,
-      sih_ps_id: formData.sih_ps_id || team.ps_id || '',
+      sih_ps_id: cleanPsId,
       ps_title: cleanPsTitle,
       status: formData.status || team.status || 'Shortlist',
-      leader_name: formData.leader_name || team.leader_name || '',
-      leader_reg_no: formData.leader_reg_no || team.reg_no || '',
+      leader_name: cleanLeaderName,
+      leader_reg_no: cleanLeaderReg,
       leader_personal_email: cleanLeaderEmail,
-      leader_college_email: formData.leader_college_email || '',
+      leader_college_email: (formData.leader_college_email || '').trim(),
       leader_phone: cleanLeaderPhone,
-      leader_whatsapp: formData.leader_whatsapp || cleanLeaderPhone,
+      leader_whatsapp: (formData.leader_whatsapp || cleanLeaderPhone).trim(),
       leader_year: formData.leader_year || '3rd Year',
       leader_dept: formData.leader_dept || team.school || 'Computer Science & Engineering',
       leader_school: formData.leader_school || normalizeSchoolName(team.school),
-      members: formData.members || [],
-      mentor_name: formData.mentor_name || 'Faculty Guide Assigned',
+      members: Array.isArray(formData.members) ? formData.members : [],
+      mentor_name: (formData.mentor_name || 'Faculty Guide Assigned').trim(),
       mentor_designation: formData.mentor_designation || 'Assistant Professor',
-      mentor_email: formData.mentor_email || '',
-      mentor_phone: formData.mentor_phone || '',
+      mentor_email: (formData.mentor_email || '').trim(),
+      mentor_phone: (formData.mentor_phone || '').trim(),
       updated_at: new Date().toISOString()
     };
 
@@ -221,11 +248,16 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       console.warn('LocalStorage error:', localErr);
     }
 
-    if (onConfirmRegistration) {
-      onConfirmRegistration(payload.temp_team_id, payload);
+    // 2. Safe parent state notification
+    try {
+      if (onConfirmRegistration) {
+        onConfirmRegistration(payload.temp_team_id, payload);
+      }
+    } catch (parentErr) {
+      console.warn('Parent confirmation callback exception:', parentErr);
     }
 
-    // 2. Non-blocking cloud upsert with 2.5s timeout
+    // 3. Non-blocking cloud upsert with 2.5s timeout
     try {
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Supabase network timeout')), 2500)

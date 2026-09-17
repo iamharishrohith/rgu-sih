@@ -900,7 +900,6 @@ export default function App() {
       }
       return next;
     });
-    triggerConfetti();
   };
 
   const handlePasscodeSuccess = () => {
