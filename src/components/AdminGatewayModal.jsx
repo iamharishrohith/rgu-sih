@@ -19,39 +19,43 @@ export default function AdminGatewayModal({
   if (!isOpen) return null;
 
   return (
-    <div className="admin-gateway-modal-backdrop" onClick={onClose}>
-      <div className="admin-gateway-modal-card" onClick={e => e.stopPropagation()}>
-        <div className="gateway-modal-header">
-          <div className="gateway-header-left">
-            <div className="gateway-logo-icon">
-              <LayoutDashboard size={26} />
+    <div className="drawer-backdrop" onClick={onClose}>
+      <div className="modal-dialog-box admin-gateway-modal" onClick={e => e.stopPropagation()}>
+        {/* Top Header */}
+        <div className="modal-top-bar">
+          <div className="modal-title-left">
+            <div className="modal-icon-badge gateway-badge">
+              <ShieldAlert size={18} className="text-emerald" />
             </div>
             <div>
-              <h3>Institutional Admin Gateway</h3>
+              <span className="modal-title-text">SIH 2026 • Master Admin Gateway</span>
               <span className="modal-subtitle-text">Authorized Security Access &amp; Workplace Launcher</span>
             </div>
           </div>
           
-          <div className="gateway-header-right">
-            <div className="auth-status-pill">
-              <span className="auth-pulse-dot"></span>
-              <span className="auth-verified-tag">
-                <ShieldAlert size={13} className="text-emerald" />
-                <span>Administrator Authenticated</span>
-              </span>
-            </div>
-            <button className="gateway-close-btn" onClick={onClose}>
-              <X size={18} />
-            </button>
-          </div>
+          <button className="btn-close-icon" onClick={onClose} aria-label="Close Gateway">
+            <X size={18} />
+          </button>
         </div>
 
         {/* Modal Body */}
         <div className="gateway-modal-body">
-          <p className="gateway-section-label">SELECT WORKSPACE TO LAUNCH:</p>
+          <div className="gateway-intro-banner">
+            <div className="gateway-intro-left">
+              <span className="auth-verified-tag">
+                <CheckCircle2 size={13} />
+                <span>Administrator Authenticated</span>
+              </span>
+              <h3>Select Workplace or Control Module</h3>
+              <p>Choose an administrative desk or operational workplace below to proceed.</p>
+            </div>
+            <div className="gateway-meta-pill">
+              <span><strong>{submittedCount}</strong> Forms Received / {totalTeamsCount} Teams</span>
+            </div>
+          </div>
 
           {/* Launch Cards Grid */}
-          <div className="gateway-grid">
+          <div className="gateway-cards-grid">
             
             {/* CARD 0A: LIVE EVALUATION QUEUE & MULTI-PANEL ARENA */}
             <div 
