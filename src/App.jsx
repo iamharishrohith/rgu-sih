@@ -967,39 +967,37 @@ export default function App() {
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
       {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && <FlowerConfettiRain />}
 
-      {/* Common Institutional Header (All views EXCEPT isolated jury_station) */}
-      {currentView !== 'jury_station' && (
-        <Navbar
-          registeredCount={finalizedSubmittedCount}
-          totalFinalizedCount={tierCounts.totalFinalized}
-          onSecretAdminTrigger={triggerSecretAdmin}
-          onOpenAdminGateway={triggerSecretAdmin}
-          isAdminLoggedIn={isAdminLoggedIn}
-          onOpenLandingView={() => {
-            setIsReadOnlyAfterClosure(false);
-            setCurrentView('landing');
-          }}
-          onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
-          onOpenInOutPortal={() => {
-            setIsReadOnlyAfterClosure(false);
-            setCurrentView('inout_portal');
-          }}
-          onOpenEvaluationQueue={() => {
-            setIsReadOnlyAfterClosure(false);
-            setCurrentView('eval_queue');
-          }}
-          currentView={currentView}
-          isPortalClosed={isPortalClosed}
-          onOpenTimerModal={() => {
-            if (isAdminLoggedIn) {
-              setIsTimerModalOpen(true);
-            } else {
-              setOpenTimerAfterAuth(true);
-              setIsPasscodeModalOpen(true);
-            }
-          }}
-        />
-      )}
+      {/* Institutional Header (Rendered across all views) */}
+      <Navbar
+        registeredCount={finalizedSubmittedCount}
+        totalFinalizedCount={tierCounts.totalFinalized}
+        onSecretAdminTrigger={triggerSecretAdmin}
+        onOpenAdminGateway={triggerSecretAdmin}
+        isAdminLoggedIn={isAdminLoggedIn}
+        onOpenLandingView={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('landing');
+        }}
+        onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
+        onOpenInOutPortal={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('inout_portal');
+        }}
+        onOpenEvaluationQueue={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('eval_queue');
+        }}
+        currentView={currentView}
+        isPortalClosed={isPortalClosed}
+        onOpenTimerModal={() => {
+          if (isAdminLoggedIn) {
+            setIsTimerModalOpen(true);
+          } else {
+            setOpenTimerAfterAuth(true);
+            setIsPasscodeModalOpen(true);
+          }
+        }}
+      />
 
       {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
       {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && (
@@ -1609,28 +1607,26 @@ export default function App() {
         </main>
       )}
 
-      {currentView !== 'jury_station' && (
-        <footer className="portal-footer">
-          <div className="footer-inner-box">
-            <div className="footer-left">
-              <div className="footer-brand">Smart India Hackathon 2026</div>
-              <p>Rathinam Global University • Campus Evaluation Authority</p>
-            </div>
-            <div className="footer-right">
-              <p 
-                className="secret-footer-trigger"
-                onClick={triggerSecretAdmin}
-                title="Section 65B Electronic Proof Ledger Verified"
-                style={{ cursor: 'pointer' }}
-              >
-                <Lock size={11} style={{ verticalAlign: 'middle', marginRight: '4px', opacity: 0.6 }} />
-                Section 65B Electronic Proof Ledger Verified
-              </p>
-              <p>{tierCounts.total} Finalized Teams ({tierCounts.shortlist} Shortlist • {tierCounts.bench} Bench • {tierCounts.waitlist} Waitlist)</p>
-            </div>
+      <footer className="portal-footer">
+        <div className="footer-inner-box">
+          <div className="footer-left">
+            <div className="footer-brand">Smart India Hackathon 2026</div>
+            <p>Rathinam Global University • Campus Evaluation Authority</p>
           </div>
-        </footer>
-      )}
+          <div className="footer-right">
+            <p 
+              className="secret-footer-trigger"
+              onClick={triggerSecretAdmin}
+              title="Section 65B Electronic Proof Ledger Verified"
+              style={{ cursor: 'pointer' }}
+            >
+              <Lock size={11} style={{ verticalAlign: 'middle', marginRight: '4px', opacity: 0.6 }} />
+              Section 65B Electronic Proof Ledger Verified
+            </p>
+            <p>{tierCounts.total} Finalized Teams ({tierCounts.shortlist} Shortlist • {tierCounts.bench} Bench • {tierCounts.waitlist} Waitlist)</p>
+          </div>
+        </div>
+      </footer>
 
       {/* Registration Modal */}
       {activeRegTeam && (
