@@ -372,6 +372,19 @@ export default function JuryStationPortal({
   // AI Question Suggestion Copilot Pop-up Modal State
   const [isAiCopilotModalOpen, setIsAiCopilotModalOpen] = useState(false);
 
+  // Non-blocking Toast Feedback State (replaces blocking alerts)
+  const [toastFeedback, setToastFeedback] = useState(null);
+
+  const triggerToast = (msg, type = 'success', duration = 3500) => {
+    setToastFeedback({ msg, type, id: Date.now() });
+  };
+
+  useEffect(() => {
+    if (!toastFeedback) return;
+    const t = setTimeout(() => setToastFeedback(null), 3500);
+    return () => clearTimeout(t);
+  }, [toastFeedback]);
+
   // Active Evaluator within Current Panel (supports multi-jury scoring per panel)
   const [activeEvaluatorName, setActiveEvaluatorName] = useState(() => {
     return authenticatedJury?.juryName || '';
@@ -449,7 +462,7 @@ export default function JuryStationPortal({
 
     const alreadyEvaluated = (evaluationLedger || []).find(l => l.teamId === teamId);
     if (alreadyEvaluated) {
-      alert(`Team ${team.team_name} (${teamId}) has already completed evaluation with score ${alreadyEvaluated.totalScore}/50.`);
+      triggerToast(`Team ${team.team_name} (${teamId}) has already completed evaluation with score ${alreadyEvaluated.totalScore}/50.`, 'warning');
       return;
     }
 
@@ -640,7 +653,7 @@ export default function JuryStationPortal({
       }, 500);
     }
 
-    alert(`⏱ Team ${current.teamName} moved to waiting queue (Delayed). Panel is open for the next available team.`);
+    triggerToast(`⏱ Team ${current.teamName} moved to waiting queue (Delayed). Panel ready for next team.`, 'info');
   };
 
   // Delay / Skip a waiting queue item
@@ -662,12 +675,16 @@ export default function JuryStationPortal({
     };
     if (onUpdateQueue) onUpdateQueue(nextQueue);
     playSoundAlert('delete');
+    triggerToast(`Team moved to back of queue.`, 'info');
   };
 
   // Submit Rubric Evaluation (Separate Marks for Each Individual Jury)
   const handleSubmitEvaluationScore = (forceConclude = false) => {
     const current = activeSessions[activePanelObj.id];
-    if (!current) return;
+    if (!current) {
+      triggerToast('No active presentation session currently running in this panel.', 'warning');
+      return;
+    }
 
     const total = Object.values(rubricScores).reduce((acc, v) => acc + (parseInt(v) || 0), 0);
     const now = new Date();
@@ -703,8 +720,9 @@ export default function JuryStationPortal({
     if (onUpdateLedger) onUpdateLedger(nextLedger);
 
     const teamEvaluations = nextLedger.filter(l => l.teamId === current.teamId);
-    const totalPanelJuries = (activePanelObj.juries || []).length || 1;
-    const allPanelJuriesSubmitted = teamEvaluations.length >= totalPanelJuries;
+    const scoredJuryNames = new Set(teamEvaluations.map(l => l.evaluatorName));
+    const allPanelJuriesSubmitted = (activePanelObj.juries || []).length > 0 && 
+      (activePanelObj.juries || []).every(j => scoredJuryNames.has(j.name));
 
     // Reset current evaluator's form for next use
     setRubricScores({ innovation: 8, feasibility: 8, prototype: 8, presentation: 8, defense: 8 });
@@ -732,15 +750,15 @@ export default function JuryStationPortal({
         }, 600);
       }
 
-      alert(`✅ Evaluation score submitted for ${selectedJuryObj.name} (${total}/50)!\n\nAll ${teamEvaluations.length} panel evaluation(s) completed for ${current.teamName}. Pitch session is concluded and next team is queued.`);
+      triggerToast(`🎉 Pitch completed for ${current.teamName} (${total}/50)! Session concluded and advanced to next team.`, 'success');
     } else {
       // Score recorded for this jury, keep session active for the 2nd jury
       playSoundAlert('score_submit');
-      const otherJury = (activePanelObj.juries || []).find(j => j.name !== selectedJuryObj.name);
-      if (otherJury) {
-        setActiveEvaluatorName(otherJury.name);
+      const unsubmittedJury = (activePanelObj.juries || []).find(j => !scoredJuryNames.has(j.name));
+      if (unsubmittedJury) {
+        setActiveEvaluatorName(unsubmittedJury.name);
       }
-      alert(`✅ Evaluation score saved for ${selectedJuryObj.name} (${total}/50)!\n\nPitch session remains active. ${otherJury?.name || 'Co-Evaluator'} can now fill and submit their separate score.`);
+      triggerToast(`✓ Score of ${total}/50 saved for ${selectedJuryObj.name}. Switched to ${unsubmittedJury?.name || 'Co-Evaluator'}.`, 'info');
     }
   };
 
@@ -948,6 +966,23 @@ export default function JuryStationPortal({
 
               {/* AUTHENTICATED BENTO GRID WORKSPACE */}
               <div className='jury-bento-workspace'>
+                {/* Live Non-Blocking Action Toast */}
+                {toastFeedback && (
+                  <div className={`bento-toast-banner ${toastFeedback.type || 'info'}`}>
+                    <div className='toast-left'>
+                      <CheckCircle2 size={16} />
+                      <span>{toastFeedback.msg}</span>
+                    </div>
+                    <button 
+                      type='button' 
+                      onClick={() => setToastFeedback(null)} 
+                      className='btn-toast-close'
+                      title='Dismiss'
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
                 {/* BENTO ROW 1: PRESENTATION & TIMER HERO + EVALUATOR TERMINAL */}
                 <div className='bento-row-top'>
                   {/* BENTO TILE 1: PRESENTATION & TIMER HERO (Wide) */}
@@ -1010,12 +1045,10 @@ export default function JuryStationPortal({
                                 </button>
 
                                 <button 
+                                  type='button'
                                   className='btn-bento-timer-ctrl delay'
-                                  onClick={() => {
-                                    if (window.confirm(`Skip & delay active team "${currSession.teamName}" to the end of the queue?`)) {
-                                      handleDelayActiveTeam();
-                                    }
-                                  }}
+                                  onClick={handleDelayActiveTeam}
+                                  title='Skip & Move active team to back of waiting queue'
                                 >
                                   <FastForward size={15} />
                                   <span>Skip / Move to Back</span>
@@ -1314,24 +1347,19 @@ export default function JuryStationPortal({
                         onClick={() => handleSubmitEvaluationScore(false)}
                       >
                         <CheckCircle2 size={18} />
-                        <span>Submit &amp; Complete Score for {activeEvaluatorName || 'Evaluator'}</span>
+                        <span>Submit Score as {activeEvaluatorName || 'Evaluator'} ({Object.values(rubricScores).reduce((a, b) => a + (parseInt(b) || 0), 0)}/50)</span>
                       </button>
 
-                      {(activePanelObj.juries || []).length > 1 && (
-                        <button 
-                          type='button'
-                          className='btn-bento-submit-secondary'
-                          disabled={!activeSessions[activePanelObj.id]}
-                          onClick={() => {
-                            if (window.confirm('Force conclude evaluation for this team and advance to the next team in queue?')) {
-                              handleSubmitEvaluationScore(true);
-                            }
-                          }}
-                        >
-                          <Square size={14} />
-                          <span>Force Conclude &amp; Call Next</span>
-                        </button>
-                      )}
+                      <button 
+                        type='button'
+                        className='btn-bento-submit-secondary'
+                        disabled={!activeSessions[activePanelObj.id]}
+                        onClick={() => handleSubmitEvaluationScore(true)}
+                        title='Conclude evaluation immediately and call next team from queue'
+                      >
+                        <Square size={14} />
+                        <span>Conclude Pitch &amp; Call Next</span>
+                      </button>
                     </div>
                   </div>
 

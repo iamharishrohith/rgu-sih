@@ -259,11 +259,13 @@ export default function App() {
 
   const syncTimersRef = useRef({});
   const lastSyncedJsonRef = useRef({});
+  const lastLocalUpdateMsRef = useRef({});
 
   const syncArenaToSupabase = (key, value) => {
     try {
       const jsonStr = JSON.stringify(value);
-      if (lastSyncedJsonRef.current[key] === jsonStr) return; // Skip duplicate payload sync
+      lastLocalUpdateMsRef.current[key] = Date.now();
+      lastSyncedJsonRef.current[key] = jsonStr;
 
       if (syncTimersRef.current[key]) {
         clearTimeout(syncTimersRef.current[key]);
@@ -271,7 +273,6 @@ export default function App() {
 
       syncTimersRef.current[key] = setTimeout(async () => {
         try {
-          lastSyncedJsonRef.current[key] = jsonStr;
           await supabase
             .from('app_settings')
             .upsert([{ 
@@ -282,7 +283,7 @@ export default function App() {
         } catch (err) {
           console.warn(`Supabase ${key} sync warning:`, err);
         }
-      }, 400); // 400ms debounce prevents socket exhaustion
+      }, 100); // 100ms debounce ensures rapid writes without latency
     } catch (e) {
       console.warn('syncArenaToSupabase error:', e);
     }
@@ -608,82 +609,88 @@ export default function App() {
 
     loadData();
 
-    // Background Polling Loop for Multi-Device Arena & Evaluation Sync (every 5 seconds, JSON-diff guarded)
+    // Background Polling Loop for Multi-Device Arena & Evaluation Sync (every 5 seconds, JSON-diff & local freshness guarded)
     const arenaInterval = setInterval(async () => {
-      try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('key, value')
-          .in('key', [
-            'arena_team_sessions', 'arena_active_outs', 'arena_movement_logs',
-            'evaluation_panels', 'evaluation_queue', 'evaluation_ledger', 'evaluation_sessions'
-          ]);
+       try {
+         const { data, error } = await supabase
+           .from('app_settings')
+           .select('key, value')
+           .in('key', [
+             'arena_team_sessions', 'arena_active_outs', 'arena_movement_logs',
+             'evaluation_panels', 'evaluation_queue', 'evaluation_ledger', 'evaluation_sessions'
+           ]);
 
-        if (!error && data) {
-          data.forEach(item => {
-            if (item.key === 'arena_team_sessions' && item.value) {
-              const incoming = JSON.stringify(item.value);
-              setArenaTeamSessions(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_arena_team_sessions', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['arena_team_sessions'] = incoming;
-                return item.value;
-              });
-            } else if (item.key === 'arena_active_outs' && item.value) {
-              const incoming = JSON.stringify(item.value);
-              setArenaActiveOuts(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_inout_active_outs', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['arena_active_outs'] = incoming;
-                return item.value;
-              });
-            } else if (item.key === 'arena_movement_logs' && Array.isArray(item.value)) {
-              const incoming = JSON.stringify(item.value);
-              setArenaMovementLogs(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_inout_logs', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['arena_movement_logs'] = incoming;
-                return item.value;
-              });
-            } else if (item.key === 'evaluation_panels' && Array.isArray(item.value)) {
-              const incoming = JSON.stringify(item.value);
-              setEvaluationPanels(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_evaluation_panels', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['evaluation_panels'] = incoming;
-                return item.value;
-              });
-            } else if (item.key === 'evaluation_queue' && item.value) {
-              const incoming = JSON.stringify(item.value);
-              setEvaluationQueue(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_evaluation_queue', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['evaluation_queue'] = incoming;
-                return item.value;
-              });
-            } else if (item.key === 'evaluation_ledger' && Array.isArray(item.value)) {
-              const incoming = JSON.stringify(item.value);
-              setEvaluationLedger(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_evaluation_ledger', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['evaluation_ledger'] = incoming;
-                return item.value;
-              });
-            } else if (item.key === 'evaluation_sessions' && item.value) {
-              const incoming = JSON.stringify(item.value);
-              setEvaluationSessions(prev => {
-                if (JSON.stringify(prev) === incoming) return prev;
-                try { localStorage.setItem('sih_evaluation_sessions', incoming); } catch (e) {}
-                lastSyncedJsonRef.current['evaluation_sessions'] = incoming;
-                return item.value;
-              });
-            }
-          });
-        }
-      } catch (e) {
-        console.warn('Arena background polling error:', e);
-      }
-    }, 5000);
+         if (!error && data) {
+           const now = Date.now();
+           data.forEach(item => {
+             // If this key was updated locally within the last 7 seconds, skip overwriting with poll data
+             if (lastLocalUpdateMsRef.current[item.key] && (now - lastLocalUpdateMsRef.current[item.key] < 7000)) {
+               return;
+             }
+
+             if (item.key === 'arena_team_sessions' && item.value) {
+               const incoming = JSON.stringify(item.value);
+               setArenaTeamSessions(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_arena_team_sessions', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['arena_team_sessions'] = incoming;
+                 return item.value;
+               });
+             } else if (item.key === 'arena_active_outs' && item.value) {
+               const incoming = JSON.stringify(item.value);
+               setArenaActiveOuts(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_inout_active_outs', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['arena_active_outs'] = incoming;
+                 return item.value;
+               });
+             } else if (item.key === 'arena_movement_logs' && Array.isArray(item.value)) {
+               const incoming = JSON.stringify(item.value);
+               setArenaMovementLogs(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_inout_logs', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['arena_movement_logs'] = incoming;
+                 return item.value;
+               });
+             } else if (item.key === 'evaluation_panels' && Array.isArray(item.value)) {
+               const incoming = JSON.stringify(item.value);
+               setEvaluationPanels(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_evaluation_panels', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['evaluation_panels'] = incoming;
+                 return item.value;
+               });
+             } else if (item.key === 'evaluation_queue' && item.value) {
+               const incoming = JSON.stringify(item.value);
+               setEvaluationQueue(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_evaluation_queue', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['evaluation_queue'] = incoming;
+                 return item.value;
+               });
+             } else if (item.key === 'evaluation_ledger' && Array.isArray(item.value)) {
+               const incoming = JSON.stringify(item.value);
+               setEvaluationLedger(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_evaluation_ledger', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['evaluation_ledger'] = incoming;
+                 return item.value;
+               });
+             } else if (item.key === 'evaluation_sessions' && item.value) {
+               const incoming = JSON.stringify(item.value);
+               setEvaluationSessions(prev => {
+                 if (JSON.stringify(prev) === incoming) return prev;
+                 try { localStorage.setItem('sih_evaluation_sessions', incoming); } catch (e) {}
+                 lastSyncedJsonRef.current['evaluation_sessions'] = incoming;
+                 return item.value;
+               });
+             }
+           });
+         }
+       } catch (e) {
+         console.warn('Arena background polling error:', e);
+       }
+     }, 5000);
 
     return () => clearInterval(arenaInterval);
   }, []);
