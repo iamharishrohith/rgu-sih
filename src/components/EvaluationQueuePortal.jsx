@@ -1636,52 +1636,6 @@ export default function EvaluationQueuePortal({
                 </div>
               </div>
 
-              {/* Advance Team Search & Preview */}
-              <div className='countdown-preview-search-box'>
-                <h4>🔍 Check Team Registration Status &amp; Assigned Theme</h4>
-                <div className='preview-input-wrap'>
-                  <Search size={16} className='search-ico' />
-                  <input 
-                    type='text'
-                    placeholder='Search Team ID (SIH26-TM-xxx), Team Name, or Leader Name to preview...'
-                    value={studentSearchInput}
-                    onChange={e => setStudentSearchInput(e.target.value)}
-                  />
-                </div>
-
-                {studentSearchInput.trim() && (
-                  <div className='preview-results-list'>
-                    {allTeams
-                      .filter(t => {
-                        const q = studentSearchInput.toLowerCase();
-                        return t.temp_team_id.toLowerCase().includes(q) || t.team_name.toLowerCase().includes(q) || t.leader_name.toLowerCase().includes(q);
-                      })
-                      .slice(0, 4)
-                      .map(t => {
-                        const enriched = getEnrichedTeam(t.temp_team_id) || t;
-                        const defaultTheme = getTeamDefaultTheme(enriched);
-                        return (
-                          <div key={t.temp_team_id} className='preview-team-res-card'>
-                            <div className='res-header'>
-                              <span className='t-badge'>{t.temp_team_id}</span>
-                              <strong className='t-name'>{enriched.team_name}</strong>
-                              <span className='t-tier'>{t.status}</span>
-                            </div>
-                            <div className='res-meta'>
-                              <span>Leader: <strong>{enriched.leader_name}</strong> ({enriched.reg_no || 'Registered'})</span>
-                              <span>College: {enriched.school}</span>
-                              <span>Theme: <strong className='text-primary'>{defaultTheme}</strong></span>
-                            </div>
-                            <div className='res-status-tag'>
-                              <span>Ready for 8:00 AM Token Generation</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
-
               {/* Admin Early Access Unlock */}
               {isAdminLoggedIn && (
                 <div className='admin-countdown-override-bar'>
