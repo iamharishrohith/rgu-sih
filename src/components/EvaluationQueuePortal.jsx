@@ -1349,30 +1349,20 @@ export default function EvaluationQueuePortal({
                 ))}
               </div>
 
-              {/* Master Control Override for Evaluators / Admins */}
-              <div className='reveal-override-strip'>
-                <span>⚡ <strong>Evaluation Authority:</strong> Live arena wall locked until 09:15 AM sharp.</span>
-                {!isAdminLoggedIn && (
-                  <button 
-                    type='button'
-                    className='btn-reveal-override-preview'
-                    onClick={() => setAdminPanelOverride(true)}
-                  >
-                    <Play size={13} />
-                    <span>Force Reveal Arena Screen</span>
-                  </button>
-                )}
-                {isAdminLoggedIn && (
+              {/* Admin Early Access Unlock */}
+              {isAdminLoggedIn && (
+                <div className='reveal-override-strip'>
+                  <span>⚡ <strong>Admin Override:</strong> You have master administrative access.</span>
                   <button 
                     type='button'
                     className='btn-reveal-override-preview admin'
                     onClick={() => setAdminPanelOverride(true)}
                   >
                     <Play size={13} />
-                    <span>Admin Unlock Screen</span>
+                    <span>Admin Unlock Arena Screen</span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className='projector-panels-grid'>
