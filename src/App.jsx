@@ -962,15 +962,13 @@ export default function App() {
     setCurrentView('candidate_desk');
   };
 
-  const isPublicPortalView = currentView === 'landing' || currentView === 'candidate_desk';
-
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {isPublicPortalView && <FlowerConfettiRain />}
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && <FlowerConfettiRain />}
 
-      {/* Common Institutional Header (Only on Landing/Desk) */}
-      {isPublicPortalView && (
+      {/* Common Institutional Header (All views EXCEPT isolated jury_station) */}
+      {currentView !== 'jury_station' && (
         <Navbar
           registeredCount={finalizedSubmittedCount}
           totalFinalizedCount={tierCounts.totalFinalized}
@@ -1004,7 +1002,7 @@ export default function App() {
       )}
 
       {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
-      {isPublicPortalView && (
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && (
         <MidnightCountdownBanner 
           onActionClick={() => {
             if (currentView !== 'candidate_desk') {
@@ -1611,7 +1609,7 @@ export default function App() {
         </main>
       )}
 
-      {isPublicPortalView && (
+      {currentView !== 'jury_station' && (
         <footer className="portal-footer">
           <div className="footer-inner-box">
             <div className="footer-left">
