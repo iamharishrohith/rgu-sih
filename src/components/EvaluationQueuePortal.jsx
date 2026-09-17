@@ -4,7 +4,7 @@ import {
   Play, Pause, Plus, CheckCircle2, Clock, Users, Building2, 
   Search, ShieldCheck, Download, Sparkles, Monitor, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
-  LayoutDashboard, Check, Award
+  LayoutDashboard, Check, Award, Trash2
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -934,6 +934,34 @@ export default function EvaluationQueuePortal({
                   <Download size={14} />
                   <span>Export Scores CSV</span>
                 </button>
+
+                {isAdminLoggedIn && (evaluationLedger || []).length > 0 && (
+                  <button 
+                    className='btn-reset-ledger-danger' 
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to completely RESET and CLEAR the entire Evaluation Ledger? All recorded scores will be purged.')) {
+                        if (onUpdateLedger) onUpdateLedger([]);
+                      }
+                    }}
+                    style={{
+                      background: '#fee2e2',
+                      color: '#b91c1c',
+                      border: '1px solid #fca5a5',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    title='Purge all evaluation scores and reset ledger'
+                  >
+                    <Trash2 size={14} />
+                    <span>Reset Ledger</span>
+                  </button>
+                )}
               </div>
             </div>
 
