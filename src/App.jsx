@@ -10,6 +10,7 @@ import MidnightCountdownBanner from './components/MidnightCountdownBanner.jsx';
 import PortalClosedView from './components/PortalClosedView.jsx';
 import PortalTimerModal from './components/PortalTimerModal.jsx';
 import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
+import EvaluationQueuePortal, { DEFAULT_EVALUATION_PANELS } from './components/EvaluationQueuePortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
@@ -28,6 +29,7 @@ export default function App() {
   // Subbranch Routing:
   // Root URL ('/') -> 'landing' (Official Shortlist & Selection Announcement Portal)
   // '/arena' or '#arena' -> 'inout_portal' (SIH Arena In-Out Gate Pass & Movement Workplace)
+  // '/queue', '/eval', '/jury', '#queue', '#eval' -> 'eval_queue' (Digital Queue & Live Multi-Panel Evaluation)
   // '/desk' or '#desk' -> 'candidate_desk'
   // '/admin' or '#admin' -> 'admin'
   const [currentView, setCurrentView] = useState(() => {
@@ -37,6 +39,9 @@ export default function App() {
       // Only open inout_portal if scanning a candidate QR code (?action=out or ?action=in)
       if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         return 'inout_portal';
+      }
+      if (search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('book')) {
+        return 'eval_queue';
       }
       if (window.location.pathname.toLowerCase().includes('/desk') || hash.includes('desk')) {
         return 'candidate_desk';
@@ -201,6 +206,37 @@ export default function App() {
     }
   });
 
+  // Digital Evaluation Queue, Panels, Active Sessions, and Rubric Ledger State
+  const [evaluationPanels, setEvaluationPanels] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sih_evaluation_panels');
+      return saved ? JSON.parse(saved) : DEFAULT_EVALUATION_PANELS;
+    } catch {
+      return DEFAULT_EVALUATION_PANELS;
+    }
+  });
+  const [evaluationQueue, setEvaluationQueue] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_evaluation_queue') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [evaluationLedger, setEvaluationLedger] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_evaluation_ledger') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [evaluationSessions, setEvaluationSessions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sih_evaluation_sessions') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
   const syncTimersRef = useRef({});
   const lastSyncedJsonRef = useRef({});
 
@@ -254,6 +290,38 @@ export default function App() {
       localStorage.setItem('sih_inout_logs', JSON.stringify(newLogs));
     } catch (e) {}
     syncArenaToSupabase('arena_movement_logs', newLogs);
+  };
+
+  const handleUpdateEvaluationPanels = (newPanels) => {
+    setEvaluationPanels(newPanels);
+    try {
+      localStorage.setItem('sih_evaluation_panels', JSON.stringify(newPanels));
+    } catch (e) {}
+    syncArenaToSupabase('evaluation_panels', newPanels);
+  };
+
+  const handleUpdateEvaluationQueue = (newQueue) => {
+    setEvaluationQueue(newQueue);
+    try {
+      localStorage.setItem('sih_evaluation_queue', JSON.stringify(newQueue));
+    } catch (e) {}
+    syncArenaToSupabase('evaluation_queue', newQueue);
+  };
+
+  const handleUpdateEvaluationLedger = (newLedger) => {
+    setEvaluationLedger(newLedger);
+    try {
+      localStorage.setItem('sih_evaluation_ledger', JSON.stringify(newLedger));
+    } catch (e) {}
+    syncArenaToSupabase('evaluation_ledger', newLedger);
+  };
+
+  const handleUpdateEvaluationSessions = (newSessions) => {
+    setEvaluationSessions(newSessions);
+    try {
+      localStorage.setItem('sih_evaluation_sessions', JSON.stringify(newSessions));
+    } catch (e) {}
+    syncArenaToSupabase('evaluation_sessions', newSessions);
   };
 
   // Combined Active Finalized Master Teams (Merged with latest submitted form details)
@@ -312,6 +380,8 @@ export default function App() {
       // Only route to inout_portal if scanning candidate gate QR code with action=out or action=in
       if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in')) {
         setCurrentView('inout_portal');
+      } else if (search.includes('queue') || search.includes('eval') || search.includes('jury') || search.includes('projector') || hash.includes('queue') || hash.includes('eval') || hash.includes('jury') || hash.includes('projector') || hash.includes('book')) {
+        setCurrentView('eval_queue');
       } else if (hash === '#admin') {
         triggerSecretAdmin();
       } else if (hash.includes('desk')) {
@@ -453,6 +523,30 @@ export default function App() {
               return merged;
             });
           }
+          // Hydrate Evaluation Panels, Queue, Ledger, Sessions
+          const evalPanelsEntry = settingsData.find(s => s.key === 'evaluation_panels');
+          if (evalPanelsEntry && Array.isArray(evalPanelsEntry.value)) {
+            setEvaluationPanels(evalPanelsEntry.value);
+            localStorage.setItem('sih_evaluation_panels', JSON.stringify(evalPanelsEntry.value));
+          }
+
+          const evalQueueEntry = settingsData.find(s => s.key === 'evaluation_queue');
+          if (evalQueueEntry && evalQueueEntry.value) {
+            setEvaluationQueue(evalQueueEntry.value);
+            localStorage.setItem('sih_evaluation_queue', JSON.stringify(evalQueueEntry.value));
+          }
+
+          const evalLedgerEntry = settingsData.find(s => s.key === 'evaluation_ledger');
+          if (evalLedgerEntry && Array.isArray(evalLedgerEntry.value)) {
+            setEvaluationLedger(evalLedgerEntry.value);
+            localStorage.setItem('sih_evaluation_ledger', JSON.stringify(evalLedgerEntry.value));
+          }
+
+          const evalSessionsEntry = settingsData.find(s => s.key === 'evaluation_sessions');
+          if (evalSessionsEntry && evalSessionsEntry.value) {
+            setEvaluationSessions(evalSessionsEntry.value);
+            localStorage.setItem('sih_evaluation_sessions', JSON.stringify(evalSessionsEntry.value));
+          }
         }
       } catch (err) {
         console.warn('Supabase fetch error, running on cached dataset:', err);
@@ -461,13 +555,16 @@ export default function App() {
 
     loadData();
 
-    // Background Polling Loop for Multi-Device Arena Sync (every 5 seconds, JSON-diff guarded)
+    // Background Polling Loop for Multi-Device Arena & Evaluation Sync (every 5 seconds, JSON-diff guarded)
     const arenaInterval = setInterval(async () => {
       try {
         const { data, error } = await supabase
           .from('app_settings')
           .select('key, value')
-          .in('key', ['arena_team_sessions', 'arena_active_outs', 'arena_movement_logs']);
+          .in('key', [
+            'arena_team_sessions', 'arena_active_outs', 'arena_movement_logs',
+            'evaluation_panels', 'evaluation_queue', 'evaluation_ledger', 'evaluation_sessions'
+          ]);
 
         if (!error && data) {
           data.forEach(item => {
@@ -493,6 +590,38 @@ export default function App() {
                 if (JSON.stringify(prev) === incoming) return prev;
                 try { localStorage.setItem('sih_inout_logs', incoming); } catch (e) {}
                 lastSyncedJsonRef.current['arena_movement_logs'] = incoming;
+                return item.value;
+              });
+            } else if (item.key === 'evaluation_panels' && Array.isArray(item.value)) {
+              const incoming = JSON.stringify(item.value);
+              setEvaluationPanels(prev => {
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_evaluation_panels', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['evaluation_panels'] = incoming;
+                return item.value;
+              });
+            } else if (item.key === 'evaluation_queue' && item.value) {
+              const incoming = JSON.stringify(item.value);
+              setEvaluationQueue(prev => {
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_evaluation_queue', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['evaluation_queue'] = incoming;
+                return item.value;
+              });
+            } else if (item.key === 'evaluation_ledger' && Array.isArray(item.value)) {
+              const incoming = JSON.stringify(item.value);
+              setEvaluationLedger(prev => {
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_evaluation_ledger', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['evaluation_ledger'] = incoming;
+                return item.value;
+              });
+            } else if (item.key === 'evaluation_sessions' && item.value) {
+              const incoming = JSON.stringify(item.value);
+              setEvaluationSessions(prev => {
+                if (JSON.stringify(prev) === incoming) return prev;
+                try { localStorage.setItem('sih_evaluation_sessions', incoming); } catch (e) {}
+                lastSyncedJsonRef.current['evaluation_sessions'] = incoming;
                 return item.value;
               });
             }
@@ -799,12 +928,13 @@ export default function App() {
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && <FlowerConfettiRain />}
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && <FlowerConfettiRain />}
 
       <Navbar
         registeredCount={finalizedSubmittedCount}
         totalFinalizedCount={tierCounts.totalFinalized}
         onSecretAdminTrigger={triggerSecretAdmin}
+        onOpenAdminGateway={() => setIsGatewayModalOpen(true)}
         isAdminLoggedIn={isAdminLoggedIn}
         onOpenLandingView={() => {
           setIsReadOnlyAfterClosure(false);
@@ -828,7 +958,7 @@ export default function App() {
       />
 
       {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && (
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && (
         <MidnightCountdownBanner 
           onActionClick={() => {
             if (currentView !== 'candidate_desk') {
@@ -865,8 +995,26 @@ export default function App() {
           onOpenTimerModal={() => setIsTimerModalOpen(true)}
           onUpdatePortalSettings={handleUpdatePortalSettings}
         />
+      ) : currentView === 'eval_queue' ? (
+        /* VIEW 2: DIGITAL EVALUATION QUEUE & MULTI-PANEL LIVE TIMING */
+        <EvaluationQueuePortal
+          allTeams={masterTeamsList}
+          registrationsMap={registrationsMap}
+          evaluationPanels={evaluationPanels}
+          evaluationQueue={evaluationQueue}
+          evaluationLedger={evaluationLedger}
+          activeSessions={evaluationSessions}
+          onUpdatePanels={handleUpdateEvaluationPanels}
+          onUpdateQueue={handleUpdateEvaluationQueue}
+          onUpdateLedger={handleUpdateEvaluationLedger}
+          onUpdateSessions={handleUpdateEvaluationSessions}
+          onBackToMain={() => {
+            window.history.pushState(null, '', '/');
+            setCurrentView('landing');
+          }}
+        />
       ) : currentView === 'inout_portal' ? (
-        /* VIEW 2: SIH COMMON VENUE IN-OUT GATE PASS & ATTENDANCE WORKPLACE */
+        /* VIEW 3: SIH COMMON VENUE IN-OUT GATE PASS & ATTENDANCE WORKPLACE */
         <InOutAttendancePortal
           allTeams={masterTeamsList}
           registrationsMap={registrationsMap}

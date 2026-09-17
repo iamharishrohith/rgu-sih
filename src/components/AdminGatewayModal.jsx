@@ -53,9 +53,35 @@ export default function AdminGatewayModal({
             </div>
           </div>
 
-          {/* 4 Launch Cards Grid */}
+          {/* 5 Launch Cards Grid */}
           <div className="gateway-cards-grid">
             
+            {/* CARD 0: DIGITAL EVALUATION QUEUE & LIVE JURY WORKSPACE */}
+            <div 
+              className={`gateway-card eval-card ${currentView === 'eval_queue' ? 'active-gateway-card' : ''}`}
+              onClick={() => {
+                onSelectView('eval_queue');
+                onClose();
+              }}
+              style={{ border: '2px solid #6366f1', background: 'linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%)' }}
+            >
+              <div className="card-top-icon-row">
+                <div className="gateway-card-icon" style={{ background: '#e0e7ff', color: '#4f46e5' }}>
+                  <Sparkles size={22} />
+                </div>
+                <span className="gateway-status-pill pill-indigo">
+                  <span className="pulsing-dot indigo" style={{ background: '#4f46e5' }}></span>
+                  <span>Live 20+10m Arena</span>
+                </span>
+              </div>
+              <h4 style={{ color: '#1e1b4b' }}>Digital Queue &amp; Multi-Panel Evaluation</h4>
+              <p>Arena Projector Wall, Jury Live Dual-Timer (20m Pitch + 10m Q&A), Student Auto Slot Booking, and 50-pt Rubric Ledger.</p>
+              <div className="card-bottom-action" style={{ color: '#4f46e5', fontWeight: 'bold' }}>
+                <span>Launch Live Evaluation Arena</span>
+                <ArrowRight size={15} />
+              </div>
+            </div>
+
             {/* CARD 1: SIH ARENA WORKPLACE */}
             <div 
               className={`gateway-card arena-card ${currentView === 'inout_portal' ? 'active-gateway-card' : ''}`}
