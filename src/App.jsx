@@ -422,6 +422,8 @@ export default function App() {
         hash.includes('desk') || hash.includes('shortlist') || hash.includes('bench') || hash.includes('waitlist')
       ) {
         setCurrentView('candidate_desk');
+      } else {
+        setCurrentView('landing');
       }
     };
 
@@ -960,12 +962,15 @@ export default function App() {
     setCurrentView('candidate_desk');
   };
 
+  const isPublicPortalView = currentView === 'landing' || currentView === 'candidate_desk';
+
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && <FlowerConfettiRain />}
+      {isPublicPortalView && <FlowerConfettiRain />}
 
-      {currentView !== 'jury_station' && (
+      {/* Common Institutional Header (Only on Landing/Desk) */}
+      {isPublicPortalView && (
         <Navbar
           registeredCount={finalizedSubmittedCount}
           totalFinalizedCount={tierCounts.totalFinalized}
@@ -999,7 +1004,7 @@ export default function App() {
       )}
 
       {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && (
+      {isPublicPortalView && (
         <MidnightCountdownBanner 
           onActionClick={() => {
             if (currentView !== 'candidate_desk') {
@@ -1606,26 +1611,28 @@ export default function App() {
         </main>
       )}
 
-      <footer className="portal-footer">
-        <div className="footer-inner-box">
-          <div className="footer-left">
-            <div className="footer-brand">Smart India Hackathon 2026</div>
-            <p>Rathinam Global University • Campus Evaluation Authority</p>
+      {isPublicPortalView && (
+        <footer className="portal-footer">
+          <div className="footer-inner-box">
+            <div className="footer-left">
+              <div className="footer-brand">Smart India Hackathon 2026</div>
+              <p>Rathinam Global University • Campus Evaluation Authority</p>
+            </div>
+            <div className="footer-right">
+              <p 
+                className="secret-footer-trigger"
+                onClick={triggerSecretAdmin}
+                title="Section 65B Electronic Proof Ledger Verified"
+                style={{ cursor: 'pointer' }}
+              >
+                <Lock size={11} style={{ verticalAlign: 'middle', marginRight: '4px', opacity: 0.6 }} />
+                Section 65B Electronic Proof Ledger Verified
+              </p>
+              <p>{tierCounts.total} Finalized Teams ({tierCounts.shortlist} Shortlist • {tierCounts.bench} Bench • {tierCounts.waitlist} Waitlist)</p>
+            </div>
           </div>
-          <div className="footer-right">
-            <p 
-              className="secret-footer-trigger"
-              onClick={triggerSecretAdmin}
-              title="Section 65B Electronic Proof Ledger Verified"
-              style={{ cursor: 'pointer' }}
-            >
-              <Lock size={11} style={{ verticalAlign: 'middle', marginRight: '4px', opacity: 0.6 }} />
-              Section 65B Electronic Proof Ledger Verified
-            </p>
-            <p>{tierCounts.total} Finalized Teams ({tierCounts.shortlist} Shortlist • {tierCounts.bench} Bench • {tierCounts.waitlist} Waitlist)</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
       {/* Registration Modal */}
       {activeRegTeam && (
