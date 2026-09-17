@@ -10,6 +10,7 @@ import {
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
 import PanelManagerModal from './PanelManagerModal.jsx';
+import { DEFAULT_EVALUATION_PANELS } from './EvaluationQueuePortal.jsx';
 
 export const AI_EVALUATION_QUESTIONS_BY_THEME = [
   // 1. Field Research & Ground Reality
@@ -246,65 +247,6 @@ export const AI_EVALUATION_QUESTIONS_BY_THEME = [
     tag: 'Malicious Abuse',
     question: 'How do you prevent malicious actors or bots from submitting spam telemetry, fake submissions, or poisoned training data?',
     rationale: 'Exposes input sanitization, rate limiting, and anomaly detection safeguards.'
-  }
-];
-
-export const DEFAULT_EVALUATION_PANELS = [
-  {
-    id: 'panel_1',
-    name: 'Panel 1 — Software, AI & WebTech',
-    code: 'P1',
-    room: 'Hall A (Room 101)',
-    domain: 'Software & AI',
-    presentMins: 20,
-    qaMins: 10,
-    status: 'ACTIVE',
-    juries: [
-      { name: 'Dr. R. Kumar', role: 'Chief Jury', designation: 'Professor & AI Lead, RGU' },
-      { name: 'Er. S. Vignesh', role: 'Technical Evaluator', designation: 'Senior Architect, TechCorp' }
-    ]
-  },
-  {
-    id: 'panel_2',
-    name: 'Panel 2 — Hardware, Embedded & IoT',
-    code: 'P2',
-    room: 'Hardware Lab (Room 102)',
-    domain: 'Hardware & IoT',
-    presentMins: 20,
-    qaMins: 10,
-    status: 'ACTIVE',
-    juries: [
-      { name: 'Prof. M. Anitha', role: 'Chief Jury', designation: 'Head of Robotics, RGU' },
-      { name: 'Er. K. Rajesh', role: 'Technical Evaluator', designation: 'IoT Systems Specialist' }
-    ]
-  },
-  {
-    id: 'panel_3',
-    name: 'Panel 3 — AgriTech & Disaster Sentinel',
-    code: 'P3',
-    room: 'Hall B (Room 103)',
-    domain: 'AgriTech & Disaster',
-    presentMins: 20,
-    qaMins: 10,
-    status: 'ACTIVE',
-    juries: [
-      { name: 'Dr. P. Suresh', role: 'Chief Jury', designation: 'Dean of Research, RGU' },
-      { name: 'Er. N. Divya', role: 'Technical Evaluator', designation: 'Data Scientist' }
-    ]
-  },
-  {
-    id: 'panel_4',
-    name: 'Panel 4 — FinTech, LegalTech & Smart Governance',
-    code: 'P4',
-    room: 'Mini Auditorium (Room 104)',
-    domain: 'FinTech & Governance',
-    presentMins: 20,
-    qaMins: 10,
-    status: 'ACTIVE',
-    juries: [
-      { name: 'Dr. V. Karthik', role: 'Chief Jury', designation: 'FinTech Chair & LegalTech Consultant' },
-      { name: 'Er. T. Meenakshi', role: 'Technical Evaluator', designation: 'Cybersecurity Auditor' }
-    ]
   }
 ];
 

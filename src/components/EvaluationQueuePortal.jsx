@@ -1247,13 +1247,19 @@ export default function EvaluationQueuePortal({
                       <h4>Panel Ready &amp; Standing By</h4>
                       <p>Jury is awaiting next assigned team from the digital queue.</p>
                       {queuedTeams.length > 0 && (
-                        <button 
-                          className='btn-call-first-team'
-                          onClick={() => handleCallNextTeamInPanel(panel.id, false)}
-                        >
-                          <Megaphone size={14} />
-                          <span>Call Next: {queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</span>
-                        </button>
+                        isAdminLoggedIn ? (
+                          <button 
+                            className='btn-call-first-team'
+                            onClick={() => handleCallNextTeamInPanel(panel.id, false)}
+                          >
+                            <Megaphone size={14} />
+                            <span>Call Next: {queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</span>
+                          </button>
+                        ) : (
+                          <div className='idle-next-team-tag'>
+                            <span>Next on Deck: <strong>{queuedTeams[0].teamName} ({queuedTeams[0].tokenNumber})</strong></span>
+                          </div>
+                        )
                       )}
                     </div>
                   )}
@@ -1263,9 +1269,9 @@ export default function EvaluationQueuePortal({
                     <div className='queue-section-title'>
                       <div className='q-title-left'>
                         <span>QUEUE ({queuedTeams.length})</span>
-                        {isAdminLoggedIn && <span className='drag-hint-pill'>Drag &amp; Swap Enabled</span>}
+                        {isAdminLoggedIn && <span className='drag-hint-pill'>Drag &amp; Swap</span>}
                       </div>
-                      {queuedTeams.length > 0 && (
+                      {queuedTeams.length > 0 && isAdminLoggedIn && (
                         <button 
                           className='btn-mini-call-next'
                           onClick={() => handleCallNextTeamInPanel(panel.id, false)}
@@ -1284,9 +1290,10 @@ export default function EvaluationQueuePortal({
                         {queuedTeams.map((item, qIdx) => (
                           <div 
                             key={item.teamId} 
-                            className={`queued-team-item-row ${item.status === 'CALLING' ? 'is-calling' : ''} ${draggedTeamId === item.teamId ? 'is-dragging' : ''}`}
-                            draggable={true}
+                            className={`queued-team-item-row ${item.status === 'CALLING' ? 'is-calling' : ''} ${draggedTeamId === item.teamId ? 'is-dragging' : ''} ${isAdminLoggedIn ? 'is-admin' : 'is-viewer'}`}
+                            draggable={isAdminLoggedIn}
                             onDragStart={() => {
+                              if (!isAdminLoggedIn) return;
                               setDraggedTeamId(item.teamId);
                               setDraggedSourcePanelId(panel.id);
                             }}
@@ -1296,82 +1303,88 @@ export default function EvaluationQueuePortal({
                               setDragOverPanelId(null);
                             }}
                           >
-                            <div className='q-item-left'>
-                              <span className='drag-handle-grip' title='Drag to reorder or move across panels'>
-                                <GripVertical size={13} />
-                              </span>
-                              <span className='q-token-badge'>{item.tokenNumber}</span>
-                              <div className='q-info-block'>
-                                <div className='q-team-header-line'>
-                                  <strong className='q-team-title'>{item.teamName}</strong>
-                                  {item.status === 'CALLING' && (
-                                    <span className='calling-indicator-badge'>📢 CALLING</span>
-                                  )}
-                                </div>
+                            <div className='q-item-main-content'>
+                              <div className='q-item-top-header'>
+                                {isAdminLoggedIn && (
+                                  <span className='drag-handle-grip' title='Drag to reorder or move across panels'>
+                                    <GripVertical size={13} />
+                                  </span>
+                                )}
+                                <span className='q-token-badge'>{item.tokenNumber}</span>
+                                <strong className='q-team-title' title={item.teamName}>{item.teamName}</strong>
+                                {item.status === 'CALLING' ? (
+                                  <span className='calling-indicator-badge'>📢 CALLING</span>
+                                ) : (
+                                  <span className='q-status-tag'>#{qIdx + 1}</span>
+                                )}
+                              </div>
+                              <div className='q-item-sub-info'>
                                 <span className='q-lead-sub'>{item.leaderName} ({item.teamId})</span>
                               </div>
                             </div>
 
-                            <div className='q-item-admin-actions'>
-                              {/* Quick Reorder Up / Down */}
-                              <button 
-                                className='btn-q-action'
-                                onClick={() => handleSwapQueueOrder(item.teamId, 'up')}
-                                disabled={qIdx === 0}
-                                title='Move Up in Queue'
-                              >
-                                <ArrowUp size={11} />
-                              </button>
-                              <button 
-                                className='btn-q-action'
-                                onClick={() => handleSwapQueueOrder(item.teamId, 'down')}
-                                disabled={qIdx === queuedTeams.length - 1}
-                                title='Move Down in Queue'
-                              >
-                                <ArrowDown size={11} />
-                              </button>
+                            {isAdminLoggedIn && (
+                              <div className='q-item-admin-actions'>
+                                {/* Quick Reorder Up / Down */}
+                                <button 
+                                  className='btn-q-action'
+                                  onClick={() => handleSwapQueueOrder(item.teamId, 'up')}
+                                  disabled={qIdx === 0}
+                                  title='Move Up in Queue'
+                                >
+                                  <ArrowUp size={11} />
+                                </button>
+                                <button 
+                                  className='btn-q-action'
+                                  onClick={() => handleSwapQueueOrder(item.teamId, 'down')}
+                                  disabled={qIdx === queuedTeams.length - 1}
+                                  title='Move Down in Queue'
+                                >
+                                  <ArrowDown size={11} />
+                                </button>
 
-                              {/* Transfer Dropdown */}
-                              <select 
-                                className='q-panel-transfer-select'
-                                value={panel.id}
-                                onChange={(e) => handleMoveTeam(item.teamId, e.target.value)}
-                                title='Transfer to another panel'
-                              >
-                                {evaluationPanels.map(p => (
-                                  <option key={p.id} value={p.id}>
-                                    {p.code}: {p.name.split('—')[1] || p.name}
-                                  </option>
-                                ))}
-                              </select>
+                                {/* Transfer Dropdown */}
+                                <select 
+                                  className='q-panel-transfer-select'
+                                  value={panel.id}
+                                  onChange={(e) => handleMoveTeam(item.teamId, e.target.value)}
+                                  title='Transfer to another panel'
+                                >
+                                  {evaluationPanels.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.code}: {p.name.split('—')[1] || p.name}
+                                    </option>
+                                  ))}
+                                </select>
 
-                              {/* Call Now */}
-                              <button 
-                                className='btn-q-action call'
-                                onClick={() => announceTeamCall(item, panel)}
-                                title='Announce / Call Team'
-                              >
-                                <Megaphone size={11} />
-                              </button>
+                                {/* Call Now */}
+                                <button 
+                                  className='btn-q-action call'
+                                  onClick={() => announceTeamCall(item, panel)}
+                                  title='Announce / Call Team'
+                                >
+                                  <Megaphone size={11} />
+                                </button>
 
-                              {/* Start Evaluation */}
-                              <button 
-                                className='btn-q-action start'
-                                onClick={() => handleStartPanelEvaluation(panel, item)}
-                                title='Start Presentation'
-                              >
-                                <Play size={11} />
-                              </button>
+                                {/* Start Evaluation */}
+                                <button 
+                                  className='btn-q-action start'
+                                  onClick={() => handleStartPanelEvaluation(panel, item)}
+                                  title='Start Presentation'
+                                >
+                                  <Play size={11} />
+                                </button>
 
-                              {/* Delete */}
-                              <button 
-                                className='btn-q-action delete'
-                                onClick={() => handleDeleteFromQueue(item.teamId)}
-                                title='Cancel & Remove from Queue'
-                              >
-                                <Trash2 size={11} />
-                              </button>
-                            </div>
+                                {/* Delete */}
+                                <button 
+                                  className='btn-q-action delete'
+                                  onClick={() => handleDeleteFromQueue(item.teamId)}
+                                  title='Cancel & Remove from Queue'
+                                >
+                                  <Trash2 size={11} />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

@@ -14972,18 +14972,47 @@ body {
 
 .queued-team-item-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8fafc;
-  padding: 7px 10px;
+  flex-direction: column;
+  background: #ffffff;
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
 }
 
-.q-item-left {
+.queued-team-item-row:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.q-item-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+}
+
+.q-item-top-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.drag-handle-grip {
+  color: #94a3b8;
+  cursor: grab;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.drag-handle-grip:active {
+  cursor: grabbing;
 }
 
 .q-token-badge {
@@ -14993,8 +15022,9 @@ body {
   background: #e0f2fe;
   color: #0369a1;
   border: 1px solid #bae6fd;
-  padding: 2px 6px;
+  padding: 1px 6px;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .q-team-title {
@@ -15002,12 +15032,55 @@ body {
   font-size: 0.82rem;
   color: #0f172a;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.q-status-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.q-item-sub-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
 }
 
 .q-lead-sub {
   display: block;
   font-size: 0.7rem;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.idle-next-team-tag {
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  color: #475569;
+  text-align: center;
+}
+
+.idle-next-team-tag strong {
+  color: #0f172a;
 }
 
 .q-ps-pill {
@@ -19098,17 +19171,15 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  opacity: 0.7;
-  transition: opacity 0.15s ease;
-}
-
-.queued-team-item-row:hover .q-item-admin-actions {
-  opacity: 1;
+  padding-top: 5px;
+  border-top: 1px dashed #e2e8f0;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .btn-q-action {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -19119,6 +19190,7 @@ body {
   cursor: pointer;
   transition: all 0.15s ease;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .btn-q-action:hover:not(:disabled) {
@@ -19166,13 +19238,16 @@ body {
   padding: 2px 4px;
   font-size: 0.65rem;
   font-weight: 700;
-  color: #475569;
+  color: #334155;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
   outline: none;
   cursor: pointer;
-  max-width: 90px;
+  max-width: 100px;
+  flex: 1;
+  min-width: 70px;
+  height: 22px;
 }
 
 .admin-session-controls-strip {
