@@ -332,7 +332,7 @@ export default function JuryStationPortal({
   });
   const [loginPanelId, setLoginPanelId] = useState(evaluationPanels[0]?.id || 'panel_1');
   const [loginJuryName, setLoginJuryName] = useState('');
-  const [loginJuryPasscode, setLoginJuryPasscode] = useState('JURY2026');
+  const [loginJuryPasscode, setLoginJuryPasscode] = useState('Smart@26');
   const [loginAuthError, setLoginAuthError] = useState('');
 
   // AI Copilot Questions State
@@ -849,12 +849,12 @@ export default function JuryStationPortal({
                     <label>Jury Access PIN / Passcode:</label>
                     <input 
                       type='password'
-                      placeholder='Enter Jury PIN (e.g. JURY2026 or Panel Code)'
+                      placeholder='Enter Jury PIN (e.g. Smart@26)'
                       value={loginJuryPasscode}
                       onChange={e => setLoginJuryPasscode(e.target.value)}
                       required
                     />
-                    <span className='input-hint-sub'>Default PIN: <code>JURY2026</code> or Panel Code (e.g. <code>P1</code>)</span>
+                    <span className='input-hint-sub'>Default PIN: <code>Smart@26</code> or Panel Code (e.g. <code>P1</code> to <code>P5</code>)</span>
                   </div>
 
                   <button type='submit' className='btn-enter-jury-station'>

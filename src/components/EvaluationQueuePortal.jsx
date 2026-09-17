@@ -13,58 +13,98 @@ import PanelManagerModal from './PanelManagerModal.jsx';
 export const DEFAULT_EVALUATION_PANELS = [
   {
     id: 'panel_1',
-    name: 'Panel 1 — Data Science & Analytics',
+    name: 'Panel 1 — AI, Data Science & Deep Learning',
     code: 'P1',
     room: 'Hall A (Room 101)',
-    domain: 'Data Engineering & Data Science',
+    domain: 'Data Engineering, Data Science & AIML',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
+    themes: [
+      'Smart Automation',
+      'MedTech / BioTech / HealthTech',
+      'Space Technology',
+      'Miscellaneous (Open Innovation)'
+    ],
     juries: [
-      { name: 'Mr. Manikandan S', role: 'Chief Jury', designation: 'Data Engineering / Data Science', theme: 'Data Science & Analytics' },
-      { name: 'Mr. Rajesh Kumar G', role: 'Technical Evaluator', designation: 'Python / Data Analytics', theme: 'Python & Analytics' }
+      { name: 'Mr. Manikandan S', role: 'Chief Jury', designation: 'Data Engineering / Data Science / Deep Learning', theme: 'Data Science & Deep Learning' },
+      { name: 'Mr. Rajesh Kumar G', role: 'Technical Evaluator', designation: 'Python / Data Analytics / AIML', theme: 'Python / AIML & Analytics' }
     ]
   },
   {
     id: 'panel_2',
-    name: 'Panel 2 — Full Stack & Cyber Security',
+    name: 'Panel 2 — Cloud Architecture & Smart Education',
     code: 'P2',
     room: 'Hall B (Room 102)',
-    domain: 'MERN Full Stack & Cyber Security',
+    domain: 'Cloud Infrastructure & Smart Education',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
+    themes: [
+      'Smart Education',
+      'Tourism',
+      'Heritage & Culture',
+      'Fitness & Sports'
+    ],
     juries: [
-      { name: 'Mr. Rajesh T', role: 'Chief Jury', designation: 'MERN Full Stack', theme: 'Full Stack & Web' },
-      { name: 'Mr. Raja G', role: 'Technical Evaluator', designation: 'Cyber Security', theme: 'Cyber Security & Systems' }
+      { name: 'Mr. Selvarajalingam S', role: 'Chief Jury', designation: 'Cloud & Smart Education', theme: 'Cloud & Smart Education' },
+      { name: 'Mr. Aravind S', role: 'Technical Evaluator', designation: 'Cloud', theme: 'Cloud Architecture' }
     ]
   },
   {
     id: 'panel_3',
-    name: 'Panel 3 — IoT, Embedded & Cloud',
+    name: 'Panel 3 — Blockchain, Cybersecurity & Disaster Sentinel',
     code: 'P3',
     room: 'Hardware Lab (Room 103)',
-    domain: 'IoT & Cloud',
+    domain: 'Blockchain, Cyber Security & Disaster Management',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
+    themes: [
+      'Blockchain & Cybersecurity',
+      'Disaster Management',
+      'Clean & Green Technology'
+    ],
     juries: [
-      { name: 'Mr. Ramesh Marivendhan', role: 'Chief Jury', designation: 'IoT', theme: 'IoT & Embedded Systems' },
-      { name: 'Mr. Selvarajalingam S', role: 'Technical Evaluator', designation: 'Cloud', theme: 'Cloud Infrastructure' }
+      { name: 'Harish Rohith S', role: 'Chief Jury', designation: 'Blockchain / Disaster Management', theme: 'Blockchain & Disaster Management' },
+      { name: 'Mr. Sunil Kumar S', role: 'Technical Evaluator', designation: 'Cyber Security', theme: 'Cyber Security' }
     ]
   },
   {
     id: 'panel_4',
-    name: 'Panel 4 — Cloud & Cyber Security',
+    name: 'Panel 4 — IoT, Robotics & Smart Automation',
     code: 'P4',
     room: 'Mini Auditorium (Room 104)',
-    domain: 'Cloud & Cyber Security',
+    domain: 'IoT & Smart Automation',
     presentMins: 20,
     qaMins: 10,
     status: 'ACTIVE',
+    themes: [
+      'Robotics and Drones',
+      'Smart Vehicles',
+      'Renewable / Sustainable Energy',
+      'Agriculture, FoodTech & Rural Development'
+    ],
     juries: [
-      { name: 'Mr. Sunil Kumar S', role: 'Chief Jury', designation: 'Cyber Security', theme: 'Cyber Security' },
-      { name: 'Mr. Aravind S', role: 'Technical Evaluator', designation: 'Cloud', theme: 'Cloud Architecture' }
+      { name: 'Mr. Ramesh Marivendhan', role: 'Chief Jury', designation: 'IoT & Automation', theme: 'IoT & Automation' }
+    ]
+  },
+  {
+    id: 'panel_5',
+    name: 'Panel 5 — Full Stack WebTech & Cybersecurity',
+    code: 'P5',
+    room: 'Seminar Hall (Room 105)',
+    domain: 'MERN Full Stack & Cyber Security',
+    presentMins: 20,
+    qaMins: 10,
+    status: 'ACTIVE',
+    themes: [
+      'Transportation & Logistics',
+      'Toys & Games'
+    ],
+    juries: [
+      { name: 'Mr. Raja G', role: 'Chief Jury', designation: 'Cyber Security', theme: 'Cyber Security' },
+      { name: 'Mr. Rajesh T', role: 'Technical Evaluator', designation: 'MERN Full Stack', theme: 'MERN Full Stack' }
     ]
   }
 ];
