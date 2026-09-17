@@ -275,7 +275,7 @@ export default function JuryStationPortal({
   });
   const [loginPanelId, setLoginPanelId] = useState(evaluationPanels[0]?.id || 'panel_1');
   const [loginJuryName, setLoginJuryName] = useState('');
-  const [loginJuryPasscode, setLoginJuryPasscode] = useState('Smart@26');
+  const [loginJuryPasscode, setLoginJuryPasscode] = useState('');
   const [loginAuthError, setLoginAuthError] = useState('');
 
   // AI Copilot Questions State
@@ -310,7 +310,16 @@ export default function JuryStationPortal({
   const handleJuryLogin = (e) => {
     e.preventDefault();
     setLoginAuthError('');
-    const entered = (loginJuryPasscode || '').trim().toUpperCase();
+    const entered = (loginJuryPasscode || '').trim();
+    if (!entered) {
+      setLoginAuthError('Please enter the Jury Access Passcode.');
+      return;
+    }
+    if (entered.toUpperCase() !== 'SMART@26' && entered.toUpperCase() !== 'SMART26' && entered.toUpperCase() !== 'SIH2026') {
+      setLoginAuthError('Invalid Jury Access Passcode. Please enter the authorized passcode.');
+      return;
+    }
+
     const panel = evaluationPanels.find(p => p.id === loginPanelId) || evaluationPanels[0];
     
     // Pick the chosen jury or default to first member of panel
@@ -332,6 +341,7 @@ export default function JuryStationPortal({
     };
     setAuthenticatedJury(sessionData);
     setSelectedJuryPanelId(panel.id);
+    setLoginJuryPasscode('');
     try {
       sessionStorage.setItem('sih_jury_auth_session', JSON.stringify(sessionData));
     } catch (err) {}
@@ -341,6 +351,7 @@ export default function JuryStationPortal({
   const handleJuryLogout = () => {
     setAuthenticatedJury(null);
     setLoginJuryPasscode('');
+    setLoginAuthError('');
     try {
       sessionStorage.removeItem('sih_jury_auth_session');
     } catch (err) {}
@@ -918,9 +929,17 @@ export default function JuryStationPortal({
                       placeholder='Enter Jury Access Passcode'
                       value={loginJuryPasscode}
                       onChange={e => setLoginJuryPasscode(e.target.value)}
+                      autoComplete='new-password'
                       required
                     />
                   </div>
+
+                  {loginAuthError && (
+                    <div className='jury-auth-error-msg'>
+                      <AlertTriangle size={14} />
+                      <span>{loginAuthError}</span>
+                    </div>
+                  )}
 
                   <button type='submit' className='btn-enter-jury-station'>
                     <Laptop size={18} />
