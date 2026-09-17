@@ -4,7 +4,7 @@ import {
   Play, Pause, Plus, CheckCircle2, Clock, Users, Building2, 
   Search, ShieldCheck, Download, Sparkles, Monitor, 
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
-  LayoutDashboard, Check, Award, Trash2
+  LayoutDashboard, Check, Award, Trash2, Tag, Hash, X
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -109,6 +109,35 @@ export const DEFAULT_EVALUATION_PANELS = [
   }
 ];
 
+export const ALL_17_SIH_THEMES = [
+  'Smart Automation',
+  'MedTech / BioTech / HealthTech',
+  'Space Technology',
+  'Miscellaneous (Open Innovation)',
+  'Smart Education',
+  'Tourism',
+  'Heritage & Culture',
+  'Fitness & Sports',
+  'Blockchain & Cybersecurity',
+  'Disaster Management',
+  'Clean & Green Technology',
+  'Robotics and Drones',
+  'Smart Vehicles',
+  'Renewable / Sustainable Energy',
+  'Agriculture, FoodTech & Rural Development',
+  'Transportation & Logistics',
+  'Toys & Games'
+];
+
+export const POPULAR_TECH_TAGS = [
+  '#AI', '#MachineLearning', '#DeepLearning', '#Python',
+  '#Cloud', '#AWS', '#IoT', '#Robotics',
+  '#Blockchain', '#CyberSecurity', '#MERN', '#FullStack',
+  '#React', '#NodeJS', '#Embedded', '#EV',
+  '#SmartAgriculture', '#DataScience', '#Web3', '#ComputerVision',
+  '#NLP', '#MobileApp', '#FastAPI', '#Hardware'
+];
+
 export const THEME_TECH_HASHTAG_MAP = {
   // Panel 1: AI, Data Science & Deep Learning
   'Smart Automation': ['#SmartAutomation', '#AI', '#DeepLearning', '#MachineLearning', '#NLP', '#ComputerVision', '#LLM', '#NeuralNetworks', '#Python'],
@@ -138,10 +167,13 @@ export const THEME_TECH_HASHTAG_MAP = {
   'Toys & Games': ['#ToysAndGames', '#GameDev', '#STEMToys', '#Unity', '#Unreal', '#Gamification', '#FullStack', '#MERN', '#React', '#NodeJS', '#WebDev']
 };
 
-export const getMatchingPanelsForTeam = (team, panels = []) => {
+export const getMatchingPanelsForTeam = (team, panels = [], customTheme = null, customTags = []) => {
   if (!team || !panels || panels.length === 0) return [];
   
+  const tagsText = (customTags || []).join(' ');
   const textCorpus = [
+    customTheme || '',
+    tagsText,
     team.ps_title || '',
     team.domain || '',
     team.ps_category || '',
@@ -154,10 +186,16 @@ export const getMatchingPanelsForTeam = (team, panels = []) => {
     const matchedPanelTags = [];
 
     const panelThemes = panel.themes || [];
+
+    // Exact Custom Theme Matching (+50 points)
+    if (customTheme && panelThemes.some(th => th.toLowerCase() === customTheme.toLowerCase())) {
+      score += 50;
+    }
+
     panelThemes.forEach(th => {
       const thLower = th.toLowerCase();
       if (textCorpus.includes(thLower)) {
-        score += 40;
+        score += 35;
       }
       const relatedTags = THEME_TECH_HASHTAG_MAP[th] || [];
       relatedTags.forEach(tag => {
@@ -169,6 +207,30 @@ export const getMatchingPanelsForTeam = (team, panels = []) => {
       });
     });
 
+    // Explicit User Selected Hashtag Matching (+20 points per match)
+    (customTags || []).forEach(userTag => {
+      const cleanUserTag = userTag.startsWith('#') ? userTag : `#${userTag}`;
+      const rawUserKw = cleanUserTag.replace('#', '').toLowerCase();
+      
+      let matchesThisPanel = false;
+      panelThemes.forEach(th => {
+        const related = THEME_TECH_HASHTAG_MAP[th] || [];
+        if (related.some(r => r.toLowerCase() === cleanUserTag.toLowerCase())) {
+          matchesThisPanel = true;
+        }
+      });
+      
+      const panelDomainLower = (panel.domain || '').toLowerCase();
+      if (panelDomainLower.includes(rawUserKw)) {
+        matchesThisPanel = true;
+      }
+
+      if (matchesThisPanel) {
+        score += 20;
+        if (!matchedPanelTags.includes(cleanUserTag)) matchedPanelTags.push(cleanUserTag);
+      }
+    });
+
     const panelDomainLower = (panel.domain || '').toLowerCase();
     const domainWords = panelDomainLower.split(/[\s,&/]+/).filter(w => w.length > 2);
     domainWords.forEach(w => {
@@ -177,12 +239,13 @@ export const getMatchingPanelsForTeam = (team, panels = []) => {
 
     // Match percentage calculation with multi-criteria weighting
     const matchPercentage = Math.min(99, Math.max(35, score > 0 ? Math.min(98, 55 + score) : (50 - idx * 4)));
+    const displayTags = matchedPanelTags.length > 0 ? matchedPanelTags : (customTags && customTags.length > 0 ? customTags : []);
 
     return {
       panel,
       matchScore: matchPercentage,
-      matchedTags: matchedPanelTags.slice(0, 5),
-      criteriaSummary: matchedPanelTags.length > 0 ? matchedPanelTags.join(' ') : (panel.themes?.[0] ? `#${panel.themes[0].replace(/\s+/g, '')}` : `#${panel.code}`)
+      matchedTags: displayTags.slice(0, 6),
+      criteriaSummary: displayTags.length > 0 ? displayTags.join(' ') : (panel.themes?.[0] ? `#${panel.themes[0].replace(/\s+/g, '')}` : `#${panel.code}`)
     };
   });
 
@@ -262,6 +325,9 @@ export default function EvaluationQueuePortal({
   // Student Booking State
   const [studentSearchInput, setStudentSearchInput] = useState('');
   const [bookingSuccessToken, setBookingSuccessToken] = useState(null);
+  const [studentSelectedThemes, setStudentSelectedThemes] = useState({});
+  const [studentSelectedTags, setStudentSelectedTags] = useState({});
+  const [studentCustomTagInputs, setStudentCustomTagInputs] = useState({});
 
   // Ledger Filter
   const [ledgerSearch, setLedgerSearch] = useState('');
@@ -335,8 +401,38 @@ export default function EvaluationQueuePortal({
     return map;
   }, [evaluationPanels, evaluationQueue]);
 
+  // Helper to get default initial theme
+  const getInitialThemeForTeam = (team) => {
+    if (!team) return 'Smart Automation';
+    const text = `${team.domain || ''} ${team.ps_title || ''} ${team.ps_category || ''}`.toLowerCase();
+    const matched = ALL_17_SIH_THEMES.find(th => 
+      text.includes(th.toLowerCase().replace(/[^\w]/g, '')) || 
+      text.includes(th.toLowerCase().split(' ')[0])
+    );
+    return matched || team.domain || 'Smart Automation';
+  };
+
+  // Helper to get default initial hashtags
+  const getInitialTagsForTeam = (team) => {
+    if (!team) return ['#AI', '#Python'];
+    const text = `${team.domain || ''} ${team.ps_title || ''} ${team.ps_category || ''}`.toLowerCase();
+    const tags = [];
+    Object.values(THEME_TECH_HASHTAG_MAP).forEach(tagList => {
+      tagList.forEach(t => {
+        const clean = t.replace('#', '').toLowerCase();
+        if (clean.length > 2 && text.includes(clean) && !tags.includes(t)) {
+          tags.push(t);
+        }
+      });
+    });
+    if (tags.length === 0 && team.domain) {
+      tags.push(`#${team.domain.replace(/[\s/&-]+/g, '')}`);
+    }
+    return tags.slice(0, 4);
+  };
+
   // Handle Student Theme & Hashtags Criteria-Balanced Slot Booking
-  const handleBookSlotForTeam = (team, preferredPanelId = null, matchedTags = []) => {
+  const handleBookSlotForTeam = (team, preferredPanelId = null, matchedTags = [], selectedTheme = '') => {
     const teamId = team.temp_team_id;
 
     if (evaluationQueue[teamId]) {
@@ -358,7 +454,7 @@ export default function EvaluationQueuePortal({
     }
     
     if (!targetPanel) {
-      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels);
+      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels, selectedTheme, matchedTags);
       targetPanel = rankedMatches[0]?.panel || evaluationPanels[0];
       targetCriteria = rankedMatches[0]?.criteriaSummary || '';
     }
@@ -375,6 +471,7 @@ export default function EvaluationQueuePortal({
       psId: team.ps_id,
       school: team.school,
       domain: team.domain || '',
+      theme: selectedTheme || team.domain || 'Smart Automation',
       panelId: targetPanel.id,
       panelName: targetPanel.name,
       panelCode: targetPanel.code,
@@ -869,6 +966,10 @@ export default function EvaluationQueuePortal({
                     <strong className='val text-emerald'>{bookingSuccessToken.room}</strong>
                   </div>
                   <div className='token-detail-row'>
+                    <span className='lbl'>SIH Theme:</span>
+                    <strong className='val text-indigo'>{bookingSuccessToken.theme || 'Smart Automation'}</strong>
+                  </div>
+                  <div className='token-detail-row'>
                     <span className='lbl'>Team Leader:</span>
                     <span className='val'>{bookingSuccessToken.leaderName} ({bookingSuccessToken.regNo})</span>
                   </div>
@@ -878,7 +979,7 @@ export default function EvaluationQueuePortal({
                   </div>
                   {bookingSuccessToken.matchedHashtags && bookingSuccessToken.matchedHashtags.length > 0 && (
                     <div className='token-detail-row hashtags-token-row'>
-                      <span className='lbl'>Matched Criteria:</span>
+                      <span className='lbl'>Tech Hashtags:</span>
                       <div className='token-hashtags-list'>
                         {bookingSuccessToken.matchedHashtags.map((h, idx) => (
                           <span key={idx} className='token-h-tag'>{h}</span>
@@ -890,7 +991,7 @@ export default function EvaluationQueuePortal({
 
                 <div className='token-qr-wrap'>
                   <QRCodeSVG 
-                    value={`SIH26-EVAL|${bookingSuccessToken.teamId}|${bookingSuccessToken.tokenNumber}|${bookingSuccessToken.panelCode}`}
+                    value={`SIH26-EVAL|${bookingSuccessToken.teamId}|${bookingSuccessToken.tokenNumber}|${bookingSuccessToken.panelCode}|${bookingSuccessToken.theme || ''}`}
                     size={140}
                   />
                   <span className='token-qr-caption'>Show this Token QR at the Panel Entrance</span>
@@ -937,47 +1038,81 @@ export default function EvaluationQueuePortal({
                     })
                     .slice(0, 5)
                     .map(team => {
-                      const isQueued = evaluationQueue[team.temp_team_id];
-                      const isEvaluated = (evaluationLedger || []).find(l => l.teamId === team.temp_team_id);
-                      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels);
+                      const teamId = team.temp_team_id;
+                      const isQueued = evaluationQueue[teamId];
+                      const isEvaluated = (evaluationLedger || []).find(l => l.teamId === teamId);
+
+                      // Current student-chosen theme & tags for this team
+                      const currentTheme = studentSelectedThemes[teamId] || getInitialThemeForTeam(team);
+                      const currentTags = studentSelectedTags[teamId] || getInitialTagsForTeam(team);
+                      const currentCustomInput = studentCustomTagInputs[teamId] || '';
+
+                      const rankedMatches = getMatchingPanelsForTeam(team, evaluationPanels, currentTheme, currentTags);
                       const bestMatch = rankedMatches[0] || { panel: evaluationPanels[0], matchScore: 90, matchedTags: [] };
 
-                      return (
-                        <div key={team.temp_team_id} className='student-team-option-card modern-match-card'>
-                          <div className='team-opt-left'>
-                            <div className='team-code-title'>
-                              <span className='code-pill'>{team.temp_team_id}</span>
-                              <strong>{team.team_name}</strong>
-                            </div>
-                            <span className='team-leader-sub'>Lead: {team.leader_name} ({team.reg_no}) • {team.ps_id}</span>
-                            {team.ps_title && (
-                              <div className='team-ps-title-sub' title={team.ps_title}>
-                                {team.ps_title}
-                              </div>
-                            )}
+                      const handleAddCustomTag = (e) => {
+                        if (e) e.preventDefault();
+                        if (!currentCustomInput.trim()) return;
+                        const raw = currentCustomInput.trim();
+                        const formatted = raw.startsWith('#') ? raw : `#${raw}`;
+                        if (!currentTags.includes(formatted)) {
+                          setStudentSelectedTags(prev => ({
+                            ...prev,
+                            [teamId]: [...currentTags, formatted]
+                          }));
+                        }
+                        setStudentCustomTagInputs(prev => ({ ...prev, [teamId]: '' }));
+                      };
 
-                            {/* Extracted Theme & Tech Hashtags */}
-                            <div className='team-hashtags-strip'>
-                              {bestMatch.matchedTags && bestMatch.matchedTags.length > 0 ? (
-                                bestMatch.matchedTags.map((tag, idx) => (
-                                  <span key={idx} className='hashtag-badge-pill'>{tag}</span>
-                                ))
-                              ) : (
-                                <span className='hashtag-badge-pill'>#{team.domain || 'Innovation'}</span>
+                      const handleToggleTag = (tag) => {
+                        const exists = currentTags.includes(tag);
+                        const nextTags = exists 
+                          ? currentTags.filter(t => t !== tag) 
+                          : [...currentTags, tag];
+                        setStudentSelectedTags(prev => ({
+                          ...prev,
+                          [teamId]: nextTags
+                        }));
+                      };
+
+                      const handleRemoveTag = (tagToRemove) => {
+                        setStudentSelectedTags(prev => ({
+                          ...prev,
+                          [teamId]: currentTags.filter(t => t !== tagToRemove)
+                        }));
+                      };
+
+                      const handleThemeChange = (newTheme) => {
+                        setStudentSelectedThemes(prev => ({
+                          ...prev,
+                          [teamId]: newTheme
+                        }));
+                        const themeTags = THEME_TECH_HASHTAG_MAP[newTheme] || [];
+                        if (themeTags.length > 0) {
+                          const merged = Array.from(new Set([...currentTags, ...themeTags.slice(0, 2)]));
+                          setStudentSelectedTags(prev => ({
+                            ...prev,
+                            [teamId]: merged
+                          }));
+                        }
+                      };
+
+                      return (
+                        <div key={teamId} className='student-team-option-card modern-match-card-expanded'>
+                          <div className='team-opt-header-row'>
+                            <div className='team-opt-left-head'>
+                              <div className='team-code-title'>
+                                <span className='code-pill'>{team.temp_team_id}</span>
+                                <strong>{team.team_name}</strong>
+                              </div>
+                              <span className='team-leader-sub'>Lead: {team.leader_name} ({team.reg_no}) • {team.ps_id}</span>
+                              {team.ps_title && (
+                                <div className='team-ps-title-sub' title={team.ps_title}>
+                                  {team.ps_title}
+                                </div>
                               )}
                             </div>
 
-                            {/* Recommended Panel Match Banner */}
-                            {!isQueued && !isEvaluated && (
-                              <div className='panel-criteria-recommendation-box'>
-                                <span className='recommend-tag'>🎯 AI Panel Match:</span>
-                                <strong>{bestMatch.panel.code} — {bestMatch.panel.name}</strong>
-                                <span className='match-pct-pill'>{bestMatch.matchScore}% Match</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className='team-opt-actions'>
                             {isEvaluated ? (
                               <span className='status-evaluated-badge'>
                                 <CheckCircle2 size={14} />
@@ -990,14 +1125,136 @@ export default function EvaluationQueuePortal({
                               >
                                 View Token #{isQueued.tokenNumber}
                               </button>
-                            ) : (
-                              <div className='booking-action-buttons-wrap'>
+                            ) : null}
+                          </div>
+
+                          {!isQueued && !isEvaluated && (
+                            <div className='student-config-workbench'>
+                              {/* 1. Interactive Theme Selector */}
+                              <div className='student-config-section'>
+                                <div className='config-sec-label'>
+                                  <Layers size={14} className='text-primary' />
+                                  <span>Select SIH Competition Theme (1 of 17 Themes):</span>
+                                </div>
+                                <select 
+                                  className='student-theme-select-dropdown'
+                                  value={currentTheme}
+                                  onChange={(e) => handleThemeChange(e.target.value)}
+                                >
+                                  {ALL_17_SIH_THEMES.map((themeName, tIdx) => {
+                                    const hostingPanel = evaluationPanels.find(p => (p.themes || []).includes(themeName));
+                                    return (
+                                      <option key={tIdx} value={themeName}>
+                                        {themeName} {hostingPanel ? `— [${hostingPanel.code}: ${hostingPanel.name.split('—')[1] || hostingPanel.name}]` : ''}
+                                      </option>
+                                    );
+                                  })}
+                                </select>
+                              </div>
+
+                              {/* 2. Interactive Tech Stack Hashtags & Custom Input */}
+                              <div className='student-config-section'>
+                                <div className='config-sec-label'>
+                                  <Hash size={14} className='text-indigo' />
+                                  <span>Tech Stack &amp; Innovation Hashtags:</span>
+                                  <span className='config-hint'>(Click pills to toggle or type custom tags)</span>
+                                </div>
+
+                                {/* Active Chosen Tags */}
+                                <div className='student-active-tags-strip'>
+                                  {currentTags.map((tag, idx) => (
+                                    <span key={idx} className='active-tag-chip'>
+                                      <span>{tag}</span>
+                                      <button 
+                                        type='button' 
+                                        className='btn-tag-remove'
+                                        onClick={() => handleRemoveTag(tag)}
+                                        title={`Remove ${tag}`}
+                                      >
+                                        <X size={11} />
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+
+                                {/* Quick Popular Hashtag Pills */}
+                                <div className='student-quick-tags-wrap'>
+                                  {POPULAR_TECH_TAGS.map((tag) => {
+                                    const isSelected = currentTags.includes(tag);
+                                    return (
+                                      <button
+                                        key={tag}
+                                        type='button'
+                                        className={`quick-tag-pill ${isSelected ? 'selected' : ''}`}
+                                        onClick={() => handleToggleTag(tag)}
+                                      >
+                                        {tag}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Custom Hashtag Input */}
+                                <div className='custom-tag-input-row'>
+                                  <div className='custom-tag-input-box'>
+                                    <Tag size={13} className='text-muted' />
+                                    <input 
+                                      type='text'
+                                      placeholder='Add custom tech tag (e.g. Flutter, PyTorch, ROS)...'
+                                      value={currentCustomInput}
+                                      onChange={(e) => setStudentCustomTagInputs(prev => ({ ...prev, [teamId]: e.target.value }))}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault();
+                                          handleAddCustomTag();
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                  <button 
+                                    type='button' 
+                                    className='btn-add-custom-tag'
+                                    onClick={handleAddCustomTag}
+                                  >
+                                    <Plus size={13} />
+                                    <span>Add Tag</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* 3. Real-Time Dynamic AI Panel Match Banner */}
+                              <div className='panel-criteria-recommendation-box-live'>
+                                <div className='rec-match-header'>
+                                  <div className='rec-left'>
+                                    <span className='recommend-tag'>🎯 AI Panel Match</span>
+                                    <strong>{bestMatch.panel.code} — {bestMatch.panel.name}</strong>
+                                  </div>
+                                  <span className='match-pct-pill'>{bestMatch.matchScore}% Match</span>
+                                </div>
+                                <div className='rec-match-sub'>
+                                  <span>📍 {bestMatch.panel.room}</span>
+                                  <span>👨‍⚖️ Juries: {bestMatch.panel.juries?.map(j => j.name).join(', ')}</span>
+                                </div>
+                                {bestMatch.matchedTags && bestMatch.matchedTags.length > 0 && (
+                                  <div className='rec-matched-tags-row'>
+                                    <span className='rec-tags-lbl'>Matched Criteria:</span>
+                                    <div className='rec-tags-list'>
+                                      {bestMatch.matchedTags.map((t, idx) => (
+                                        <span key={idx} className='rec-tag-pill'>{t}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 4. Slot Booking CTAs */}
+                              <div className='student-booking-footer-row'>
                                 <button 
                                   className='btn-book-slot-primary'
-                                  onClick={() => handleBookSlotForTeam(team, bestMatch.panel.id, bestMatch.matchedTags)}
+                                  onClick={() => handleBookSlotForTeam(team, bestMatch.panel.id, bestMatch.matchedTags, currentTheme)}
                                 >
-                                  <Sparkles size={14} />
-                                  <span>Book {bestMatch.panel.code} Slot</span>
+                                  <Sparkles size={15} />
+                                  <span>Confirm &amp; Book {bestMatch.panel.code} Slot</span>
                                 </button>
 
                                 {rankedMatches.length > 1 && (
@@ -1006,7 +1263,7 @@ export default function EvaluationQueuePortal({
                                     onChange={(e) => {
                                       if (e.target.value) {
                                         const selected = rankedMatches.find(m => m.panel.id === e.target.value);
-                                        handleBookSlotForTeam(team, e.target.value, selected?.matchedTags || []);
+                                        handleBookSlotForTeam(team, e.target.value, selected?.matchedTags || [], currentTheme);
                                       }
                                     }}
                                     defaultValue=''
@@ -1020,8 +1277,8 @@ export default function EvaluationQueuePortal({
                                   </select>
                                 )}
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
