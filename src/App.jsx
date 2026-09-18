@@ -1093,8 +1093,41 @@ export default function App() {
           onOpenEvaluationQueue={() => setCurrentView('eval_queue')}
           onOpenAdminGateway={triggerSecretAdmin}
         />
-      ) : currentView === 'eval_queue' ? (
-        /* VIEW 2: DIGITAL EVALUATION QUEUE & MULTI-PANEL LIVE TIMING */
+      ) : currentView === 'eval_queue' && !isAdminLoggedIn ? (
+        /* LOCKED ACCESS VIEW FOR PUBLIC USERS (Evaluation branch strictly restricted to Admin Master Panel) */
+        <div className="eval-admin-locked-view">
+          <div className="eval-locked-card">
+            <div className="locked-icon-bubble">
+              <Lock size={36} className="text-amber" />
+            </div>
+            <h2>Master Evaluation Panel</h2>
+            <span className="locked-sub-tag">Administrative Access Strictly Required</span>
+            <p>
+              The digital evaluation queue, live pitch rooms, and Section 65B score ledgers are restricted to official Evaluation Committee members and Administrators.
+            </p>
+            <div className="locked-actions-row">
+              <button 
+                className="btn-unlock-eval-admin" 
+                onClick={triggerSecretAdmin}
+              >
+                <LayoutDashboard size={16} />
+                <span>Login via Admin Gateway</span>
+              </button>
+              <button 
+                className="btn-back-to-public" 
+                onClick={() => {
+                  window.history.pushState(null, '', '/');
+                  setCurrentView('landing');
+                }}
+              >
+                <Home size={16} />
+                <span>Back to Announcement Portal</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : currentView === 'eval_queue' && isAdminLoggedIn ? (
+        /* VIEW 2: MASTER EVALUATION PANEL (ADMIN ACCESS GRANTED) */
         <EvaluationQueuePortal
           allTeams={masterTeamsList}
           registrationsMap={registrationsMap}
@@ -1109,7 +1142,7 @@ export default function App() {
           onResetAllEvaluationData={handleResetAllEvaluationData}
           isAdminLoggedIn={isAdminLoggedIn}
           onOpenRegistrationForm={(team) => setActiveRegTeam(team)}
-          onOpenAdminGateway={isAdminLoggedIn ? triggerSecretAdmin : null}
+          onOpenAdminGateway={triggerSecretAdmin}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');
@@ -1126,6 +1159,7 @@ export default function App() {
           onUpdateSessions={handleUpdateArenaSessions}
           onUpdateActiveOuts={handleUpdateArenaActiveOuts}
           onUpdateLogs={handleUpdateArenaMovementLogs}
+          isAdminLoggedIn={isAdminLoggedIn}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');
@@ -1173,6 +1207,7 @@ export default function App() {
           }}
           onOpenAdminGateway={triggerSecretAdmin}
           allTeams={publicTeamsList}
+          isAdminLoggedIn={isAdminLoggedIn}
           onOpenTeamRegistration={(team) => {
             if (!isPortalClosed) setActiveRegTeam(team);
           }}

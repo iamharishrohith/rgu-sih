@@ -110,10 +110,10 @@ export default function Navbar({
                 className="btn-nav-admin"
                 style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
                 onClick={onOpenEvaluationQueue}
-                title="Launch Live Evaluation Queue & Arena Projector Wall"
+                title="Open Master Evaluation Panel & Score Ledger"
               >
                 <Clock size={15} />
-                <span>Evaluation Queue</span>
+                <span>Master Evaluation</span>
               </button>
 
               <button 
@@ -134,16 +134,6 @@ export default function Navbar({
               >
                 <Award size={14} className="text-amber" />
                 <span>Certificates</span>
-              </button>
-
-              <button 
-                className="btn-nav-admin"
-                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
-                onClick={onOpenEvaluationQueue}
-                title="Launch Live Evaluation Queue & Arena Projector Wall"
-              >
-                <Clock size={15} />
-                <span>Evaluation Queue</span>
               </button>
             </div>
           )}

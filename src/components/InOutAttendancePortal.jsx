@@ -43,7 +43,8 @@ export default function InOutAttendancePortal({
   onUpdateLogs,
   onBackToMain,
   onOpenEvaluationQueue,
-  onOpenAdminGateway
+  onOpenAdminGateway,
+  isAdminLoggedIn = false
 }) {
   // Mode: If opened via QR code (?action=out or ?action=in), show dedicated minimal mobile form box!
   const [viewMode, setViewMode] = useState(() => {
@@ -1724,16 +1725,16 @@ export default function InOutAttendancePortal({
             <span>Candidate Form Box</span>
           </button>
 
-          {/* Live Evaluation Queue & Arena Projector */}
-          {onOpenEvaluationQueue && (
+          {/* Live Master Evaluation Panel (Admin Only) */}
+          {onOpenEvaluationQueue && isAdminLoggedIn && (
             <button 
               className="btn-self-pass-trigger"
               style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#ffffff', borderColor: '#6366f1' }}
               onClick={onOpenEvaluationQueue}
-              title="Open Digital Evaluation Queue & Live Multi-Panel Timer"
+              title="Open Master Evaluation Control Panel"
             >
               <Clock size={14} />
-              <span>Evaluation Queue</span>
+              <span>Master Evaluation</span>
             </button>
           )}
 

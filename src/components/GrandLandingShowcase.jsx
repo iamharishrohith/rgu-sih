@@ -13,7 +13,8 @@ export default function GrandLandingShowcase({
   onOpenEvaluationQueue,
   onOpenAdminGateway,
   allTeams,
-  onOpenTeamRegistration
+  onOpenTeamRegistration,
+  isAdminLoggedIn = false
 }) {
   const [quickSearch, setQuickSearch] = useState('');
   const [searchedTeam, setSearchedTeam] = useState(null);
@@ -52,11 +53,11 @@ export default function GrandLandingShowcase({
 
           <h1 className="grand-hero-title">
             Smart India Hackathon 2026
-            <span className="gradient-highlight-text">Finalist Selection &amp; Evaluation</span>
+            <span className="gradient-highlight-text">Finalist Selection Announcement</span>
           </h1>
 
           <p className="grand-hero-subtitle">
-            Official selection results for <strong>{totalCount} Finalized Teams</strong> ({shortlistCount} Shortlisted with 100% unique problem statements, {benchCount} Bench Standby, and {waitlistCount} Waitlist). Live evaluation queue and Section 65B electronic proof ledger.
+            Official selection results for <strong>{totalCount} Finalized Teams</strong> ({shortlistCount} Shortlisted with 100% unique problem statements, {benchCount} Bench Standby, and {waitlistCount} Waitlist) under Section 65B Electronic Record Compliance.
           </p>
 
           {/* Interactive Fast CTAs */}
@@ -66,14 +67,16 @@ export default function GrandLandingShowcase({
               <ArrowRight size={18} />
             </button>
 
-            <button 
-              className="btn-grand-secondary-cta" 
-              onClick={onOpenEvaluationQueue}
-              style={{ background: '#4f46e5', color: '#ffffff', borderColor: '#6366f1' }}
-            >
-              <Sparkles size={18} className="text-amber" />
-              <span>Live Evaluation Queue (Arena)</span>
-            </button>
+            {isAdminLoggedIn && (
+              <button 
+                className="btn-grand-secondary-cta" 
+                onClick={onOpenEvaluationQueue}
+                style={{ background: '#4f46e5', color: '#ffffff', borderColor: '#6366f1' }}
+              >
+                <Sparkles size={18} className="text-amber" />
+                <span>Master Evaluation Panel (Admin)</span>
+              </button>
+            )}
 
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />
