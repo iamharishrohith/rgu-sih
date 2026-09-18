@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, UserCheck, LayoutDashboard, Lock, Unlock, Clock, DoorOpen } from 'lucide-react';
+import { CheckCircle2, UserCheck, LayoutDashboard, Lock, Unlock, Clock, DoorOpen, Award } from 'lucide-react';
 
 export default function Navbar({ 
   registeredCount, 
@@ -11,6 +11,7 @@ export default function Navbar({
   onOpenCandidateDesk, 
   onOpenInOutPortal,
   onOpenEvaluationQueue,
+  onOpenCertificateStudio,
   currentView,
   isPortalClosed,
   onOpenTimerModal
@@ -97,6 +98,15 @@ export default function Navbar({
               </div>
 
               <button 
+                className="btn-nav-cert-studio"
+                onClick={onOpenCertificateStudio}
+                title="Launch Role-Based Digital Certificate Studio (Section 65B Sovereign Credential)"
+              >
+                <Award size={14} className="text-amber" />
+                <span>Certificates</span>
+              </button>
+
+              <button 
                 className="btn-nav-admin"
                 style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
                 onClick={onOpenEvaluationQueue}
@@ -117,6 +127,15 @@ export default function Navbar({
             </div>
           ) : (
             <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button 
+                className="btn-nav-cert-studio"
+                onClick={onOpenCertificateStudio}
+                title="Launch Role-Based Digital Certificate Studio (Section 65B Sovereign Credential)"
+              >
+                <Award size={14} className="text-amber" />
+                <span>Certificates</span>
+              </button>
+
               <button 
                 className="btn-nav-admin"
                 style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
