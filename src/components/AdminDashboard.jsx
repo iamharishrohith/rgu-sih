@@ -954,8 +954,10 @@ export default function AdminDashboard({
                     return (
                       <tr key={teamId} className={`table-row ${isIn ? 'row-arena-in' : isOut ? 'row-arena-out' : ''}`}>
                         <td className="col-id">
-                          <span className="rank-badge">#{team.rank}</span>
-                          <strong className="font-mono text-primary">{teamId}</strong>
+                          <div className="col-id-flex">
+                            <span className="rank-badge">#{team.rank}</span>
+                            <strong className="font-mono text-primary">{teamId}</strong>
+                          </div>
                         </td>
 
                         <td className="col-team">

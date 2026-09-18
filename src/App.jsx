@@ -1048,7 +1048,7 @@ export default function App() {
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && <FlowerConfettiRain />}
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && currentView !== 'admin' && <FlowerConfettiRain />}
 
       {/* Institutional Header (Rendered across all views) */}
       <Navbar
