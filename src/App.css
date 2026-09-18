@@ -22895,3 +22895,66 @@ body {
   background: #4338ca;
 }
 
+/* Score Ledger Delete Buttons */
+.col-ledger-action {
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+.btn-delete-ledger-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-ledger-entry:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #be123c;
+  transform: translateY(-1px);
+}
+
+.btn-delete-ledger-entry.team-all {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+  font-weight: 800;
+}
+
+.btn-delete-ledger-entry.team-all:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
+.btn-chip-delete-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(225, 29, 72, 0.15);
+  color: #e11d48;
+  cursor: pointer;
+  margin-left: 5px;
+  padding: 0;
+  transition: all 0.15s ease;
+  vertical-align: middle;
+}
+
+.btn-chip-delete-score:hover {
+  background: #e11d48;
+  color: #ffffff;
+}
+

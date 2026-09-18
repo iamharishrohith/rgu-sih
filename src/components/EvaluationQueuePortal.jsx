@@ -1160,6 +1160,38 @@ export default function EvaluationQueuePortal({
     document.body.removeChild(link);
   };
 
+  // Handle Single Score Deletion from Ledger
+  const handleDeleteScoreEntry = (scoreIdOrIndex, teamName = 'this team', evaluatorName = '') => {
+    const confirmMsg = evaluatorName 
+      ? `Are you sure you want to delete the evaluation score submitted by "${evaluatorName}" for team "${teamName}"? This action cannot be undone.`
+      : `Are you sure you want to delete this evaluation score for team "${teamName}"?`;
+
+    if (window.confirm(confirmMsg)) {
+      const newLedger = (evaluationLedger || []).filter((item, idx) => {
+        if (item.id && typeof scoreIdOrIndex === 'string') {
+          return item.id !== scoreIdOrIndex;
+        }
+        return idx !== scoreIdOrIndex;
+      });
+
+      if (onUpdateLedger) onUpdateLedger(newLedger);
+      try {
+        localStorage.setItem('sih_evaluation_ledger', JSON.stringify(newLedger));
+      } catch (e) {}
+    }
+  };
+
+  // Handle Deleting all evaluations for a specific team
+  const handleDeleteAllTeamScores = (teamId, teamName = 'this team') => {
+    if (window.confirm(`Are you sure you want to delete ALL recorded evaluation scores for team "${teamName}" (${teamId})?`)) {
+      const newLedger = (evaluationLedger || []).filter(item => item.teamId !== teamId);
+      if (onUpdateLedger) onUpdateLedger(newLedger);
+      try {
+        localStorage.setItem('sih_evaluation_ledger', JSON.stringify(newLedger));
+      } catch (e) {}
+    }
+  };
+
   return (
     <div className="eval-queue-viewport">
       <header className='eval-top-navbar'>
@@ -2818,6 +2850,7 @@ export default function EvaluationQueuePortal({
                     <th>Total / 50</th>
                     <th>Verdict</th>
                     <th>Evaluator Remarks</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2854,11 +2887,21 @@ export default function EvaluationQueuePortal({
                         </span>
                       </td>
                       <td className='col-remarks'>{row.feedback}</td>
+                      <td className='col-ledger-action'>
+                        <button
+                          className='btn-delete-ledger-entry'
+                          onClick={() => handleDeleteScoreEntry(row.id || idx, row.teamName, row.evaluatorName || row.juries?.[0]?.name)}
+                          title={`Delete score entry for ${row.teamName}`}
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {filteredLedger.length === 0 && (
                     <tr>
-                      <td colSpan='8' className='empty-ledger-cell'>
+                      <td colSpan='9' className='empty-ledger-cell'>
                         No evaluations recorded yet. Juries can start evaluations in the Jury Workspace.
                       </td>
                     </tr>
@@ -2876,6 +2919,7 @@ export default function EvaluationQueuePortal({
                     <th>Evaluations &amp; Jury Breakdown</th>
                     <th>Consolidated Average</th>
                     <th>Overall Standing</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2897,6 +2941,14 @@ export default function EvaluationQueuePortal({
                           {team.evaluations.map((ev, eIdx) => (
                             <span key={eIdx} className='jury-individual-score-chip'>
                               <strong>{ev.evaluatorName || `Jury ${eIdx + 1}`}:</strong> {ev.totalScore}/50 ({ev.percentage}%)
+                              <button
+                                type='button'
+                                className='btn-chip-delete-score'
+                                onClick={() => handleDeleteScoreEntry(ev.id, team.teamName, ev.evaluatorName)}
+                                title={`Delete score submitted by ${ev.evaluatorName || 'this jury'}`}
+                              >
+                                <X size={10} />
+                              </button>
                             </span>
                           ))}
                         </div>
@@ -2912,11 +2964,21 @@ export default function EvaluationQueuePortal({
                           {team.avgPercentage}% Average
                         </span>
                       </td>
+                      <td className='col-ledger-action'>
+                        <button
+                          className='btn-delete-ledger-entry team-all'
+                          onClick={() => handleDeleteAllTeamScores(team.teamId, team.teamName)}
+                          title={`Delete all scores for team ${team.teamName}`}
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete All</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {consolidatedLedger.length === 0 && (
                     <tr>
-                      <td colSpan='6' className='empty-ledger-cell'>
+                      <td colSpan='7' className='empty-ledger-cell'>
                         No evaluations recorded yet. Juries can start evaluations in the Jury Workspace.
                       </td>
                     </tr>
