@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Check, Award, Trash2, Tag, Hash, X,
   GripVertical, ArrowUp, ArrowDown, ArrowRightLeft, Megaphone, Radio, Square,
   ArrowRight, ChevronRight, BarChart3, TrendingUp, Activity, FastForward, RotateCcw, AlertTriangle, UserCheck, PieChart,
-  Phone, MessageSquare, Filter, Eye, ExternalLink, HelpCircle, FileSpreadsheet, UserX, AlertCircle, RefreshCw, Mail, Calendar
+  Phone, MessageSquare, Filter, Eye, ExternalLink, HelpCircle, FileSpreadsheet, UserX, AlertCircle, RefreshCw, Mail, Calendar, Edit3
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -265,6 +265,7 @@ export default function EvaluationQueuePortal({
   evaluationLedger = [],
   activeSessions = {},
   isAdminLoggedIn = false,
+  onOpenRegistrationForm,
   onUpdatePanels,
   onUpdateQueue,
   onUpdateLedger,
@@ -3320,6 +3321,17 @@ export default function EvaluationQueuePortal({
                               <CheckCircle2 size={13} />
                               <span>Form Submitted</span>
                             </div>
+                            {onOpenRegistrationForm && (
+                              <button
+                                type='button'
+                                className='btn-edit-form-micro'
+                                onClick={() => onOpenRegistrationForm(team.rawTeam || team)}
+                                title='Edit or update candidate registration form'
+                              >
+                                <Edit3 size={11} />
+                                <span>Edit Form</span>
+                              </button>
+                            )}
                             <span className='form-status-detail'>
                               {team.members?.length || 6} Members Verified
                             </span>
@@ -3335,6 +3347,17 @@ export default function EvaluationQueuePortal({
                               <AlertTriangle size={13} />
                               <span>Form NOT Filled</span>
                             </div>
+                            {onOpenRegistrationForm && (
+                              <button
+                                type='button'
+                                className='btn-fill-form-micro'
+                                onClick={() => onOpenRegistrationForm(team.rawTeam || team)}
+                                title='Fill candidate registration form now'
+                              >
+                                <FileText size={11} />
+                                <span>Fill Form</span>
+                              </button>
+                            )}
                             <span className='form-status-detail warn'>
                               Awaiting submission
                             </span>
@@ -3760,6 +3783,19 @@ export default function EvaluationQueuePortal({
                     </strong>
                     {pendingModalTeam.submittedAt && (
                       <span className='status-sub'>Submitted: {new Date(pendingModalTeam.submittedAt).toLocaleString()}</span>
+                    )}
+                    {onOpenRegistrationForm && (
+                      <button
+                        type='button'
+                        className='btn-modal-form-edit-action'
+                        onClick={() => {
+                          onOpenRegistrationForm(pendingModalTeam.rawTeam || pendingModalTeam);
+                          setPendingModalTeam(null);
+                        }}
+                      >
+                        <Edit3 size={13} />
+                        <span>{pendingModalTeam.isFormFilled ? 'Edit & Update Registration Form' : 'Fill Registration Form Now'}</span>
+                      </button>
                     )}
                   </div>
                 </div>

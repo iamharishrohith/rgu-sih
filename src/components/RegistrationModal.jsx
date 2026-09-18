@@ -20,7 +20,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
   const [formData, setFormData] = useState({
     // Team & PS
     team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
-    temp_team_id: team.temp_team_id,
+    temp_team_id: existingRegistration?.temp_team_id || team.temp_team_id || team.teamId || team.temp_id || '',
     sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
     ps_title: existingRegistration?.ps_title || team.ps_title || '',
     status: existingRegistration?.status || team.status || 'Shortlist',
@@ -57,7 +57,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     if (team) {
       setFormData({
         team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
-        temp_team_id: team.temp_team_id,
+        temp_team_id: existingRegistration?.temp_team_id || team.temp_team_id || team.teamId || team.temp_id || '',
         sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
         ps_title: existingRegistration?.ps_title || team.ps_title || '',
         status: existingRegistration?.status || team.status || 'Shortlist',
@@ -291,15 +291,17 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
         {/* Top Header */}
         <div className="modal-top-bar">
           <div className="modal-title-left">
-            <div className="modal-icon-badge">
-              <ShieldCheck size={20} />
+            <div className={`modal-icon-badge ${existingRegistration ? 'edit-mode' : ''}`}>
+              {existingRegistration ? <Save size={20} /> : <ShieldCheck size={20} />}
             </div>
             <div>
               <span className="modal-title-text">
-                Candidate Team Finalist Registration Form
+                {existingRegistration ? 'Edit & Update Candidate Registration Form' : 'Candidate Team Finalist Registration Form'}
               </span>
               <div className="modal-title-sub">
-                SIH 2026 • 6-Member Roster &amp; Mentor Verification
+                {existingRegistration 
+                  ? `SIH 2026 • Editing Team ${formData.team_name || team.team_name} (${team.temp_team_id})`
+                  : 'SIH 2026 • 6-Member Roster & Mentor Verification'}
               </div>
             </div>
           </div>
@@ -315,9 +317,11 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
               <div className="success-icon-circle">
                 <CheckCircle size={48} color="#10b981" />
               </div>
-              <h2 className="success-title">Registration Successfully Submitted!</h2>
+              <h2 className="success-title">
+                {existingRegistration ? 'Registration Successfully Updated & Saved!' : 'Registration Successfully Submitted!'}
+              </h2>
               <p className="success-desc">
-                Team <strong>{formData.team_name}</strong> (<code>{formData.temp_team_id}</code>) has been securely logged into the Smart India Hackathon 2026 database.
+                Team <strong>{formData.team_name}</strong> (<code>{formData.temp_team_id}</code>) details have been securely logged and saved into the Smart India Hackathon 2026 database.
               </p>
 
               <div className="confirmed-summary-box">
@@ -357,10 +361,10 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
               <div className="success-actions">
                 <button className="btn-primary-action" onClick={onClose}>
-                  Back to Shortlist Desk
+                  Close &amp; Return to Desk
                 </button>
                 <button type="button" className="btn-edit-submission-outline" onClick={() => setSubmitted(false)}>
-                  Modify Form Details
+                  Modify Details Again
                 </button>
               </div>
             </div>
@@ -489,7 +493,12 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                   </div>
 
                   <div className="step-footer-actions">
-                    <div></div>
+                    {existingRegistration ? (
+                      <button type="button" className="btn-quick-save-draft" onClick={handleSubmit} disabled={isSubmitting}>
+                        <Save size={15} />
+                        <span>Save Changes</span>
+                      </button>
+                    ) : <div></div>}
                     <button type="button" className="btn-next-step" onClick={() => handleNextStep(1)}>
                       <span>Next: Team Leader Info</span>
                       <ChevronRight size={16} />
@@ -559,10 +568,10 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     </div>
 
                     <div className="input-group">
-                      <label>College Official Email ID</label>
+                      <label>College Email ID</label>
                       <input 
                         type="email" 
-                        placeholder="leader.regno@rathinam.ac.in"
+                        placeholder="rollno@rathinam.ac.in (Optional)"
                         value={formData.leader_college_email}
                         onChange={(e) => setFormData({...formData, leader_college_email: e.target.value})}
                       />
@@ -571,10 +580,10 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
                   <div className="grid-2-col">
                     <div className="input-group">
-                      <label>Phone Calling Number <span className="req">*</span></label>
+                      <label>Calling Phone Number <span className="req">*</span></label>
                       <input 
                         type="tel" 
-                        placeholder="e.g. 9876543210"
+                        placeholder="10-digit mobile number"
                         value={formData.leader_phone}
                         onChange={(e) => {
                           setFormData({...formData, leader_phone: e.target.value});
@@ -640,10 +649,18 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     <button type="button" className="btn-prev-step" onClick={() => setActiveStep(0)}>
                       Back
                     </button>
-                    <button type="button" className="btn-next-step" onClick={() => handleNextStep(2)}>
-                      <span>Next: 5 Team Members</span>
-                      <ChevronRight size={16} />
-                    </button>
+                    <div className="step-footer-right" style={{ display: 'flex', gap: '10px' }}>
+                      {existingRegistration && (
+                        <button type="button" className="btn-quick-save-draft" onClick={handleSubmit} disabled={isSubmitting}>
+                          <Save size={15} />
+                          <span>Save Changes</span>
+                        </button>
+                      )}
+                      <button type="button" className="btn-next-step" onClick={() => handleNextStep(2)}>
+                        <span>Next: 5 Team Members</span>
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -659,147 +676,168 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     </div>
                   </div>
 
-                  {/* Member Selector Tabs */}
-                  <div className="member-subtabs">
+                  {/* Member Tabs Header */}
+                  <div className="member-sub-tabs">
                     {formData.members.map((m, idx) => (
                       <button
-                        key={m.id}
+                        key={idx}
                         type="button"
-                        className={`member-pill-btn ${activeMemberTab === idx ? 'selected' : ''}`}
+                        className={`member-sub-tab-btn ${activeMemberTab === idx ? 'active' : ''} ${m.name && m.reg_no ? 'filled' : ''}`}
                         onClick={() => setActiveMemberTab(idx)}
                       >
-                        <span>Member {idx + 2}</span>
-                        {m.name && <span className="member-filled-dot"></span>}
+                        <span>Member #{idx + 2}</span>
+                        {m.name ? <span className="mem-tab-name">({m.name.split(' ')[0]})</span> : null}
+                        {m.name && m.reg_no ? <Check size={11} className="mem-check-icon" /> : null}
                       </button>
                     ))}
                   </div>
 
-                  {/* Active Member Form Card */}
-                  <div className="active-member-card">
-                    <div className="member-card-header">
-                      <h4>Member #{activeMemberTab + 2} Information</h4>
-                      <button 
-                        type="button" 
-                        className="btn-copy-leader-dept"
-                        onClick={() => copyLeaderDeptToMember(activeMemberTab)}
-                      >
-                        Copy Leader Dept/School
-                      </button>
-                    </div>
+                  {/* Current Active Member Fields */}
+                  {formData.members.map((member, idx) => {
+                    if (idx !== activeMemberTab) return null;
+                    return (
+                      <div key={member.id} className="member-form-card">
+                        <div className="member-card-top-row">
+                          <span className="member-order-title">
+                            Member #{idx + 2} Registration Details
+                          </span>
+                          <button
+                            type="button"
+                            className="btn-copy-leader"
+                            onClick={() => copyLeaderDeptToMember(idx)}
+                            title="Quick copy Department, School and Year from Team Leader"
+                          >
+                            Copy Leader Dept &amp; School
+                          </button>
+                        </div>
 
-                    <div className="grid-2-col">
-                      <div className="input-group">
-                        <label>Member Full Name</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. Priya S"
-                          value={formData.members[activeMemberTab].name}
-                          onChange={(e) => updateMember(activeMemberTab, 'name', e.target.value)}
-                        />
-                      </div>
+                        <div className="grid-2-col">
+                          <div className="input-group">
+                            <label>Member Full Name</label>
+                            <input 
+                              type="text" 
+                              placeholder={`Full Name of Member #${idx + 2}`}
+                              value={member.name}
+                              onChange={(e) => updateMember(idx, 'name', e.target.value)}
+                            />
+                          </div>
 
-                      <div className="input-group">
-                        <label>Register Number</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. 21BCSE045"
-                          value={formData.members[activeMemberTab].reg_no}
-                          onChange={(e) => updateMember(activeMemberTab, 'reg_no', e.target.value)}
-                        />
-                      </div>
-                    </div>
+                          <div className="input-group">
+                            <label>Register Number {member.name ? <span className="req">*</span> : ''}</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. 22BCS102"
+                              value={member.reg_no}
+                              onChange={(e) => updateMember(idx, 'reg_no', e.target.value)}
+                              className={validationErrors[`member_${idx}_reg_no`] ? 'input-error-field' : ''}
+                            />
+                            {validationErrors[`member_${idx}_reg_no`] && (
+                              <span className="field-err-msg">{validationErrors[`member_${idx}_reg_no`]}</span>
+                            )}
+                          </div>
+                        </div>
 
-                    <div className="grid-2-col">
-                      <div className="input-group">
-                        <label>Personal Email ID</label>
-                        <input 
-                          type="email" 
-                          placeholder="member.personal@gmail.com"
-                          value={formData.members[activeMemberTab].personal_email}
-                          onChange={(e) => updateMember(activeMemberTab, 'personal_email', e.target.value)}
-                        />
-                      </div>
+                        <div className="grid-2-col">
+                          <div className="input-group">
+                            <label>Personal Email</label>
+                            <input 
+                              type="email" 
+                              placeholder="member.personal@gmail.com"
+                              value={member.personal_email}
+                              onChange={(e) => updateMember(idx, 'personal_email', e.target.value)}
+                            />
+                          </div>
 
-                      <div className="input-group">
-                        <label>College Official Email ID</label>
-                        <input 
-                          type="email" 
-                          placeholder="member.regno@rathinam.ac.in"
-                          value={formData.members[activeMemberTab].college_email}
-                          onChange={(e) => updateMember(activeMemberTab, 'college_email', e.target.value)}
-                        />
-                      </div>
-                    </div>
+                          <div className="input-group">
+                            <label>College Email</label>
+                            <input 
+                              type="email" 
+                              placeholder="rollno@rathinam.ac.in (Optional)"
+                              value={member.college_email}
+                              onChange={(e) => updateMember(idx, 'college_email', e.target.value)}
+                            />
+                          </div>
+                        </div>
 
-                    <div className="grid-2-col">
-                      <div className="input-group">
-                        <label>Phone Calling Number</label>
-                        <input 
-                          type="tel" 
-                          placeholder="e.g. 9876543211"
-                          value={formData.members[activeMemberTab].phone}
-                          onChange={(e) => updateMember(activeMemberTab, 'phone', e.target.value)}
-                        />
-                      </div>
+                        <div className="grid-2-col">
+                          <div className="input-group">
+                            <label>Phone Number</label>
+                            <input 
+                              type="tel" 
+                              placeholder="10-digit phone number"
+                              value={member.phone}
+                              onChange={(e) => updateMember(idx, 'phone', e.target.value)}
+                            />
+                          </div>
 
-                      <div className="input-group">
-                        <label>WhatsApp Number</label>
-                        <input 
-                          type="tel" 
-                          placeholder="e.g. 9876543211"
-                          value={formData.members[activeMemberTab].whatsapp}
-                          onChange={(e) => updateMember(activeMemberTab, 'whatsapp', e.target.value)}
-                        />
-                      </div>
-                    </div>
+                          <div className="input-group">
+                            <label>WhatsApp Number</label>
+                            <input 
+                              type="tel" 
+                              placeholder="WhatsApp number"
+                              value={member.whatsapp}
+                              onChange={(e) => updateMember(idx, 'whatsapp', e.target.value)}
+                            />
+                          </div>
+                        </div>
 
-                    <div className="grid-3-col">
-                      <div className="input-group">
-                        <label>Year of Study</label>
-                        <select 
-                          value={formData.members[activeMemberTab].year}
-                          onChange={(e) => updateMember(activeMemberTab, 'year', e.target.value)}
-                        >
-                          <option value="1st Year">1st Year</option>
-                          <option value="2nd Year">2nd Year</option>
-                          <option value="3rd Year">3rd Year</option>
-                          <option value="4th Year">4th Year</option>
-                          <option value="Post Graduate">Post Graduate (PG)</option>
-                        </select>
-                      </div>
+                        <div className="grid-3-col">
+                          <div className="input-group">
+                            <label>Year of Study</label>
+                            <select 
+                              value={member.year}
+                              onChange={(e) => updateMember(idx, 'year', e.target.value)}
+                            >
+                              <option value="1st Year">1st Year</option>
+                              <option value="2nd Year">2nd Year</option>
+                              <option value="3rd Year">3rd Year</option>
+                              <option value="4th Year">4th Year</option>
+                              <option value="Post Graduate">Post Graduate (PG)</option>
+                            </select>
+                          </div>
 
-                      <div className="input-group">
-                        <label>Department</label>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. CSE, IT, ECE"
-                          value={formData.members[activeMemberTab].dept}
-                          onChange={(e) => updateMember(activeMemberTab, 'dept', e.target.value)}
-                        />
-                      </div>
+                          <div className="input-group">
+                            <label>Department</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. CSE, IT, ECE"
+                              value={member.dept}
+                              onChange={(e) => updateMember(idx, 'dept', e.target.value)}
+                            />
+                          </div>
 
-                      <div className="input-group">
-                        <label>School / Faculty</label>
-                        <select 
-                          value={formData.members[activeMemberTab].school}
-                          onChange={(e) => updateMember(activeMemberTab, 'school', e.target.value)}
-                        >
-                          {OFFICIAL_SCHOOLS.map(sch => (
-                            <option key={sch} value={sch}>{sch}</option>
-                          ))}
-                        </select>
+                          <div className="input-group">
+                            <label>School / Faculty</label>
+                            <select 
+                              value={member.school}
+                              onChange={(e) => updateMember(idx, 'school', e.target.value)}
+                            >
+                              {OFFICIAL_SCHOOLS.map(sch => (
+                                <option key={sch} value={sch}>{sch}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })}
 
                   <div className="step-footer-actions">
                     <button type="button" className="btn-prev-step" onClick={() => setActiveStep(1)}>
                       Back
                     </button>
-                    <button type="button" className="btn-next-step" onClick={() => handleNextStep(3)}>
-                      <span>Next: Mentor &amp; Submit</span>
-                      <ChevronRight size={16} />
-                    </button>
+                    <div className="step-footer-right" style={{ display: 'flex', gap: '10px' }}>
+                      {existingRegistration && (
+                        <button type="button" className="btn-quick-save-draft" onClick={handleSubmit} disabled={isSubmitting}>
+                          <Save size={15} />
+                          <span>Save Changes</span>
+                        </button>
+                      )}
+                      <button type="button" className="btn-next-step" onClick={() => handleNextStep(3)}>
+                        <span>Next: Mentor &amp; Submit</span>
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -881,7 +919,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       ) : (
                         <>
                           <Save size={16} />
-                          <span>Submit &amp; Lock Registration</span>
+                          <span>{existingRegistration ? 'Save & Update Registration' : 'Submit & Lock Registration'}</span>
                         </>
                       )}
                     </button>

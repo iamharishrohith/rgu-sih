@@ -1089,6 +1089,7 @@ export default function App() {
           onUpdateSessions={handleUpdateEvaluationSessions}
           onResetAllEvaluationData={handleResetAllEvaluationData}
           isAdminLoggedIn={isAdminLoggedIn}
+          onOpenRegistrationForm={(team) => setActiveRegTeam(team)}
           onOpenAdminGateway={isAdminLoggedIn ? triggerSecretAdmin : null}
           onBackToMain={() => {
             window.history.pushState(null, '', '/');
@@ -1467,13 +1468,14 @@ export default function App() {
 
                           <td className="col-action">
                             {isRegistered ? (
-                              <div 
-                                className="badge-status-confirmed"
-                                title="Registration officially completed & locked"
+                              <button 
+                                className="btn-edit-form-public"
+                                onClick={() => setActiveRegTeam(team)}
+                                title="Click to view and edit submitted registration details"
                               >
-                                <CheckCircle2 size={14} className="text-emerald" />
-                                <span>Form Submitted</span>
-                              </div>
+                                <CheckCircle2 size={13} className="text-emerald" />
+                                <span>Edit Form</span>
+                              </button>
                             ) : isPortalClosed ? (
                               <div 
                                 className="badge-status-closed"
@@ -1595,13 +1597,14 @@ export default function App() {
 
                         <div className="mob-card-action">
                           {isRegistered ? (
-                            <div 
-                              className="badge-status-confirmed mob-badge-full"
-                              title="Registration officially completed & locked"
+                            <button 
+                              className="btn-edit-form-public mob-btn-full"
+                              onClick={() => setActiveRegTeam(team)}
+                              title="Click to view and edit submitted registration details"
                             >
                               <CheckCircle2 size={15} className="text-emerald" />
-                              <span>Form Submitted &amp; Locked</span>
-                            </div>
+                              <span>Edit Registration Form</span>
+                            </button>
                           ) : isPortalClosed ? (
                             <div 
                               className="badge-status-closed mob-badge-full"
