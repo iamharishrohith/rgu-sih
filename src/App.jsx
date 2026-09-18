@@ -1010,7 +1010,6 @@ export default function App() {
           setIsReadOnlyAfterClosure(false);
           setCurrentView('eval_queue');
         }}
-        onOpenCertificateStudio={() => handleOpenCertificateStudio()}
         currentView={currentView}
         isPortalClosed={isPortalClosed}
         onOpenTimerModal={() => {
@@ -1036,8 +1035,41 @@ export default function App() {
         />
       )}
 
-      {/* VIEW 0: STANDALONE DEDICATED JURY STATION (ZERO OTHER BUTTON ACCESS) */}
-      {currentView === 'jury_station' ? (
+      {/* LOCKED ACCESS VIEW FOR PUBLIC USERS (Evaluation and Jury strictly restricted to Admin Master Panel) */}
+      {!isAdminLoggedIn && (currentView === 'eval_queue' || currentView === 'jury_station') ? (
+        <div className="eval-admin-locked-view">
+          <div className="eval-locked-card">
+            <div className="locked-icon-bubble">
+              <Lock size={36} className="text-amber" />
+            </div>
+            <h2>Master Evaluation Panel</h2>
+            <span className="locked-sub-tag">Administrative Access Strictly Required</span>
+            <p>
+              The digital evaluation queue, live pitch rooms, jury stations, and Section 65B score ledgers are restricted to official Evaluation Committee members and Administrators.
+            </p>
+            <div className="locked-actions-row">
+              <button 
+                className="btn-unlock-eval-admin" 
+                onClick={triggerSecretAdmin}
+              >
+                <LayoutDashboard size={16} />
+                <span>Login via Admin Gateway</span>
+              </button>
+              <button 
+                className="btn-back-to-public" 
+                onClick={() => {
+                  window.history.pushState(null, '', '/');
+                  setCurrentView('landing');
+                }}
+              >
+                <Home size={16} />
+                <span>Back to Announcement Portal</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : currentView === 'jury_station' && isAdminLoggedIn ? (
+        /* VIEW 0: STANDALONE DEDICATED JURY STATION (ADMIN ONLY) */
         <JuryStationPortal
           allTeams={masterTeamsList}
           registrationsMap={registrationsMap}
@@ -1076,39 +1108,6 @@ export default function App() {
           onOpenEvaluationQueue={() => setCurrentView('eval_queue')}
           onOpenAdminGateway={triggerSecretAdmin}
         />
-      ) : currentView === 'eval_queue' && !isAdminLoggedIn ? (
-        /* LOCKED ACCESS VIEW FOR PUBLIC USERS (Evaluation branch strictly restricted to Admin Master Panel) */
-        <div className="eval-admin-locked-view">
-          <div className="eval-locked-card">
-            <div className="locked-icon-bubble">
-              <Lock size={36} className="text-amber" />
-            </div>
-            <h2>Master Evaluation Panel</h2>
-            <span className="locked-sub-tag">Administrative Access Strictly Required</span>
-            <p>
-              The digital evaluation queue, live pitch rooms, and Section 65B score ledgers are restricted to official Evaluation Committee members and Administrators.
-            </p>
-            <div className="locked-actions-row">
-              <button 
-                className="btn-unlock-eval-admin" 
-                onClick={triggerSecretAdmin}
-              >
-                <LayoutDashboard size={16} />
-                <span>Login via Admin Gateway</span>
-              </button>
-              <button 
-                className="btn-back-to-public" 
-                onClick={() => {
-                  window.history.pushState(null, '', '/');
-                  setCurrentView('landing');
-                }}
-              >
-                <Home size={16} />
-                <span>Back to Announcement Portal</span>
-              </button>
-            </div>
-          </div>
-        </div>
       ) : currentView === 'eval_queue' && isAdminLoggedIn ? (
         /* VIEW 2: MASTER EVALUATION PANEL (ADMIN ACCESS GRANTED) */
         <EvaluationQueuePortal

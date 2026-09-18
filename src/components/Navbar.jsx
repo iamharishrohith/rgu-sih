@@ -81,7 +81,7 @@ export default function Navbar({
           </div>
 
           {/* Action Navigation Controls */}
-          {isAdminLoggedIn ? (
+          {isAdminLoggedIn && (
             <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button 
                 className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
@@ -96,15 +96,6 @@ export default function Navbar({
                 <CheckCircle2 size={15} className="text-emerald" />
                 <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
               </div>
-
-              <button 
-                className="btn-nav-cert-studio"
-                onClick={onOpenCertificateStudio}
-                title="Launch Role-Based Digital Certificate Studio (Section 65B Sovereign Credential)"
-              >
-                <Award size={14} className="text-amber" />
-                <span>Certificates</span>
-              </button>
 
               <button 
                 className="btn-nav-admin"
@@ -123,17 +114,6 @@ export default function Navbar({
               >
                 <LayoutDashboard size={15} />
                 <span>Admin Gateway</span>
-              </button>
-            </div>
-          ) : (
-            <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button 
-                className="btn-nav-cert-studio"
-                onClick={onOpenCertificateStudio}
-                title="Launch Role-Based Digital Certificate Studio (Section 65B Sovereign Credential)"
-              >
-                <Award size={14} className="text-amber" />
-                <span>Certificates</span>
               </button>
             </div>
           )}
