@@ -29,41 +29,62 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       }
     } catch (e) {}
 
-    const source = draftData || existingRegistration || {};
+    // When existing registration is present, use it as solid base and overlay any unsaved draft
+    const source = existingRegistration 
+      ? { ...existingRegistration, ...(draftData || {}) } 
+      : (draftData || {});
+
+    // Prepare 5 clean member slots (Members 2 to 6)
+    const rawMembers = Array.isArray(source.members) && source.members.length > 0
+      ? source.members
+      : (Array.isArray(existingRegistration?.members) && existingRegistration.members.length > 0 ? existingRegistration.members : []);
+
+    const defaultLeaderDept = source.leader_dept || existingRegistration?.leader_dept || team.school || 'Computer Science & Engineering';
+    const defaultLeaderSchool = normalizeSchoolName(source.leader_school || existingRegistration?.leader_school || team.school);
+
+    const membersList = [2, 3, 4, 5, 6].map((id, idx) => {
+      const existingM = rawMembers[idx] || {};
+      return {
+        id,
+        name: (existingM.name || '').trim(),
+        reg_no: (existingM.reg_no || '').trim(),
+        personal_email: (existingM.personal_email || '').trim(),
+        college_email: (existingM.college_email || '').trim(),
+        phone: (existingM.phone || '').trim(),
+        whatsapp: (existingM.whatsapp || '').trim(),
+        year: existingM.year || '3rd Year',
+        dept: (existingM.dept || defaultLeaderDept).trim(),
+        school: normalizeSchoolName(existingM.school || defaultLeaderSchool)
+      };
+    });
 
     return {
       // Team & PS
-      team_name: source.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
-      temp_team_id: source.temp_team_id || teamId,
-      sih_ps_id: source.sih_ps_id || source.ps_id || team.ps_id || '',
-      ps_title: source.ps_title || team.ps_title || '',
-      status: source.status || team.status || 'Shortlist',
+      team_name: source.team_name || existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
+      temp_team_id: source.temp_team_id || existingRegistration?.temp_team_id || teamId,
+      sih_ps_id: source.sih_ps_id || existingRegistration?.sih_ps_id || source.ps_id || existingRegistration?.ps_id || team.ps_id || '',
+      ps_title: source.ps_title || existingRegistration?.ps_title || team.ps_title || '',
+      status: source.status || existingRegistration?.status || team.status || 'Shortlist',
       
       // Team Leader (Member 1)
-      leader_name: source.leader_name || team.leader_name || '',
-      leader_reg_no: source.leader_reg_no || team.reg_no || '',
-      leader_personal_email: source.leader_personal_email || '',
-      leader_college_email: source.leader_college_email || '',
-      leader_phone: source.leader_phone || team.mobile || '',
-      leader_whatsapp: source.leader_whatsapp || team.mobile || '',
-      leader_year: source.leader_year || '3rd Year',
-      leader_dept: source.leader_dept || team.school || 'Computer Science & Engineering',
-      leader_school: normalizeSchoolName(source.leader_school || team.school),
+      leader_name: source.leader_name || existingRegistration?.leader_name || team.leader_name || '',
+      leader_reg_no: source.leader_reg_no || existingRegistration?.leader_reg_no || team.reg_no || '',
+      leader_personal_email: source.leader_personal_email || existingRegistration?.leader_personal_email || '',
+      leader_college_email: source.leader_college_email || existingRegistration?.leader_college_email || '',
+      leader_phone: source.leader_phone || existingRegistration?.leader_phone || team.mobile || '',
+      leader_whatsapp: source.leader_whatsapp || existingRegistration?.leader_whatsapp || team.mobile || '',
+      leader_year: source.leader_year || existingRegistration?.leader_year || '3rd Year',
+      leader_dept: defaultLeaderDept,
+      leader_school: defaultLeaderSchool,
 
       // 5 Team Members (Members 2 to 6)
-      members: source.members && Array.isArray(source.members) ? source.members.map(m => ({ ...m, school: normalizeSchoolName(m.school) })) : [
-        { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-        { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-        { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-        { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-        { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-      ],
+      members: membersList,
 
       // Faculty Mentor
-      mentor_name: source.mentor_name || '',
-      mentor_designation: source.mentor_designation || 'Assistant Professor',
-      mentor_email: source.mentor_email || '',
-      mentor_phone: source.mentor_phone || ''
+      mentor_name: source.mentor_name || existingRegistration?.mentor_name || '',
+      mentor_designation: source.mentor_designation || existingRegistration?.mentor_designation || 'Assistant Professor',
+      mentor_email: source.mentor_email || existingRegistration?.mentor_email || '',
+      mentor_phone: source.mentor_phone || existingRegistration?.mentor_phone || ''
     };
   };
 
@@ -169,6 +190,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
 
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    if (isSubmitting) return; // Prevent double trigger
     setErrorMsg('');
     setValidationErrors({});
 
@@ -223,8 +245,8 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     setIsSubmitting(true);
     setSyncStatusMsg('Saving locally & syncing to database...');
 
-    const cleanMembers = Array.isArray(formData.members) ? formData.members.map(m => ({
-      id: m.id || 2,
+    const cleanMembers = Array.isArray(formData.members) ? formData.members.map((m, idx) => ({
+      id: m.id || (idx + 2),
       name: (m.name || '').trim(),
       reg_no: (m.reg_no || '').trim(),
       personal_email: (m.personal_email || '').trim(),
@@ -244,7 +266,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       status: formData.status || team.status || 'Shortlist',
       leader_name: cleanLeaderName,
       leader_reg_no: cleanLeaderReg,
-      leader_personal_email: cleanLeaderEmail,
+      leader_personal_email: cleanLeaderEmail.toLowerCase(),
       leader_college_email: (formData.leader_college_email || '').trim(),
       leader_phone: cleanLeaderPhone,
       leader_whatsapp: (formData.leader_whatsapp || cleanLeaderPhone).trim(),
