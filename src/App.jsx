@@ -13,7 +13,6 @@ import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
 import EvaluationQueuePortal, { DEFAULT_EVALUATION_PANELS } from './components/EvaluationQueuePortal.jsx';
 import JuryStationPortal from './components/JuryStationPortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
-import CertificateStudioModal from './components/CertificateStudioModal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -201,17 +200,6 @@ export default function App() {
 
   const [activeRegTeam, setActiveRegTeam] = useState(null);
   const [activeDetailsTeam, setActiveDetailsTeam] = useState(null);
-  const [isCertStudioOpen, setIsCertStudioOpen] = useState(false);
-  const [certStudioTargetTeam, setCertStudioTargetTeam] = useState(null);
-  const [certStudioTargetRole, setCertStudioTargetRole] = useState('LEADER');
-  const [certStudioTargetParticipant, setCertStudioTargetParticipant] = useState(null);
-
-  const handleOpenCertificateStudio = (team = null, role = 'LEADER', participant = null) => {
-    setCertStudioTargetTeam(team);
-    setCertStudioTargetRole(role);
-    setCertStudioTargetParticipant(participant);
-    setIsCertStudioOpen(true);
-  };
 
   const [sortBy, setSortBy] = useState('rank');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -427,11 +415,6 @@ export default function App() {
       const pathname = window.location.pathname.toLowerCase();
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
-
-      // Certificate Studio route check
-      if (pathname.includes('/cert') || hash.includes('cert') || search.includes('cert')) {
-        setIsCertStudioOpen(true);
-      }
       
       // Standalone Jury Station check (strictly isolated)
       if (pathname.includes('/jury') || search.includes('jury') || hash.includes('jury')) {
@@ -1547,15 +1530,6 @@ export default function App() {
                                   <span>Register Team</span>
                                 </button>
                               )}
-                              <button
-                                type="button"
-                                className="btn-table-cert-action"
-                                onClick={() => handleOpenCertificateStudio(team, 'LEADER')}
-                                title="Generate Section 65B Digital Certificate for this finalist team"
-                              >
-                                <Award size={13} className="text-amber" />
-                                <span>Certificate</span>
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1687,15 +1661,6 @@ export default function App() {
                               <ArrowRight size={14} />
                             </button>
                           )}
-                          <button
-                            type="button"
-                            className="btn-mob-cert-action"
-                            onClick={() => handleOpenCertificateStudio(team, 'LEADER')}
-                            title="Generate Section 65B Digital Certificate"
-                          >
-                            <Award size={14} className="text-amber" />
-                            <span>Digital Certificate</span>
-                          </button>
                         </div>
                       </div>
                     );
@@ -1796,18 +1761,6 @@ export default function App() {
         totalTeamsCount={tierCounts.totalFinalized}
         submittedCount={finalizedSubmittedCount}
       />
-
-      {/* Certificate Studio Modal */}
-      {isCertStudioOpen && (
-        <CertificateStudioModal
-          initialTeam={certStudioTargetTeam}
-          initialParticipant={certStudioTargetParticipant}
-          initialRole={certStudioTargetRole}
-          allTeams={FINALIZED_MASTER_TEAMS}
-          registrationsMap={registrationsMap}
-          onClose={() => setIsCertStudioOpen(false)}
-        />
-      )}
     </div>
   );
 }

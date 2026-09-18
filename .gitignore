@@ -6,3 +6,10 @@ whatsapp_broadcast_log.csv
 whatsapp_user_session/
 __pycache__/
 *.pyc
+
+# Certificates Design (Local development draft - not for production/git)
+src/components/CertificateStudioModal.jsx
+src/components/CertificateModal.jsx
+src/components/*Certificate*
+*certificate*
+

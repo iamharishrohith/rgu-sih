@@ -1331,7 +1331,7 @@ export default function EvaluationQueuePortal({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `casevault_pending_evaluation_teams_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `sih2026_pending_evaluation_teams_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
