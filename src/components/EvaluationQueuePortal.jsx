@@ -6,7 +6,8 @@ import {
   Smartphone, FileText, Layers, ArrowLeft, Volume2, VolumeX,
   LayoutDashboard, Check, Award, Trash2, Tag, Hash, X,
   GripVertical, ArrowUp, ArrowDown, ArrowRightLeft, Megaphone, Radio, Square,
-  ArrowRight, ChevronRight, BarChart3, TrendingUp, Activity, FastForward, RotateCcw, AlertTriangle, UserCheck, PieChart
+  ArrowRight, ChevronRight, BarChart3, TrendingUp, Activity, FastForward, RotateCcw, AlertTriangle, UserCheck, PieChart,
+  Phone, MessageSquare, Filter, Eye, ExternalLink, HelpCircle, FileSpreadsheet, UserX, AlertCircle, RefreshCw, Mail, Calendar
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
@@ -278,6 +279,7 @@ export default function EvaluationQueuePortal({
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
       if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) return 'student';
+      if (pathname.includes('/pending') || search.includes('view=pending') || hash.includes('pending')) return 'pending';
       if (isAdminLoggedIn && (pathname.includes('/analytics') || search.includes('view=analytics') || hash.includes('analytics') || hash.includes('dashboard') || hash.includes('kpi'))) return 'analytics';
       if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) return 'ledger';
       if (pathname.includes('/projector') || pathname.includes('/live') || search.includes('view=projector') || hash.includes('live-queue') || hash.includes('projector') || hash.includes('live')) return 'projector';
@@ -294,6 +296,8 @@ export default function EvaluationQueuePortal({
         const hash = window.location.hash.toLowerCase();
         if (pathname.includes('/student') || pathname.includes('/book') || search.includes('view=student') || hash.includes('book') || hash.includes('student')) {
           setActiveView('student');
+        } else if (pathname.includes('/pending') || search.includes('view=pending') || hash.includes('pending')) {
+          setActiveView('pending');
         } else if (isAdminLoggedIn && (pathname.includes('/analytics') || search.includes('view=analytics') || hash.includes('analytics') || hash.includes('dashboard') || hash.includes('kpi'))) {
           setActiveView('analytics');
         } else if (isAdminLoggedIn && (pathname.includes('/ledger') || search.includes('view=ledger') || hash.includes('ledger'))) {
@@ -351,6 +355,14 @@ export default function EvaluationQueuePortal({
   const [ledgerSearch, setLedgerSearch] = useState('');
   const [ledgerPanelFilter, setLedgerPanelFilter] = useState('ALL');
   const [ledgerViewMode, setLedgerViewMode] = useState('individual'); // 'individual' | 'consolidated'
+
+  // Pending Teams Directory Filters & Modal State
+  const [pendingSearchTerm, setPendingSearchTerm] = useState('');
+  const [pendingFormFilter, setPendingFormFilter] = useState('ALL'); // 'ALL' | 'FILLED' | 'UNFILLED'
+  const [pendingQueueFilter, setPendingQueueFilter] = useState('ALL'); // 'ALL' | 'NOT_BOOKED' | 'IN_QUEUE' | 'IN_PROGRESS' | 'DELAYED'
+  const [pendingTierFilter, setPendingTierFilter] = useState('ALL'); // 'ALL' | 'shortlist' | 'bench' | 'waitlist'
+  const [pendingSchoolFilter, setPendingSchoolFilter] = useState('ALL');
+  const [pendingModalTeam, setPendingModalTeam] = useState(null);
 
   const handleResetAllEvaluation = () => {
     if (window.confirm('Are you sure you want to RESET ALL EVALUATION DATA (Queues, Tokens, Active Pitch Timers, and Ledger Scores)? Panels and theme configurations will be preserved.')) {
@@ -1026,6 +1038,304 @@ export default function EvaluationQueuePortal({
     }).sort((a, b) => b.avgScore - a.avgScore);
   }, [filteredLedger]);
 
+  // Set of evaluated team IDs (from evaluationLedger)
+  const evaluatedTeamIds = useMemo(() => {
+    return new Set((evaluationLedger || []).map(l => l.teamId));
+  }, [evaluationLedger]);
+
+  // All Pending Teams (teams from master roster that haven't had an evaluation recorded)
+  const allPendingTeams = useMemo(() => {
+    return (allTeams || []).filter(t => !evaluatedTeamIds.has(t.temp_team_id)).map(team => {
+      const teamId = team.temp_team_id;
+      const reg = registrationsMap[teamId] || null;
+      const isFormFilled = Boolean(reg && (reg.team_name || reg.leader_name || (Array.isArray(reg.members) && reg.members.length > 0)));
+      const queueItem = evaluationQueue[teamId] || null;
+
+      // Check if team is currently in an active pitch session on any panel
+      let activePanelSession = null;
+      Object.entries(activeSessions || {}).forEach(([pId, session]) => {
+        if (session && session.teamId === teamId) {
+          activePanelSession = { panelId: pId, session };
+        }
+      });
+
+      let queueStatus = 'NOT_BOOKED';
+      let queueStatusLabel = 'Not Booked';
+      if (activePanelSession) {
+        queueStatus = 'IN_PROGRESS';
+        queueStatusLabel = 'Pitching Live';
+      } else if (queueItem) {
+        if (queueItem.status === 'DELAYED') {
+          queueStatus = 'DELAYED';
+          queueStatusLabel = `Delayed (${queueItem.delayedCount || 1}x)`;
+        } else {
+          queueStatus = 'IN_QUEUE';
+          queueStatusLabel = `Token ${queueItem.tokenNumber}`;
+        }
+      }
+
+      // Determine Tier
+      const tier = team.tier || (teamId.startsWith('SL') ? 'Shortlist' : teamId.startsWith('BN') ? 'Bench' : 'Waitlist');
+
+      // Contact details
+      const leaderName = reg?.leader_name || team.leader_name || '—';
+      const leaderPhone = reg?.leader_phone || reg?.mobile || team.mobile || team.phone || '—';
+      const leaderEmail = reg?.leader_email || team.email || '—';
+      const leaderRegNo = reg?.leader_reg_no || team.reg_no || '—';
+      const school = normalizeSchoolName(reg?.leader_school || reg?.leader_dept || team.school || '—');
+      const teamName = reg?.team_name || team.team_name || '—';
+      const psId = reg?.sih_ps_id || team.ps_id || '—';
+      const psTitle = reg?.ps_title || team.ps_title || '—';
+      const domain = team.domain || reg?.ps_category || team.ps_category || '—';
+      const members = Array.isArray(reg?.members) && reg.members.length > 0 ? reg.members : (team.members || []);
+      const memberCount = members.length > 0 ? members.length : 6;
+
+      return {
+        ...team,
+        rawTeam: team,
+        teamId,
+        teamName,
+        leaderName,
+        leaderPhone,
+        leaderEmail,
+        leaderRegNo,
+        school,
+        psId,
+        psTitle,
+        domain,
+        tier,
+        isFormFilled,
+        registrationData: reg,
+        queueItem,
+        queueStatus,
+        queueStatusLabel,
+        activePanelSession,
+        members,
+        memberCount,
+        facultyMentor: reg?.faculty_mentor_name || team.faculty_mentor_name || '—',
+        facultyMentorPhone: reg?.faculty_mentor_phone || team.faculty_mentor_phone || '—',
+        submittedAt: reg?.submitted_at || reg?.timestamp || null
+      };
+    });
+  }, [allTeams, evaluatedTeamIds, registrationsMap, evaluationQueue, activeSessions]);
+
+  // Statistics KPI computation for pending directory
+  const pendingStats = useMemo(() => {
+    const total = allPendingTeams.length;
+    const formFilled = allPendingTeams.filter(t => t.isFormFilled).length;
+    const formUnfilled = total - formFilled;
+    const inQueue = allPendingTeams.filter(t => t.queueStatus === 'IN_QUEUE' || t.queueStatus === 'IN_PROGRESS').length;
+    const notBooked = allPendingTeams.filter(t => t.queueStatus === 'NOT_BOOKED').length;
+    const delayed = allPendingTeams.filter(t => t.queueStatus === 'DELAYED').length;
+    return { total, formFilled, formUnfilled, inQueue, notBooked, delayed };
+  }, [allPendingTeams]);
+
+  // Unique list of schools for school filter
+  const pendingSchoolOptions = useMemo(() => {
+    const schools = new Set();
+    allPendingTeams.forEach(t => {
+      if (t.school && t.school !== '—') schools.add(t.school);
+    });
+    return Array.from(schools).sort();
+  }, [allPendingTeams]);
+
+  // Filtered pending teams based on active filters
+  const filteredPendingTeams = useMemo(() => {
+    return allPendingTeams.filter(team => {
+      // Form filter
+      if (pendingFormFilter === 'FILLED' && !team.isFormFilled) return false;
+      if (pendingFormFilter === 'UNFILLED' && team.isFormFilled) return false;
+
+      // Queue status filter
+      if (pendingQueueFilter !== 'ALL') {
+        if (pendingQueueFilter === 'IN_QUEUE' && team.queueStatus !== 'IN_QUEUE' && team.queueStatus !== 'IN_PROGRESS') return false;
+        if (pendingQueueFilter === 'NOT_BOOKED' && team.queueStatus !== 'NOT_BOOKED') return false;
+        if (pendingQueueFilter === 'DELAYED' && team.queueStatus !== 'DELAYED') return false;
+        if (pendingQueueFilter === 'IN_PROGRESS' && team.queueStatus !== 'IN_PROGRESS') return false;
+      }
+
+      // Tier filter
+      if (pendingTierFilter !== 'ALL') {
+        if (pendingTierFilter.toLowerCase() !== (team.tier || '').toLowerCase()) return false;
+      }
+
+      // School filter
+      if (pendingSchoolFilter !== 'ALL' && team.school !== pendingSchoolFilter) {
+        return false;
+      }
+
+      // Search query
+      if (pendingSearchTerm.trim()) {
+        const q = pendingSearchTerm.toLowerCase().trim();
+        const match = 
+          team.teamId.toLowerCase().includes(q) ||
+          team.teamName.toLowerCase().includes(q) ||
+          team.leaderName.toLowerCase().includes(q) ||
+          team.leaderPhone.toLowerCase().includes(q) ||
+          team.leaderRegNo.toLowerCase().includes(q) ||
+          team.psId.toLowerCase().includes(q) ||
+          team.psTitle.toLowerCase().includes(q) ||
+          team.school.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+
+      return true;
+    });
+  }, [allPendingTeams, pendingFormFilter, pendingQueueFilter, pendingTierFilter, pendingSchoolFilter, pendingSearchTerm]);
+
+  // Quick Assign pending team to a panel
+  const handleQuickAssignPendingTeam = (team, targetPanelId) => {
+    const teamId = team.temp_team_id || team.teamId;
+    const targetPanel = evaluationPanels.find(p => p.id === targetPanelId);
+    if (!targetPanel) return;
+
+    const existingQueueItem = evaluationQueue[teamId];
+    const now = Date.now();
+    const tokenSeq = (panelQueues[targetPanel.id] || []).length + 1;
+    const tokenNumber = `${targetPanel.code || 'PX'}-${String(tokenSeq).padStart(2, '0')}`;
+
+    const newQueueItem = {
+      teamId,
+      teamName: team.team_name || team.teamName,
+      leaderName: team.leader_name || team.leaderName,
+      regNo: team.reg_no || team.leaderRegNo || '',
+      psId: team.ps_id || team.psId || '',
+      school: team.school || '',
+      domain: team.domain || '',
+      theme: team.theme || team.domain || 'Smart Automation',
+      panelId: targetPanel.id,
+      panelName: targetPanel.name,
+      panelCode: targetPanel.code,
+      room: targetPanel.room,
+      tokenNumber,
+      matchedHashtags: existingQueueItem?.matchedHashtags || getInitialTagsForTeam(team.rawTeam || team),
+      bookedTimestamp: now,
+      bookedTimeStr: new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'WAITING'
+    };
+
+    const nextQueue = {
+      ...evaluationQueue,
+      [teamId]: newQueueItem
+    };
+
+    if (onUpdateQueue) onUpdateQueue(nextQueue);
+    if (soundEnabled) playSoundAlert('chime');
+  };
+
+  // Batch Auto-Assign all unbooked pending teams across panels based on theme matching
+  const handleBatchAutoAssignUnbooked = () => {
+    const unbookedTeams = allPendingTeams.filter(t => t.queueStatus === 'NOT_BOOKED');
+    if (unbookedTeams.length === 0) {
+      alert('All pending teams already have queue tokens booked!');
+      return;
+    }
+    if (!window.confirm(`Auto-assign and balance slots for all ${unbookedTeams.length} unbooked pending teams across panels based on domain matching?`)) {
+      return;
+    }
+
+    const currentQueue = { ...evaluationQueue };
+    const queueCounts = {};
+    evaluationPanels.forEach(p => {
+      queueCounts[p.id] = (panelQueues[p.id] || []).length;
+    });
+
+    const now = Date.now();
+    unbookedTeams.forEach((team, idx) => {
+      const rankedMatches = getMatchingPanelsForTeam(team.rawTeam || team, evaluationPanels, getInitialThemeForTeam(team.rawTeam || team), getInitialTagsForTeam(team.rawTeam || team));
+      const targetPanel = rankedMatches[0]?.panel || evaluationPanels[0];
+      queueCounts[targetPanel.id] = (queueCounts[targetPanel.id] || 0) + 1;
+      const tokenNumber = `${targetPanel.code || 'PX'}-${String(queueCounts[targetPanel.id]).padStart(2, '0')}`;
+
+      currentQueue[team.teamId] = {
+        teamId: team.teamId,
+        teamName: team.teamName,
+        leaderName: team.leaderName,
+        regNo: team.leaderRegNo,
+        psId: team.psId,
+        school: team.school,
+        domain: team.domain,
+        theme: team.domain || 'Smart Automation',
+        panelId: targetPanel.id,
+        panelName: targetPanel.name,
+        panelCode: targetPanel.code,
+        room: targetPanel.room,
+        tokenNumber,
+        matchedHashtags: getInitialTagsForTeam(team.rawTeam || team),
+        bookedTimestamp: now + (idx * 50),
+        bookedTimeStr: new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'WAITING'
+      };
+    });
+
+    if (onUpdateQueue) onUpdateQueue(currentQueue);
+    if (soundEnabled) playSoundAlert('chime');
+    alert(`Successfully assigned ${unbookedTeams.length} pending teams across evaluation panels!`);
+  };
+
+  // Export Pending Teams to CSV
+  const handleExportPendingTeamsCSV = () => {
+    if (filteredPendingTeams.length === 0) {
+      alert('No pending teams to export.');
+      return;
+    }
+
+    const headers = [
+      'Team ID',
+      'Team Name',
+      'Tier',
+      'Registration Form Status',
+      'Queue Status',
+      'Assigned Panel',
+      'Room',
+      'Token Number',
+      'Leader Name',
+      'Leader Reg No',
+      'Leader Mobile',
+      'Leader Email',
+      'School / Department',
+      'Problem Statement ID',
+      'Problem Statement Title',
+      'Domain / Theme',
+      'Faculty Mentor Name',
+      'Faculty Mentor Mobile',
+      'Total Members',
+      'Form Submitted Timestamp'
+    ];
+
+    const rows = filteredPendingTeams.map(t => [
+      `"${t.teamId}"`,
+      `"${(t.teamName || '').replace(/"/g, '""')}"`,
+      `"${t.tier}"`,
+      `"${t.isFormFilled ? 'Form Submitted' : 'Form NOT Filled'}"`,
+      `"${t.queueStatusLabel}"`,
+      `"${t.queueItem?.panelName || '—'}"`,
+      `"${t.queueItem?.room || '—'}"`,
+      `"${t.queueItem?.tokenNumber || '—'}"`,
+      `"${(t.leaderName || '').replace(/"/g, '""')}"`,
+      `"${t.leaderRegNo || '—'}"`,
+      `"${t.leaderPhone || '—'}"`,
+      `"${t.leaderEmail || '—'}"`,
+      `"${(t.school || '').replace(/"/g, '""')}"`,
+      `"${t.psId || '—'}"`,
+      `"${(t.psTitle || '').replace(/"/g, '""')}"`,
+      `"${(t.domain || '').replace(/"/g, '""')}"`,
+      `"${(t.facultyMentor || '').replace(/"/g, '""')}"`,
+      `"${t.facultyMentorPhone || '—'}"`,
+      t.memberCount || 6,
+      `"${t.submittedAt ? new Date(t.submittedAt).toLocaleString() : 'Not Submitted'}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `casevault_pending_evaluation_teams_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Master Analytics & Real-Time Performance KPIs
   const analyticsData = useMemo(() => {
     const totalTeamsCount = allTeams.length || 0;
@@ -1232,6 +1542,13 @@ export default function EvaluationQueuePortal({
             >
               <Smartphone size={15} />
               <span>Student Slot Booking</span>
+            </button>
+            <button 
+              className={`eval-tab-btn ${activeView === 'pending' ? 'active pending' : ''}`}
+              onClick={() => handleSwitchTab('pending')}
+            >
+              <Users size={15} />
+              <span>Pending Teams ({pendingStats.total})</span>
             </button>
             {isAdminLoggedIn && (
               <>
@@ -2733,6 +3050,445 @@ export default function EvaluationQueuePortal({
         </div>
       )}
 
+      {/* VIEW: PENDING ALL TEAMS DIRECTORY */}
+      {activeView === 'pending' && (
+        <div className='eval-pending-container'>
+          {/* Header Banner */}
+          <div className='pending-header-banner'>
+            <div className='pending-header-info'>
+              <div className='pending-badge-top'>
+                <Clock size={15} className='text-amber' />
+                <span>UNATTENDED / PENDING DIRECTORY</span>
+              </div>
+              <h2 className='pending-main-title'>Master Evaluation — Pending Teams Directory</h2>
+              <p className='pending-sub-desc'>
+                Comprehensive real-time status of all {pendingStats.total} teams yet to complete jury evaluation. Inspect registration form submissions, verified member rosters, immediate contact channels, and dispatch slots directly to panels.
+              </p>
+            </div>
+
+            <div className='pending-header-actions'>
+              <button 
+                type='button'
+                className='btn-pending-auto-assign'
+                onClick={handleBatchAutoAssignUnbooked}
+                title='Auto-balance and allocate queue tokens to all unscheduled teams based on domain and jury matching'
+              >
+                <Sparkles size={15} />
+                <span>Auto-Dispatch Unbooked ({pendingStats.notBooked})</span>
+              </button>
+
+              <button 
+                type='button'
+                className='btn-pending-export-csv'
+                onClick={handleExportPendingTeamsCSV}
+                title='Download CSV of all pending teams with contact info and registration status'
+              >
+                <Download size={15} />
+                <span>Export Pending CSV</span>
+              </button>
+            </div>
+          </div>
+
+          {/* KPI Counters Bar */}
+          <div className='pending-kpis-grid'>
+            <div 
+              className={`pending-kpi-card total ${pendingFormFilter === 'ALL' && pendingQueueFilter === 'ALL' ? 'active-filter' : ''}`}
+              onClick={() => {
+                setPendingFormFilter('ALL');
+                setPendingQueueFilter('ALL');
+              }}
+            >
+              <div className='pending-kpi-icon-wrap blue'>
+                <Users size={20} />
+              </div>
+              <div className='pending-kpi-content'>
+                <span className='pending-kpi-value'>{pendingStats.total}</span>
+                <span className='pending-kpi-label'>Total Pending Teams</span>
+              </div>
+            </div>
+
+            <div 
+              className={`pending-kpi-card filled ${pendingFormFilter === 'FILLED' ? 'active-filter' : ''}`}
+              onClick={() => {
+                setPendingFormFilter(prev => prev === 'FILLED' ? 'ALL' : 'FILLED');
+              }}
+            >
+              <div className='pending-kpi-icon-wrap emerald'>
+                <CheckCircle2 size={20} />
+              </div>
+              <div className='pending-kpi-content'>
+                <span className='pending-kpi-value'>{pendingStats.formFilled}</span>
+                <span className='pending-kpi-label'>Form Submitted (Ready)</span>
+              </div>
+            </div>
+
+            <div 
+              className={`pending-kpi-card unfilled ${pendingFormFilter === 'UNFILLED' ? 'active-filter' : ''}`}
+              onClick={() => {
+                setPendingFormFilter(prev => prev === 'UNFILLED' ? 'ALL' : 'UNFILLED');
+              }}
+            >
+              <div className='pending-kpi-icon-wrap amber'>
+                <AlertTriangle size={20} />
+              </div>
+              <div className='pending-kpi-content'>
+                <span className='pending-kpi-value'>{pendingStats.formUnfilled}</span>
+                <span className='pending-kpi-label'>Form NOT Filled (Awaiting)</span>
+              </div>
+            </div>
+
+            <div 
+              className={`pending-kpi-card in-queue ${pendingQueueFilter === 'IN_QUEUE' ? 'active-filter' : ''}`}
+              onClick={() => {
+                setPendingQueueFilter(prev => prev === 'IN_QUEUE' ? 'ALL' : 'IN_QUEUE');
+              }}
+            >
+              <div className='pending-kpi-icon-wrap indigo'>
+                <Clock size={20} />
+              </div>
+              <div className='pending-kpi-content'>
+                <span className='pending-kpi-value'>{pendingStats.inQueue}</span>
+                <span className='pending-kpi-label'>In Queue / Active Slot</span>
+              </div>
+            </div>
+
+            <div 
+              className={`pending-kpi-card unbooked ${pendingQueueFilter === 'NOT_BOOKED' ? 'active-filter' : ''}`}
+              onClick={() => {
+                setPendingQueueFilter(prev => prev === 'NOT_BOOKED' ? 'ALL' : 'NOT_BOOKED');
+              }}
+            >
+              <div className='pending-kpi-icon-wrap gray'>
+                <UserX size={20} />
+              </div>
+              <div className='pending-kpi-content'>
+                <span className='pending-kpi-value'>{pendingStats.notBooked}</span>
+                <span className='pending-kpi-label'>Not Booked (No Token)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters and Search Bar */}
+          <div className='pending-filters-panel'>
+            <div className='pending-search-input-wrap'>
+              <Search size={16} className='pending-search-icon' />
+              <input 
+                type='text' 
+                placeholder='Search pending teams by ID, name, leader, phone, PS ID, school...'
+                value={pendingSearchTerm}
+                onChange={(e) => setPendingSearchTerm(e.target.value)}
+                className='pending-search-input'
+              />
+              {pendingSearchTerm && (
+                <button 
+                  type='button'
+                  className='btn-clear-pending-search' 
+                  onClick={() => setPendingSearchTerm('')}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className='pending-dropdowns-group'>
+              <div className='pending-select-wrap'>
+                <label className='pending-filter-lbl'>Form Status:</label>
+                <select 
+                  value={pendingFormFilter}
+                  onChange={(e) => setPendingFormFilter(e.target.value)}
+                  className='pending-select-control'
+                >
+                  <option value='ALL'>All Form Statuses ({pendingStats.total})</option>
+                  <option value='FILLED'>✓ Form Submitted ({pendingStats.formFilled})</option>
+                  <option value='UNFILLED'>✕ Form NOT Filled ({pendingStats.formUnfilled})</option>
+                </select>
+              </div>
+
+              <div className='pending-select-wrap'>
+                <label className='pending-filter-lbl'>Queue Status:</label>
+                <select 
+                  value={pendingQueueFilter}
+                  onChange={(e) => setPendingQueueFilter(e.target.value)}
+                  className='pending-select-control'
+                >
+                  <option value='ALL'>All Queue Statuses</option>
+                  <option value='NOT_BOOKED'>○ Not Booked ({pendingStats.notBooked})</option>
+                  <option value='IN_QUEUE'>⏳ In Panel Queue ({pendingStats.inQueue})</option>
+                  <option value='IN_PROGRESS'>⚡ Live Pitch In Progress</option>
+                  <option value='DELAYED'>⚠️ Delayed ({pendingStats.delayed})</option>
+                </select>
+              </div>
+
+              <div className='pending-select-wrap'>
+                <label className='pending-filter-lbl'>Tier:</label>
+                <select 
+                  value={pendingTierFilter}
+                  onChange={(e) => setPendingTierFilter(e.target.value)}
+                  className='pending-select-control'
+                >
+                  <option value='ALL'>All Tiers</option>
+                  <option value='shortlist'>Shortlist</option>
+                  <option value='bench'>Bench</option>
+                  <option value='waitlist'>Waitlist</option>
+                </select>
+              </div>
+
+              <div className='pending-select-wrap'>
+                <label className='pending-filter-lbl'>School/Dept:</label>
+                <select 
+                  value={pendingSchoolFilter}
+                  onChange={(e) => setPendingSchoolFilter(e.target.value)}
+                  className='pending-select-control'
+                >
+                  <option value='ALL'>All Schools / Depts</option>
+                  {pendingSchoolOptions.map(sch => (
+                    <option key={sch} value={sch}>{sch}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(pendingSearchTerm || pendingFormFilter !== 'ALL' || pendingQueueFilter !== 'ALL' || pendingTierFilter !== 'ALL' || pendingSchoolFilter !== 'ALL') && (
+                <button 
+                  type='button'
+                  className='btn-clear-all-pending-filters'
+                  onClick={() => {
+                    setPendingSearchTerm('');
+                    setPendingFormFilter('ALL');
+                    setPendingQueueFilter('ALL');
+                    setPendingTierFilter('ALL');
+                    setPendingSchoolFilter('ALL');
+                  }}
+                >
+                  <RotateCcw size={13} />
+                  <span>Reset</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Master Table */}
+          <div className='pending-table-container'>
+            <table className='pending-master-table'>
+              <thead>
+                <tr>
+                  <th style={{ width: '100px' }}>Team ID</th>
+                  <th>Team &amp; Problem Statement</th>
+                  <th style={{ width: '170px' }}>Registration Form</th>
+                  <th>Team Leader &amp; Contact</th>
+                  <th style={{ width: '190px' }}>Queue / Evaluation Status</th>
+                  <th style={{ width: '210px', textAlign: 'center' }}>Actions &amp; Dispatch</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPendingTeams.map(team => {
+                  const isRegistered = team.isFormFilled;
+                  const queue = team.queueItem;
+                  const tierLower = (team.tier || '').toLowerCase();
+
+                  return (
+                    <tr key={team.teamId} className={`pending-row ${isRegistered ? 'is-filled' : 'is-unfilled'}`}>
+                      {/* Team ID & Tier */}
+                      <td className='pending-col-id'>
+                        <span className='pending-id-badge'>{team.teamId}</span>
+                        <span className={`pending-tier-badge ${tierLower}`}>
+                          {team.tier}
+                        </span>
+                      </td>
+
+                      {/* Team & PS */}
+                      <td className='pending-col-team'>
+                        <div className='pending-team-name-row'>
+                          <strong className='pending-team-title'>{team.teamName}</strong>
+                        </div>
+                        <div className='pending-ps-row'>
+                          <span className='pending-ps-id-tag'>{team.psId}</span>
+                          <span className='pending-ps-title-sub' title={team.psTitle}>
+                            {team.psTitle}
+                          </span>
+                        </div>
+                        <div className='pending-school-sub'>
+                          <Building2 size={12} className='text-muted' />
+                          <span>{team.school}</span>
+                        </div>
+                      </td>
+
+                      {/* Registration Form Status */}
+                      <td className='pending-col-form'>
+                        {isRegistered ? (
+                          <div className='form-status-box filled'>
+                            <div className='form-status-badge filled'>
+                              <CheckCircle2 size={13} />
+                              <span>Form Submitted</span>
+                            </div>
+                            <span className='form-status-detail'>
+                              {team.members?.length || 6} Members Verified
+                            </span>
+                            {team.submittedAt && (
+                              <span className='form-status-time'>
+                                {new Date(team.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className='form-status-box unfilled'>
+                            <div className='form-status-badge unfilled'>
+                              <AlertTriangle size={13} />
+                              <span>Form NOT Filled</span>
+                            </div>
+                            <span className='form-status-detail warn'>
+                              Awaiting submission
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Leader & Contact Info */}
+                      <td className='pending-col-leader'>
+                        <div className='pending-leader-name'>
+                          {team.leaderName}
+                        </div>
+                        {team.leaderRegNo && team.leaderRegNo !== '—' && (
+                          <div className='pending-leader-reg'>
+                            Reg: <code>{team.leaderRegNo}</code>
+                          </div>
+                        )}
+                        <div className='pending-contact-actions'>
+                          {team.leaderPhone && team.leaderPhone !== '—' ? (
+                            <>
+                              <a 
+                                href={`tel:${team.leaderPhone.replace(/[^\d+]/g, '')}`} 
+                                className='btn-contact-pill phone'
+                                title={`Call Leader (${team.leaderPhone})`}
+                              >
+                                <Phone size={11} />
+                                <span>{team.leaderPhone}</span>
+                              </a>
+                              <a 
+                                href={`https://wa.me/91${team.leaderPhone.replace(/[^\d]/g, '').slice(-10)}?text=Hello%20${encodeURIComponent(team.leaderName)}%20(Team%20${encodeURIComponent(team.teamName)}%20-%20${team.teamId}),%20please%20report%20to%20the%20SIH%20Evaluation%20desk.`}
+                                target='_blank'
+                                rel='noreferrer'
+                                className='btn-contact-pill whatsapp'
+                                title='Message on WhatsApp'
+                              >
+                                <MessageSquare size={11} />
+                                <span>WhatsApp</span>
+                              </a>
+                            </>
+                          ) : (
+                            <span className='text-muted' style={{ fontSize: '0.78rem' }}>No phone recorded</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Queue & Evaluation Status */}
+                      <td className='pending-col-queue'>
+                        {team.queueStatus === 'IN_PROGRESS' ? (
+                          <div className='pending-queue-badge in-progress animate-pulse'>
+                            <Activity size={13} />
+                            <span>Pitching on {team.activePanelSession?.session?.panelName || 'Panel'}</span>
+                          </div>
+                        ) : team.queueStatus === 'IN_QUEUE' ? (
+                          <div className='pending-queue-badge in-queue'>
+                            <Clock size={13} />
+                            <div className='queue-badge-text'>
+                              <strong>{queue?.tokenNumber}</strong>
+                              <span>{queue?.panelCode || 'PX'} • {queue?.room}</span>
+                            </div>
+                          </div>
+                        ) : team.queueStatus === 'DELAYED' ? (
+                          <div className='pending-queue-badge delayed'>
+                            <AlertTriangle size={13} />
+                            <div className='queue-badge-text'>
+                              <strong>{queue?.tokenNumber}</strong>
+                              <span>Delayed ({queue?.delayedCount || 1}x)</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className='pending-queue-badge not-booked'>
+                            <span>○ Not Booked</span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className='pending-col-actions'>
+                        <div className='pending-actions-row'>
+                          <button 
+                            type='button'
+                            className='btn-pending-action-details'
+                            onClick={() => setPendingModalTeam(team)}
+                            title='View complete team member breakdown, registration form data, and mentor info'
+                          >
+                            <Eye size={13} />
+                            <span>Details</span>
+                          </button>
+
+                          {team.queueStatus === 'NOT_BOOKED' ? (
+                            <div className='pending-quick-assign-wrap'>
+                              <select 
+                                className='pending-panel-quick-select'
+                                defaultValue=''
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    handleQuickAssignPendingTeam(team, e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              >
+                                <option value='' disabled>+ Assign Panel</option>
+                                {evaluationPanels.map(p => (
+                                  <option key={p.id} value={p.id}>{p.code} - {p.name.split('—')[0]}</option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            <div className='pending-quick-assign-wrap'>
+                              <select 
+                                className='pending-panel-quick-select reassigned'
+                                defaultValue=''
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    if (window.confirm(`Move team ${team.teamName} (${team.teamId}) to ${evaluationPanels.find(p => p.id === e.target.value)?.name}?`)) {
+                                      handleQuickAssignPendingTeam(team, e.target.value);
+                                    }
+                                    e.target.value = '';
+                                  }
+                                }}
+                              >
+                                <option value='' disabled>Move Panel...</option>
+                                {evaluationPanels.map(p => (
+                                  <option key={p.id} value={p.id}>{p.code} - {p.name.split('—')[0]}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {filteredPendingTeams.length === 0 && (
+                  <tr>
+                    <td colSpan='6' className='empty-pending-table-cell'>
+                      <div className='empty-pending-state'>
+                        <UserCheck size={36} className='text-emerald' />
+                        <h4>No Pending Teams Found</h4>
+                        <p>
+                          {allPendingTeams.length === 0 
+                            ? 'All teams across all tiers have successfully attended and completed their evaluation!'
+                            : 'No pending teams match the active search and filter criteria.'}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* VIEW 4: EVALUATION LEDGER */}
       {activeView === 'ledger' && (
         <div className='eval-ledger-container'>
@@ -2965,6 +3721,284 @@ export default function EvaluationQueuePortal({
                 </tbody>
               </table>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Full Team Detailed Inspection Modal */}
+      {pendingModalTeam && (
+        <div className='modal-backdrop' onClick={() => setPendingModalTeam(null)}>
+          <div className='modal-container pending-team-full-modal' onClick={(e) => e.stopPropagation()}>
+            <div className='modal-header'>
+              <div className='modal-title-group'>
+                <span className={`pending-modal-tier-pill ${(pendingModalTeam.tier || '').toLowerCase()}`}>
+                  {pendingModalTeam.tier}
+                </span>
+                <span className='pending-modal-id-pill'>{pendingModalTeam.teamId}</span>
+                <h3 className='pending-modal-title'>{pendingModalTeam.teamName}</h3>
+              </div>
+              <button 
+                type='button' 
+                className='btn-modal-close' 
+                onClick={() => setPendingModalTeam(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className='pending-modal-body'>
+              {/* Form & Queue Status Strip */}
+              <div className='pending-modal-status-strip'>
+                <div className={`modal-status-item form ${pendingModalTeam.isFormFilled ? 'filled' : 'unfilled'}`}>
+                  <div className='status-icon-bubble'>
+                    {pendingModalTeam.isFormFilled ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                  </div>
+                  <div className='status-info-col'>
+                    <span className='status-caption'>Registration Form Status</span>
+                    <strong className='status-val'>
+                      {pendingModalTeam.isFormFilled ? 'Form Submitted & Verified' : 'Form NOT Filled (Pending Submission)'}
+                    </strong>
+                    {pendingModalTeam.submittedAt && (
+                      <span className='status-sub'>Submitted: {new Date(pendingModalTeam.submittedAt).toLocaleString()}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className={`modal-status-item queue ${pendingModalTeam.queueStatus.toLowerCase()}`}>
+                  <div className='status-icon-bubble'>
+                    <Clock size={18} />
+                  </div>
+                  <div className='status-info-col'>
+                    <span className='status-caption'>Evaluation Queue Status</span>
+                    <strong className='status-val'>
+                      {pendingModalTeam.queueStatus === 'NOT_BOOKED' && 'Not Booked (Awaiting Slot)'}
+                      {pendingModalTeam.queueStatus === 'IN_QUEUE' && `In Queue: Token ${pendingModalTeam.queueItem?.tokenNumber} (${pendingModalTeam.queueItem?.panelCode})`}
+                      {pendingModalTeam.queueStatus === 'IN_PROGRESS' && 'Pitch Session Currently Active!'}
+                      {pendingModalTeam.queueStatus === 'DELAYED' && `Delayed (${pendingModalTeam.queueItem?.delayedCount || 1}x)`}
+                    </strong>
+                    {pendingModalTeam.queueItem && (
+                      <span className='status-sub'>
+                        Room: {pendingModalTeam.queueItem.room} • Booked: {pendingModalTeam.queueItem.bookedTimeStr}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 2-Column Info Grid */}
+              <div className='pending-modal-info-grid'>
+                {/* Section 1: Problem Statement & Domain */}
+                <div className='pending-info-card'>
+                  <h4 className='pending-card-heading'>
+                    <FileText size={15} />
+                    <span>Problem Statement &amp; Domain</span>
+                  </h4>
+                  <div className='info-row'>
+                    <span className='info-lbl'>PS ID:</span>
+                    <span className='info-val ps-id-badge'>{pendingModalTeam.psId}</span>
+                  </div>
+                  <div className='info-row'>
+                    <span className='info-lbl'>PS Title:</span>
+                    <span className='info-val bold'>{pendingModalTeam.psTitle}</span>
+                  </div>
+                  <div className='info-row'>
+                    <span className='info-lbl'>Category / Domain:</span>
+                    <span className='info-val'>{pendingModalTeam.domain}</span>
+                  </div>
+                  <div className='info-row'>
+                    <span className='info-lbl'>Institute / School:</span>
+                    <span className='info-val'>{pendingModalTeam.school}</span>
+                  </div>
+                  {pendingModalTeam.registrationData?.idea_title && (
+                    <div className='info-row'>
+                      <span className='info-lbl'>Project Title:</span>
+                      <span className='info-val font-semibold'>{pendingModalTeam.registrationData.idea_title}</span>
+                    </div>
+                  )}
+                  {pendingModalTeam.registrationData?.synopsis && (
+                    <div className='info-row full-span'>
+                      <span className='info-lbl'>Idea Synopsis:</span>
+                      <div className='info-synopsis-box'>{pendingModalTeam.registrationData.synopsis}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Section 2: Team Leader Contact & Instant Quick Actions */}
+                <div className='pending-info-card'>
+                  <h4 className='pending-card-heading'>
+                    <UserCheck size={15} />
+                    <span>Team Leader &amp; Immediate Contact</span>
+                  </h4>
+                  <div className='info-row'>
+                    <span className='info-lbl'>Leader Name:</span>
+                    <span className='info-val bold'>{pendingModalTeam.leaderName}</span>
+                  </div>
+                  <div className='info-row'>
+                    <span className='info-lbl'>Registration No:</span>
+                    <span className='info-val mono'>{pendingModalTeam.leaderRegNo}</span>
+                  </div>
+                  <div className='info-row'>
+                    <span className='info-lbl'>Mobile Number:</span>
+                    <span className='info-val bold text-indigo'>{pendingModalTeam.leaderPhone}</span>
+                  </div>
+                  <div className='info-row'>
+                    <span className='info-lbl'>Email Address:</span>
+                    <span className='info-val'>{pendingModalTeam.leaderEmail}</span>
+                  </div>
+
+                  <div className='pending-modal-quick-call-actions'>
+                    {pendingModalTeam.leaderPhone && pendingModalTeam.leaderPhone !== '—' && (
+                      <>
+                        <a 
+                          href={`tel:${pendingModalTeam.leaderPhone.replace(/[^\d+]/g, '')}`}
+                          className='btn-modal-call-action phone'
+                        >
+                          <Phone size={14} />
+                          <span>Direct Voice Call ({pendingModalTeam.leaderPhone})</span>
+                        </a>
+                        <a 
+                          href={`https://wa.me/91${pendingModalTeam.leaderPhone.replace(/[^\d]/g, '').slice(-10)}?text=Hello%20${encodeURIComponent(pendingModalTeam.leaderName)}%20(Team%20${encodeURIComponent(pendingModalTeam.teamName)}%20-%20${pendingModalTeam.teamId}),%20this%20is%20from%20the%20SIH%20Evaluation%20Desk.`}
+                          target='_blank'
+                          rel='noreferrer'
+                          className='btn-modal-call-action whatsapp'
+                        >
+                          <MessageSquare size={14} />
+                          <span>WhatsApp Immediate Message</span>
+                        </a>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Registered Team Members (All 6 Members) */}
+              <div className='pending-members-section'>
+                <h4 className='pending-card-heading'>
+                  <Users size={15} />
+                  <span>Team Members Roster ({pendingModalTeam.members?.length || (pendingModalTeam.isFormFilled ? 6 : 0)} Members)</span>
+                </h4>
+
+                {pendingModalTeam.members && pendingModalTeam.members.length > 0 ? (
+                  <div className='pending-members-grid'>
+                    {pendingModalTeam.members.map((mem, idx) => (
+                      <div key={idx} className={`pending-member-card ${idx === 0 ? 'is-lead' : ''}`}>
+                        <div className='member-card-header'>
+                          <span className='member-index-tag'>#{idx + 1} {idx === 0 ? '• Team Leader' : '• Member'}</span>
+                          {mem.gender && <span className='member-gender-tag'>{mem.gender}</span>}
+                        </div>
+                        <h5 className='member-name'>{mem.name || mem.member_name || `Member ${idx + 1}`}</h5>
+                        <div className='member-meta-line'>
+                          <span>Reg: <code>{mem.reg_no || mem.regNo || '—'}</code></span>
+                          {(mem.dept || mem.department || mem.year) && (
+                            <span>Dept: {mem.dept || mem.department} {mem.year ? `(${mem.year})` : ''}</span>
+                          )}
+                        </div>
+                        {mem.mobile && (
+                          <div className='member-phone-line'>
+                            <Phone size={11} className='text-muted' />
+                            <a href={`tel:${mem.mobile}`}>{mem.mobile}</a>
+                          </div>
+                        )}
+                        {mem.email && (
+                          <div className='member-email-line'>
+                            <Mail size={11} className='text-muted' />
+                            <span>{mem.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className='pending-unfilled-members-notice'>
+                    <AlertCircle size={20} className='text-amber' />
+                    <div>
+                      <strong>No individual member roster registered yet.</strong>
+                      <p>
+                        Candidate registration form has not been filled for this team. Only team leader record ({pendingModalTeam.leaderName}) is currently available from master shortlist.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 4: Faculty & Industry Mentors */}
+              <div className='pending-mentors-section'>
+                <h4 className='pending-card-heading'>
+                  <Award size={15} />
+                  <span>Mentors &amp; Institutional Guides</span>
+                </h4>
+                <div className='pending-mentors-grid'>
+                  <div className='pending-mentor-card'>
+                    <span className='mentor-role-badge'>Faculty Mentor</span>
+                    <h5 className='mentor-name'>{pendingModalTeam.facultyMentor || 'Not Assigned / Unfilled'}</h5>
+                    {pendingModalTeam.facultyMentorPhone && pendingModalTeam.facultyMentorPhone !== '—' && (
+                      <div className='mentor-contact-item'>
+                        <Phone size={12} className='text-muted' />
+                        <a href={`tel:${pendingModalTeam.facultyMentorPhone}`}>{pendingModalTeam.facultyMentorPhone}</a>
+                      </div>
+                    )}
+                    {pendingModalTeam.registrationData?.faculty_mentor_email && (
+                      <div className='mentor-contact-item'>
+                        <Mail size={12} className='text-muted' />
+                        <span>{pendingModalTeam.registrationData.faculty_mentor_email}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className='pending-mentor-card'>
+                    <span className='mentor-role-badge'>Industry / External Mentor</span>
+                    <h5 className='mentor-name'>
+                      {pendingModalTeam.registrationData?.industry_mentor_name || 'Not Assigned'}
+                    </h5>
+                    {pendingModalTeam.registrationData?.industry_mentor_phone && (
+                      <div className='mentor-contact-item'>
+                        <Phone size={12} className='text-muted' />
+                        <a href={`tel:${pendingModalTeam.registrationData.industry_mentor_phone}`}>
+                          {pendingModalTeam.registrationData.industry_mentor_phone}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Instant Dispatch to Panel */}
+              <div className='pending-modal-dispatch-bar'>
+                <div className='dispatch-left'>
+                  <Sparkles size={16} className='text-indigo' />
+                  <span><strong>Instant Dispatch to Evaluation Panel:</strong></span>
+                </div>
+                <div className='dispatch-right'>
+                  <select 
+                    className='dispatch-panel-dropdown'
+                    defaultValue={pendingModalTeam.queueItem?.panelId || ''}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleQuickAssignPendingTeam(pendingModalTeam, e.target.value);
+                        setPendingModalTeam(null);
+                      }
+                    }}
+                  >
+                    <option value='' disabled>Choose Panel to Allocate Slot...</option>
+                    {evaluationPanels.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.code} — {p.name} ({p.room})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className='modal-footer'>
+              <button 
+                type='button' 
+                className='btn-modal-cancel' 
+                onClick={() => setPendingModalTeam(null)}
+              >
+                Close Window
+              </button>
+            </div>
           </div>
         </div>
       )}

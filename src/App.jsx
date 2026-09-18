@@ -52,11 +52,11 @@ export default function App() {
       if (pathname.includes('/arena') || pathname.includes('/inout') || search.includes('arena') || hash.includes('arena') || hash.includes('inout')) {
         return 'inout_portal';
       }
-      // Check for eval queue, projector, student booking, ledger
+      // Check for eval queue, projector, student booking, ledger, pending teams
       if (
-        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
-        search.includes('queue') || search.includes('eval') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
-        hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
+        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') || pathname.includes('/pending') ||
+        search.includes('queue') || search.includes('eval') || search.includes('projector') || search.includes('student') || search.includes('ledger') || search.includes('pending') ||
+        hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger') || hash.includes('pending')
       ) {
         return 'eval_queue';
       }
@@ -426,9 +426,9 @@ export default function App() {
       } else if (pathname.includes('/arena') || pathname.includes('/inout') || search.includes('arena') || hash.includes('arena') || hash.includes('inout')) {
         setCurrentView('inout_portal');
       } else if (
-        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') ||
-        search.includes('queue') || search.includes('eval') || search.includes('projector') || search.includes('student') || search.includes('ledger') ||
-        hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger')
+        pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') || pathname.includes('/pending') ||
+        search.includes('queue') || search.includes('eval') || search.includes('projector') || search.includes('student') || search.includes('ledger') || search.includes('pending') ||
+        hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger') || hash.includes('pending')
       ) {
         setCurrentView('eval_queue');
       } else if (pathname.includes('/admin') || pathname.includes('/gateway') || hash.includes('admin') || hash.includes('gateway') || search.includes('admin')) {
