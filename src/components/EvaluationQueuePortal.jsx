@@ -1547,27 +1547,6 @@ export default function EvaluationQueuePortal({
                             <span>Leader: <strong>{currentSession.leaderName}</strong></span>
                             <span>• {currentSession.school}</span>
                           </div>
-
-                          {/* Live Multi-Jury Score Status Indicator */}
-                          {panel.juries && panel.juries.length > 0 && (
-                            <div className='panel-jury-status-badges-strip'>
-                              <span className='jury-status-lbl'>Juries Scoring Status:</span>
-                              <div className='jury-status-items'>
-                                {panel.juries.map((j, jIdx) => {
-                                  const submission = (evaluationLedger || []).find(l => l.teamId === currentSession.teamId && (l.evaluatorName === j.name || l.juries?.[0]?.name === j.name));
-                                  return (
-                                    <span 
-                                      key={jIdx} 
-                                      className={`live-jury-badge ${submission ? 'scored' : 'pending'}`}
-                                      title={submission ? `Score: ${submission.totalScore}/50 submitted at ${submission.evaluatedAtStr}` : 'Scoring in progress'}
-                                    >
-                                      {submission ? '✅' : '⏳'} {j.name.split(' ')[0]}: {submission ? `${submission.totalScore}/50` : 'Pending'}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
                         </div>
 
                         {/* Admin Timing Controls */}
