@@ -610,9 +610,65 @@ export default function App() {
 
     loadData();
 
-    // Background Polling Loop for Multi-Device Arena & Evaluation Sync (every 5 seconds, JSON-diff & local freshness guarded)
-    const arenaInterval = setInterval(async () => {
+    // 3. Realtime Supabase Subscription for Instant Public Sync Across All Devices
+    const regChannel = supabase
+      .channel('realtime_public_registrations')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
+        if (payload.new && payload.new.temp_team_id) {
+          const rec = payload.new;
+          setRegistrationsMap(prev => {
+            const next = { ...prev, [rec.temp_team_id]: rec };
+            try { localStorage.setItem('sih_registrations', JSON.stringify(next)); } catch (e) {}
+            return next;
+          });
+        }
+      })
+      .subscribe();
+
+    // 4. Background Polling & Offline Sync Loop (every 5 seconds)
+    const syncInterval = setInterval(async () => {
        try {
+         // A. Poll latest registrations from Supabase (guarantees sync across all public users)
+         const { data: pollRegs, error: pollRegErr } = await supabase
+           .from('registrations')
+           .select('*');
+
+         if (!pollRegErr && pollRegs) {
+           const remoteMap = {};
+           pollRegs.forEach(r => {
+             if (r && r.temp_team_id) remoteMap[r.temp_team_id] = r;
+           });
+           setRegistrationsMap(prev => {
+             const merged = { ...prev, ...remoteMap };
+             if (JSON.stringify(prev) === JSON.stringify(merged)) return prev;
+             try { localStorage.setItem('sih_registrations', JSON.stringify(merged)); } catch (e) {}
+             return merged;
+           });
+         }
+
+         // B. Auto-flush any offline-queued registrations
+         try {
+           const queueStr = localStorage.getItem('sih_offline_pending_registrations');
+           if (queueStr) {
+             const queue = JSON.parse(queueStr);
+             const teamIds = Object.keys(queue);
+             for (const tId of teamIds) {
+               const item = queue[tId];
+               if (!item) continue;
+               const { error: flushErr } = await supabase
+                 .from('registrations')
+                 .upsert(item, { onConflict: 'temp_team_id' });
+               if (!flushErr) {
+                 delete queue[tId];
+                 localStorage.setItem('sih_offline_pending_registrations', JSON.stringify(queue));
+               }
+             }
+           }
+         } catch (queueErr) {
+           console.warn('Offline queue flush notice:', queueErr);
+         }
+
+         // C. Poll app_settings (Arena & Evaluation)
          const { data, error } = await supabase
            .from('app_settings')
            .select('key, value')
@@ -624,7 +680,6 @@ export default function App() {
          if (!error && data) {
            const now = Date.now();
            data.forEach(item => {
-             // If this key was updated locally within the last 7 seconds, skip overwriting with poll data
              if (lastLocalUpdateMsRef.current[item.key] && (now - lastLocalUpdateMsRef.current[item.key] < 7000)) {
                return;
              }
@@ -689,11 +744,16 @@ export default function App() {
            });
          }
        } catch (e) {
-         console.warn('Arena background polling error:', e);
+         console.warn('Sync background loop note:', e);
        }
      }, 5000);
 
-    return () => clearInterval(arenaInterval);
+    return () => {
+      clearInterval(syncInterval);
+      try {
+        supabase.removeChannel(regChannel);
+      } catch (e) {}
+    };
   }, []);
 
   // Per-Team Visibility Toggle Handler (Supabase & LocalStorage)

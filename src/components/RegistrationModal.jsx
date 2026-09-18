@@ -15,74 +15,81 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [syncStatusMsg, setSyncStatusMsg] = useState('');
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
+
+  // Helper to get initial form data combining team defaults, existing record, and local drafts
+  const getInitialFormData = () => {
+    const teamId = team.temp_team_id || team.teamId || team.temp_id || '';
+    let draftData = null;
+    try {
+      const savedDraft = localStorage.getItem(`sih_draft_${teamId}`);
+      if (savedDraft) {
+        draftData = JSON.parse(savedDraft);
+      }
+    } catch (e) {}
+
+    const source = draftData || existingRegistration || {};
+
+    return {
+      // Team & PS
+      team_name: source.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
+      temp_team_id: source.temp_team_id || teamId,
+      sih_ps_id: source.sih_ps_id || source.ps_id || team.ps_id || '',
+      ps_title: source.ps_title || team.ps_title || '',
+      status: source.status || team.status || 'Shortlist',
+      
+      // Team Leader (Member 1)
+      leader_name: source.leader_name || team.leader_name || '',
+      leader_reg_no: source.leader_reg_no || team.reg_no || '',
+      leader_personal_email: source.leader_personal_email || '',
+      leader_college_email: source.leader_college_email || '',
+      leader_phone: source.leader_phone || team.mobile || '',
+      leader_whatsapp: source.leader_whatsapp || team.mobile || '',
+      leader_year: source.leader_year || '3rd Year',
+      leader_dept: source.leader_dept || team.school || 'Computer Science & Engineering',
+      leader_school: normalizeSchoolName(source.leader_school || team.school),
+
+      // 5 Team Members (Members 2 to 6)
+      members: source.members && Array.isArray(source.members) ? source.members.map(m => ({ ...m, school: normalizeSchoolName(m.school) })) : [
+        { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+        { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+        { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+        { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+        { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
+      ],
+
+      // Faculty Mentor
+      mentor_name: source.mentor_name || '',
+      mentor_designation: source.mentor_designation || 'Assistant Professor',
+      mentor_email: source.mentor_email || '',
+      mentor_phone: source.mentor_phone || ''
+    };
+  };
 
   // Form State
-  const [formData, setFormData] = useState({
-    // Team & PS
-    team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
-    temp_team_id: existingRegistration?.temp_team_id || team.temp_team_id || team.teamId || team.temp_id || '',
-    sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
-    ps_title: existingRegistration?.ps_title || team.ps_title || '',
-    status: existingRegistration?.status || team.status || 'Shortlist',
-    
-    // Team Leader (Member 1)
-    leader_name: existingRegistration?.leader_name || team.leader_name || '',
-    leader_reg_no: existingRegistration?.leader_reg_no || team.reg_no || '',
-    leader_personal_email: existingRegistration?.leader_personal_email || '',
-    leader_college_email: existingRegistration?.leader_college_email || '',
-    leader_phone: existingRegistration?.leader_phone || team.mobile || '',
-    leader_whatsapp: existingRegistration?.leader_whatsapp || team.mobile || '',
-    leader_year: existingRegistration?.leader_year || '3rd Year',
-    leader_dept: existingRegistration?.leader_dept || team.school || 'Computer Science & Engineering',
-    leader_school: normalizeSchoolName(existingRegistration?.leader_school || team.school),
+  const [formData, setFormData] = useState(getInitialFormData);
 
-    // 5 Team Members (Members 2 to 6)
-    members: existingRegistration?.members ? existingRegistration.members.map(m => ({ ...m, school: normalizeSchoolName(m.school) })) : [
-      { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-      { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-      { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-      { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-      { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-    ],
+  // Auto-Save Draft to LocalStorage whenever user types (protects against browser refresh/connection loss)
+  useEffect(() => {
+    if (formData.temp_team_id && !submitted) {
+      try {
+        localStorage.setItem(`sih_draft_${formData.temp_team_id}`, JSON.stringify(formData));
+      } catch (e) {}
+    }
+  }, [formData, submitted]);
 
-    // Faculty Mentor
-    mentor_name: existingRegistration?.mentor_name || '',
-    mentor_designation: existingRegistration?.mentor_designation || 'Assistant Professor',
-    mentor_email: existingRegistration?.mentor_email || '',
-    mentor_phone: existingRegistration?.mentor_phone || ''
-  });
-
-  // Keep form data synchronized whenever active team or existing registration updates
+  // Keep form data synchronized when active team updates
   useEffect(() => {
     if (team) {
-      setFormData({
-        team_name: existingRegistration?.team_name || (team.team_name !== 'Team Unknown' ? team.team_name : ''),
-        temp_team_id: existingRegistration?.temp_team_id || team.temp_team_id || team.teamId || team.temp_id || '',
-        sih_ps_id: existingRegistration?.sih_ps_id || existingRegistration?.ps_id || team.ps_id || '',
-        ps_title: existingRegistration?.ps_title || team.ps_title || '',
-        status: existingRegistration?.status || team.status || 'Shortlist',
-        leader_name: existingRegistration?.leader_name || team.leader_name || '',
-        leader_reg_no: existingRegistration?.leader_reg_no || team.reg_no || '',
-        leader_personal_email: existingRegistration?.leader_personal_email || '',
-        leader_college_email: existingRegistration?.leader_college_email || '',
-        leader_phone: existingRegistration?.leader_phone || team.mobile || '',
-        leader_whatsapp: existingRegistration?.leader_whatsapp || team.mobile || '',
-        leader_year: existingRegistration?.leader_year || '3rd Year',
-        leader_dept: existingRegistration?.leader_dept || team.school || 'Computer Science & Engineering',
-        leader_school: normalizeSchoolName(existingRegistration?.leader_school || team.school),
-        members: existingRegistration?.members ? existingRegistration.members.map(m => ({ ...m, school: normalizeSchoolName(m.school) })) : [
-          { id: 2, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-          { id: 3, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-          { id: 4, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-          { id: 5, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-          { id: 6, name: '', reg_no: '', personal_email: '', college_email: '', phone: '', whatsapp: '', year: '3rd Year', dept: 'Computer Science & Engineering', school: normalizeSchoolName(team.school) },
-        ],
-        mentor_name: existingRegistration?.mentor_name || '',
-        mentor_designation: existingRegistration?.mentor_designation || 'Assistant Professor',
-        mentor_email: existingRegistration?.mentor_email || '',
-        mentor_phone: existingRegistration?.mentor_phone || ''
-      });
+      const initial = getInitialFormData();
+      setFormData(initial);
       setSubmitted(false);
+      try {
+        if (localStorage.getItem(`sih_draft_${initial.temp_team_id}`)) {
+          setIsDraftRestored(true);
+        }
+      } catch (e) {}
     }
   }, [team, existingRegistration]);
 
@@ -131,18 +138,17 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
         errors.leader_reg_no = 'Leader Register Number is required';
       }
       if (!formData.leader_personal_email || !formData.leader_personal_email.trim() || !formData.leader_personal_email.includes('@')) {
-        errors.leader_personal_email = 'Valid personal email (with @) is required';
+        errors.leader_personal_email = 'Valid personal email (e.g. yourname@gmail.com) is required';
       }
       const phoneDigits = (formData.leader_phone || '').replace(/\D/g, '');
       if (phoneDigits.length < 10) {
         errors.leader_phone = 'Valid 10-digit calling phone number is required';
       }
     } else if (stepIdx === 2) {
-      // Check members
       if (Array.isArray(formData.members)) {
         formData.members.forEach((m, idx) => {
-          if (m.name && !m.reg_no) {
-            errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number is missing`;
+          if (m.name && m.name.trim() && (!m.reg_no || !m.reg_no.trim())) {
+            errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number is required`;
             setActiveMemberTab(idx);
           }
         });
@@ -157,7 +163,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     if (validateStep(activeStep)) {
       setActiveStep(targetStep);
     } else {
-      setErrorMsg('Please correct the highlighted fields before continuing.');
+      setErrorMsg('Please complete the required fields highlighted below before continuing.');
     }
   };
 
@@ -187,18 +193,18 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       errors.leader_phone = 'Valid 10-digit Leader phone number is required';
     }
 
-    // Check member errors
+    // Check member errors (only flag if name is provided without reg_no)
     if (Array.isArray(formData.members)) {
       formData.members.forEach((m, idx) => {
-        if (m.name && !m.reg_no) {
-          errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number is missing`;
+        if (m.name && m.name.trim() && (!m.reg_no || !m.reg_no.trim())) {
+          errors[`member_${idx}_reg_no`] = `Member #${idx + 2} Register Number is required`;
         }
       });
     }
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
-      setErrorMsg('Form contains incomplete required fields. Please review the highlighted steps.');
+      setErrorMsg('Form has missing required fields. We have jumped to the section that needs correction.');
       if (errors.team_name || errors.sih_ps_id) {
         setActiveStep(0);
       } else if (errors.leader_name || errors.leader_reg_no || errors.leader_personal_email || errors.leader_phone) {
@@ -215,6 +221,20 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     }
 
     setIsSubmitting(true);
+    setSyncStatusMsg('Saving locally & syncing to database...');
+
+    const cleanMembers = Array.isArray(formData.members) ? formData.members.map(m => ({
+      id: m.id || 2,
+      name: (m.name || '').trim(),
+      reg_no: (m.reg_no || '').trim(),
+      personal_email: (m.personal_email || '').trim(),
+      college_email: (m.college_email || '').trim(),
+      phone: (m.phone || '').trim(),
+      whatsapp: (m.whatsapp || m.phone || '').trim(),
+      year: m.year || '3rd Year',
+      dept: (m.dept || formData.leader_dept || 'Computer Science & Engineering').trim(),
+      school: normalizeSchoolName(m.school || formData.leader_school || team.school)
+    })) : [];
 
     const payload = {
       temp_team_id: formData.temp_team_id || team.temp_team_id,
@@ -231,7 +251,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       leader_year: formData.leader_year || '3rd Year',
       leader_dept: formData.leader_dept || team.school || 'Computer Science & Engineering',
       leader_school: formData.leader_school || normalizeSchoolName(team.school),
-      members: Array.isArray(formData.members) ? formData.members : [],
+      members: cleanMembers,
       mentor_name: (formData.mentor_name || 'Faculty Guide Assigned').trim(),
       mentor_designation: formData.mentor_designation || 'Assistant Professor',
       mentor_email: (formData.mentor_email || '').trim(),
@@ -239,7 +259,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       updated_at: new Date().toISOString()
     };
 
-    // 1. Always persist to localStorage first for instant lock & zero delay
+    // 1. Instant Local Storage Persistence (Zero Data Loss)
     try {
       const localRegistrations = JSON.parse(localStorage.getItem('sih_registrations') || '{}');
       localRegistrations[payload.temp_team_id] = payload;
@@ -248,7 +268,14 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       console.warn('LocalStorage error:', localErr);
     }
 
-    // 2. Safe parent state notification
+    // 2. Queue into Offline Sync Queue (Retried automatically if offline)
+    try {
+      const offlineQueue = JSON.parse(localStorage.getItem('sih_offline_pending_registrations') || '{}');
+      offlineQueue[payload.temp_team_id] = payload;
+      localStorage.setItem('sih_offline_pending_registrations', JSON.stringify(offlineQueue));
+    } catch (qErr) {}
+
+    // 3. Notify Parent Component State immediately
     try {
       if (onConfirmRegistration) {
         onConfirmRegistration(payload.temp_team_id, payload);
@@ -257,21 +284,32 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       console.warn('Parent confirmation callback exception:', parentErr);
     }
 
-    // 3. Non-blocking cloud upsert with 2.5s timeout
+    // 4. Resilient Cloud Upsert to Supabase
     try {
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Supabase network timeout')), 2500)
+        setTimeout(() => reject(new Error('Network timeout - saved to offline queue')), 12000)
       );
       const upsertPromise = supabase
         .from('registrations')
-        .upsert(payload, { onConflict: 'temp_team_id' })
-        .select();
+        .upsert(payload, { onConflict: 'temp_team_id' });
 
-      await Promise.race([upsertPromise, timeoutPromise]).catch(err => {
-        console.warn('Supabase non-blocking sync note:', err.message);
-      });
+      const { error: sbError } = await Promise.race([upsertPromise, timeoutPromise]);
+
+      if (!sbError) {
+        // Remove from offline queue and clear draft on verified cloud confirmation
+        try {
+          const offlineQueue = JSON.parse(localStorage.getItem('sih_offline_pending_registrations') || '{}');
+          delete offlineQueue[payload.temp_team_id];
+          localStorage.setItem('sih_offline_pending_registrations', JSON.stringify(offlineQueue));
+          localStorage.removeItem(`sih_draft_${payload.temp_team_id}`);
+        } catch (e) {}
+        setSyncStatusMsg('Verified & Saved to Cloud Database!');
+      } else {
+        setSyncStatusMsg('Saved to Local Cache! Will auto-sync to cloud database in background.');
+      }
     } catch (err) {
-      console.warn('Cloud sync background exception:', err);
+      console.warn('Cloud sync note:', err.message);
+      setSyncStatusMsg('Saved to Local Cache! Will auto-sync to cloud database in background.');
     }
 
     setIsSubmitting(false);
