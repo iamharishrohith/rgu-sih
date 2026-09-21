@@ -48,7 +48,55 @@ export default function Navbar({
 
   return (
     <header className="site-header">
-      {/* Top Institutional & Hackathon Dual Banners */}
+      {/* Dedicated Admin Super-Bar (Only when Admin is Authenticated) */}
+      {isAdminLoggedIn && (
+        <div className="admin-super-bar">
+          <div className="admin-super-container">
+            <div className="admin-super-left">
+              <div className="admin-badge-pulse">
+                <span className="pulse-dot"></span>
+                <span>ADMINISTRATIVE SESSION ACTIVE</span>
+              </div>
+            </div>
+            <div className="admin-super-actions">
+              <button 
+                className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
+                onClick={onOpenTimerModal}
+                title="Manage Registration Window & Timer"
+              >
+                {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
+                <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
+              </button>
+
+              <div className="meta-stats-pill">
+                <CheckCircle2 size={14} className="text-emerald" />
+                <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
+              </div>
+
+              <button 
+                className="btn-nav-admin"
+                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
+                onClick={onOpenEvaluationQueue}
+                title="Open Master Evaluation Panel & Score Ledger"
+              >
+                <Clock size={14} />
+                <span>Master Evaluation</span>
+              </button>
+
+              <button 
+                className="btn-nav-admin active-admin" 
+                onClick={onOpenAdminGateway || onSecretAdminTrigger}
+                title="Open Master Admin Gateway (Ctrl+Shift+A)"
+              >
+                <LayoutDashboard size={14} />
+                <span>Admin Gateway</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top Institutional & Hackathon Dual Banners (100% Centered, Zero Overlap) */}
       <div className="header-logos-bar">
         <div className="logos-container">
           <div className="logos-brand-combo">
@@ -79,46 +127,6 @@ export default function Navbar({
                 className="banner-img rgu-img"
               />
             </div>
-          </div>
-
-          {/* Action Navigation Controls */}
-          <div className="header-actions-group">
-            {isAdminLoggedIn && (
-              <>
-                <button 
-                  className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
-                  onClick={onOpenTimerModal}
-                  title="Manage Registration Window & Timer"
-                >
-                  {isPortalClosed ? <Lock size={13} className="text-rose" /> : <Unlock size={13} className="text-emerald" />}
-                  <span>Portal: {isPortalClosed ? 'Locked' : 'Open'}</span>
-                </button>
-
-                <div className="meta-stats-pill">
-                  <CheckCircle2 size={15} className="text-emerald" />
-                  <span><strong>{registeredCount}</strong> / {totalFinalizedCount} Forms</span>
-                </div>
-
-                <button 
-                  className="btn-nav-admin"
-                  style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', border: 'none' }}
-                  onClick={onOpenEvaluationQueue}
-                  title="Open Master Evaluation Panel & Score Ledger"
-                >
-                  <Clock size={15} />
-                  <span>Master Evaluation</span>
-                </button>
-
-                <button 
-                  className="btn-nav-admin active-admin" 
-                  onClick={onOpenAdminGateway || onSecretAdminTrigger}
-                  title="Open Master Admin Gateway (Ctrl+Shift+A)"
-                >
-                  <LayoutDashboard size={15} />
-                  <span>Admin Gateway</span>
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>
