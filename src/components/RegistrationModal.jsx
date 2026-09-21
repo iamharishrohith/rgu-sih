@@ -48,6 +48,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
         id,
         name: (existingM.name || '').trim(),
         reg_no: (existingM.reg_no || '').trim(),
+        gender: existingM.gender || 'Male',
         personal_email: (existingM.personal_email || '').trim(),
         college_email: (existingM.college_email || '').trim(),
         phone: (existingM.phone || '').trim(),
@@ -69,6 +70,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       // Team Leader (Member 1)
       leader_name: source.leader_name || existingRegistration?.leader_name || team.leader_name || '',
       leader_reg_no: source.leader_reg_no || existingRegistration?.leader_reg_no || team.reg_no || '',
+      leader_gender: source.leader_gender || existingRegistration?.leader_gender || 'Male',
       leader_personal_email: source.leader_personal_email || existingRegistration?.leader_personal_email || '',
       leader_college_email: source.leader_college_email || existingRegistration?.leader_college_email || '',
       leader_phone: source.leader_phone || existingRegistration?.leader_phone || team.mobile || '',
@@ -249,6 +251,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       id: m.id || (idx + 2),
       name: (m.name || '').trim(),
       reg_no: (m.reg_no || '').trim(),
+      gender: m.gender || 'Male',
       personal_email: (m.personal_email || '').trim(),
       college_email: (m.college_email || '').trim(),
       phone: (m.phone || '').trim(),
@@ -266,6 +269,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       status: formData.status || team.status || 'Shortlist',
       leader_name: cleanLeaderName,
       leader_reg_no: cleanLeaderReg,
+      leader_gender: formData.leader_gender || 'Male',
       leader_personal_email: cleanLeaderEmail.toLowerCase(),
       leader_college_email: (formData.leader_college_email || '').trim(),
       leader_phone: cleanLeaderPhone,
@@ -402,7 +406,7 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                   </div>
                   <div className="summary-cell">
                     <span className="cell-label">Team Leader</span>
-                    <strong className="cell-val">{formData.leader_name} ({formData.leader_reg_no})</strong>
+                    <strong className="cell-val">{formData.leader_name} ({formData.leader_gender || 'Male'}, {formData.leader_reg_no})</strong>
                   </div>
                   <div className="summary-cell">
                     <span className="cell-label">Leader Phone / WhatsApp</span>
@@ -667,7 +671,19 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                     </div>
                   </div>
 
-                  <div className="grid-3-col">
+                  <div className="grid-2-col">
+                    <div className="input-group">
+                      <label>Gender <span className="req">*</span></label>
+                      <select 
+                        value={formData.leader_gender || 'Male'}
+                        onChange={(e) => setFormData({...formData, leader_gender: e.target.value})}
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
                     <div className="input-group">
                       <label>Year of Study <span className="req">*</span></label>
                       <select 
@@ -681,7 +697,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                         <option value="Post Graduate">Post Graduate (PG)</option>
                       </select>
                     </div>
+                  </div>
 
+                  <div className="grid-2-col">
                     <div className="input-group">
                       <label>Department <span className="req">*</span></label>
                       <input 
@@ -735,6 +753,34 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                       <span className="section-subtext">SIH requires an exact 6-member team structure (1 Leader + 5 Members).</span>
                     </div>
                   </div>
+
+                  {/* SIH Gender Diversity Indicator */}
+                  {(() => {
+                    const totalFemale = (formData.leader_gender === 'Female' ? 1 : 0) +
+                      (formData.members || []).filter(m => (m.name || '').trim() && m.gender === 'Female').length;
+                    return (
+                      <div className={`gender-diversity-banner ${totalFemale >= 1 ? 'compliant' : 'advisory'}`} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        marginBottom: '16px',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        background: totalFemale >= 1 ? '#ecfdf5' : '#fffbeb',
+                        border: `1px solid ${totalFemale >= 1 ? '#a7f3d0' : '#fde68a'}`,
+                        color: totalFemale >= 1 ? '#065f46' : '#92400e'
+                      }}>
+                        {totalFemale >= 1 ? <CheckCircle size={15} color="#059669" /> : <AlertCircle size={15} color="#d97706" />}
+                        <span>
+                          {totalFemale >= 1 
+                            ? `SIH Gender Diversity Compliant: ${totalFemale} Female Candidate(s) in Roster.`
+                            : `SIH Guideline Advisory: Please ensure at least 1 female candidate is included in your 6-member team.`}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Member Tabs Header */}
                   <div className="member-sub-tabs">
@@ -841,7 +887,19 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                           </div>
                         </div>
 
-                        <div className="grid-3-col">
+                        <div className="grid-2-col">
+                          <div className="input-group">
+                            <label>Gender</label>
+                            <select 
+                              value={member.gender || 'Male'}
+                              onChange={(e) => updateMember(idx, 'gender', e.target.value)}
+                            >
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+
                           <div className="input-group">
                             <label>Year of Study</label>
                             <select 
@@ -855,7 +913,9 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
                               <option value="Post Graduate">Post Graduate (PG)</option>
                             </select>
                           </div>
+                        </div>
 
+                        <div className="grid-2-col">
                           <div className="input-group">
                             <label>Department</label>
                             <input 

@@ -51,12 +51,18 @@ export default function TeamDetailsModal({ team, onClose, onEditForm }) {
                 <strong>{reg.leader_reg_no}</strong>
               </div>
               <div className="m-detail-cell">
+                <span className="m-label">Gender:</span>
+                <span style={{ fontWeight: 600, color: reg.leader_gender === 'Female' ? '#db2777' : '#0284c7' }}>
+                  {reg.leader_gender || 'Male'}
+                </span>
+              </div>
+              <div className="m-detail-cell">
                 <span className="m-label">Personal Email:</span>
                 <span>{reg.leader_personal_email}</span>
               </div>
               <div className="m-detail-cell">
                 <span className="m-label">College Email:</span>
-                <span>{reg.leader_college_email}</span>
+                <span>{reg.leader_college_email || '—'}</span>
               </div>
               <div className="m-detail-cell">
                 <span className="m-label">Phone Calling:</span>
@@ -88,6 +94,20 @@ export default function TeamDetailsModal({ team, onClose, onEditForm }) {
                     <div className="m-col-main">
                       <strong>{m.name || 'Member Name'}</strong>
                       <span className="m-reg">({m.reg_no || 'Reg No'})</span>
+                      {m.gender && (
+                        <span style={{ 
+                          fontSize: '0.72rem', 
+                          fontWeight: 700, 
+                          padding: '1px 6px', 
+                          borderRadius: '4px',
+                          background: m.gender === 'Female' ? '#fdf2f8' : '#f0f9ff',
+                          color: m.gender === 'Female' ? '#db2777' : '#0284c7',
+                          border: `1px solid ${m.gender === 'Female' ? '#fbcfe8' : '#bae6fd'}`,
+                          marginLeft: '6px'
+                        }}>
+                          {m.gender}
+                        </span>
+                      )}
                     </div>
                     <div className="m-col-sub">
                       <span>{m.dept || 'Department'} • {m.year || '3rd Year'}</span>
