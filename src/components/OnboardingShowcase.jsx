@@ -137,45 +137,11 @@ export default function OnboardingShowcase({
           </h1>
 
           <p className="onboarding-hero-subtitle">
-            Live Showcase of <strong>{metrics.totalTeams} Form-Filled Teams</strong> ({metrics.totalInnovators} Verified Student Innovators) with Section 65B Electronic Record Compliance and 100% Unique National Problem Statements.
+            Official Live Registry of <strong>{metrics.totalTeams} Form-Filled Teams</strong> ({metrics.totalInnovators} Verified Student Innovators) with Section 65B Electronic Record Compliance across 17 SIH Technology Themes.
           </p>
 
-          {/* Quick Action Navigation Button */}
-          <div className="onboarding-cta-row">
-            <button 
-              className="btn-onboarding-primary-cta" 
-              onClick={() => {
-                const searchEl = document.getElementById('onboard-search-box');
-                if (searchEl) searchEl.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              <Users size={17} />
-              <span>Explore {metrics.totalTeams} Onboarded Rosters</span>
-            </button>
-          </div>
-
-          {/* 4 Crisp Key Metric Highlight Cards */}
+          {/* 3 Crisp Key Metric Highlight Cards */}
           <div className="onboarding-stats-cards-grid">
-            <div className="onboarding-stat-card card-teams">
-              <div className="stat-card-top">
-                <div className="stat-icon-badge emerald">
-                  <ShieldCheck size={22} />
-                </div>
-                <div className="stat-number-wrap">
-                  <span className="stat-number-big">{metrics.totalTeams}</span>
-                  <span className="stat-number-sub">/ {totalMasterCount}</span>
-                </div>
-              </div>
-              <div className="stat-card-title">Onboarded Teams</div>
-              <div className="stat-card-desc">100% Verified Registration Forms</div>
-              <div className="stat-progress-bar">
-                <div 
-                  className="stat-progress-fill emerald" 
-                  style={{ width: `${Math.min(100, Math.round((metrics.totalTeams / totalMasterCount) * 100))}%` }}
-                ></div>
-              </div>
-            </div>
-
             <div className="onboarding-stat-card card-innovators">
               <div className="stat-card-top">
                 <div className="stat-icon-badge indigo">
@@ -207,7 +173,7 @@ export default function OnboardingShowcase({
                 </div>
                 <span className="stat-number-big">{metrics.uniquePsCount}</span>
               </div>
-              <div className="stat-card-title">National Problem Statements</div>
+              <div className="stat-card-title">Problem Statements</div>
               <div className="stat-card-desc">Across 17 SIH Technology Themes</div>
               <div className="stat-meta-pill amber">Zero Duplicate PS</div>
             </div>
@@ -241,10 +207,10 @@ export default function OnboardingShowcase({
               <button 
                 className={`btn-view-toggle ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => setViewMode('grid')}
-                title="Grid Card View"
+                title="Interactive Ticket Cards View"
               >
                 <LayoutGrid size={16} />
-                <span>Cards</span>
+                <span>Pass Cards</span>
               </button>
               <button 
                 className={`btn-view-toggle ${viewMode === 'table' ? 'active' : ''}`}
@@ -298,114 +264,99 @@ export default function OnboardingShowcase({
           </div>
         </div>
 
-        {/* VIEW 1: GRID CARDS (DEFAULT MODERN VIEW) */}
+        {/* VIEW 1: 3D CYBER TICKET CARDS (UIVERSE DEV PASS STYLE) */}
         {viewMode === 'grid' && (
-          <div className="onboarding-teams-grid">
+          <div className="onboarding-tickets-grid">
             {filteredTeams.map((team, idx) => {
               const reg = team.registrationData || team;
               const members = Array.isArray(reg.members) ? reg.members : [];
               const psId = reg.sih_ps_id || reg.ps_id || team.ps_id || 'SIH26-';
               const psTitle = reg.ps_title || team.ps_title || 'Smart India Hackathon Problem Statement';
               const leaderSchool = normalizeSchoolName(reg.leader_school || team.school);
+              const teamNum = (team.temp_team_id || '').replace(/\D/g, '').slice(-3) || String(idx + 1).padStart(2, '0');
 
               return (
-                <div key={team.temp_team_id || idx} className="onboarding-team-card">
-                  {/* Top Meta Bar */}
-                  <div className="card-top-header">
-                    <div className="card-id-badge">
-                      <span className="card-id-text">{team.temp_team_id}</span>
-                    </div>
-
-                    <div className="card-status-badges">
-                      <span className={`card-status-chip ${team.status ? team.status.toLowerCase() : 'shortlist'}`}>
-                        {team.status || 'Shortlist'}
-                      </span>
-                      <span className="verified-seal-chip" title="Section 65B Verified Form Submitted">
-                        <Check size={12} strokeWidth={3} />
-                        <span>VERIFIED</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Team Title & PS Info */}
-                  <div className="card-team-body">
-                    <h3 className="card-team-name">{reg.team_name || team.team_name}</h3>
-                    
-                    <div className="card-ps-box">
-                      <span className="card-ps-id">{psId}</span>
-                      <p className="card-ps-title" title={psTitle}>
-                        {psTitle}
-                      </p>
-                    </div>
-
-                    <div className="card-school-tag">
-                      <Building2 size={13} />
-                      <span>{leaderSchool}</span>
-                    </div>
-                  </div>
-
-                  {/* Team Leader Box */}
-                  <div className="card-leader-section">
-                    <div className="leader-section-title">
-                      <UserCheck size={14} className="text-emerald" />
-                      <span>Team Leader</span>
-                    </div>
-                    <div className="leader-info-row">
-                      <div className="leader-name-wrap">
-                        <strong className="leader-name">{reg.leader_name || team.leader_name}</strong>
-                        <span className="leader-reg">({reg.leader_reg_no || team.reg_no || 'Leader'})</span>
-                      </div>
-                      <span className={`gender-badge ${reg.leader_gender === 'Female' ? 'female' : 'male'}`}>
-                        {reg.leader_gender || 'Male'}
-                      </span>
-                    </div>
-                    <div className="leader-dept-text">
-                      {reg.leader_dept || team.department || 'Department Assigned'}
-                    </div>
-                  </div>
-
-                  {/* 5 Members Roster Chips */}
-                  <div className="card-members-section">
-                    <div className="members-section-header">
-                      <Users size={13} />
-                      <span>Team Members ({members.length})</span>
-                    </div>
-                    
-                    <div className="members-chips-container">
-                      {members.map((m, mIdx) => (
-                        <div key={m.id || mIdx} className="member-chip-item">
-                          <span className="member-chip-index">{mIdx + 2}</span>
-                          <span className="member-chip-name">{m.name || `Member ${mIdx + 2}`}</span>
-                          {m.gender === 'Female' && <span className="member-female-dot" title="Female Innovator"></span>}
+                <div key={team.temp_team_id || idx} className="ticket-canvas">
+                  <div className="ticket-wrapper">
+                    <div className="ticket">
+                      <div className="t-main">
+                        <div className="t-content">
+                          <div className="t-header">
+                            <div className="t-logo">
+                              <svg viewBox="0 0 24 24">
+                                <path
+                                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                ></path>
+                              </svg>
+                              <span>SIH '26</span>
+                            </div>
+                            <div className="t-type">VERIFIED ONBOARDED</div>
+                          </div>
+                          <div className="t-title" title={reg.team_name || team.team_name}>
+                            {reg.team_name || team.team_name}
+                          </div>
+                          <div className="t-subtitle" title={`${psId} • ${psTitle}`}>
+                            <span className="t-ps-id">{psId}</span> {psTitle}
+                          </div>
+                          <div className="t-details">
+                            <div className="t-detail-item">
+                              <span className="t-label">Leader</span>
+                              <span className="t-value">{reg.leader_name || team.leader_name}</span>
+                            </div>
+                            <div className="t-detail-item">
+                              <span className="t-label">Reg No</span>
+                              <span className="t-value">{reg.leader_reg_no || team.reg_no || 'Lead'}</span>
+                            </div>
+                            <div className="t-detail-item">
+                              <span className="t-label">School</span>
+                              <span className="t-value" title={leaderSchool}>{leaderSchool}</span>
+                            </div>
+                            <div className="t-detail-item">
+                              <span className="t-label">Roster</span>
+                              <span className="t-value">{1 + members.length} Innovators</span>
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                        <div
+                          className="t-perforation"
+                          style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', transform: 'translateY(50%)' }}
+                        >
+                          <div className="t-perf-line"></div>
+                        </div>
+                      </div>
+                      <div className="t-stub">
+                        <div className="t-barcode-container">
+                          <div className="t-barcode"></div>
+                          <div className="t-barcode-id">{team.temp_team_id}</div>
+                        </div>
+                        <div className="t-admit">
+                          <div className="t-admit-text">TEAM</div>
+                          <div className="t-admit-num">{teamNum}</div>
+                        </div>
+                      </div>
+                      <div className="t-actions-strip">
+                        <button 
+                          className="btn-t-action roster"
+                          onClick={() => onViewTeamRoster && onViewTeamRoster(team)}
+                          title="View 6-Member Roster & Section 65B Record"
+                        >
+                          <Eye size={13} />
+                          <span>View Roster</span>
+                        </button>
+                        <button 
+                          className="btn-t-action edit"
+                          onClick={() => onEditRegistration && onEditRegistration(team)}
+                          title="Edit Registration Form"
+                        >
+                          <Edit3 size={13} />
+                          <span>Edit</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Mentor Banner */}
-                  <div className="card-mentor-row">
-                    <span className="mentor-label">Faculty Mentor:</span>
-                    <span className="mentor-name">{reg.mentor_name || 'Faculty Guide Assigned'}</span>
-                  </div>
-
-                  {/* Bottom Action Footer */}
-                  <div className="card-action-footer">
-                    <button 
-                      className="btn-card-view-roster"
-                      onClick={() => onViewTeamRoster && onViewTeamRoster(team)}
-                    >
-                      <Eye size={15} />
-                      <span>View 6-Member Roster</span>
-                    </button>
-
-                    <button 
-                      className="btn-card-edit"
-                      onClick={() => onEditRegistration && onEditRegistration(team)}
-                      title="Edit / Update Registration Form"
-                    >
-                      <Edit3 size={15} />
-                      <span>Edit</span>
-                    </button>
                   </div>
                 </div>
               );
@@ -535,6 +486,32 @@ export default function OnboardingShowcase({
           </div>
         )}
       </section>
+
+      {/* Institutional Footer with subtle shortlist archive link */}
+      <footer className="onboarding-site-footer">
+        <div className="footer-inner-container">
+          <div className="footer-left-info">
+            <div className="footer-sih-tag">
+              <Sparkles size={14} className="text-amber" />
+              <span>Smart India Hackathon 2026 &bull; Section 65B Electronic Record</span>
+            </div>
+            <p className="footer-copyright-text">
+              Rathinam Global University &bull; Ministry of Education &bull; AICTE MoE Innovation Cell
+            </p>
+          </div>
+
+          <div className="footer-right-actions">
+            <button 
+              className="btn-footer-shortlist-link" 
+              onClick={onExploreAllShortlist}
+              title="View full 110 Candidate Selection & Standby Desk"
+            >
+              <span>Need to register? View Full 110 Shortlist Archive</span>
+              <ChevronRight size={15} />
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
