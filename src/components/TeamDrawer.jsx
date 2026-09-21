@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, FileText, User, Building, MapPin, Hash, CheckCircle2 } from 'lucide-react';
 
-export default function TeamDrawer({ team, onClose, onGenerateCertificate }) {
+export default function TeamDrawer({ team, onClose, onGenerateCertificate, onOpenRegistration, isRegistered }) {
   if (!team) return null;
 
   return (
@@ -143,8 +143,22 @@ export default function TeamDrawer({ team, onClose, onGenerateCertificate }) {
           </div>
         </div>
 
-        <div className="drawer-footer-actions">
-          <button className="btn-generate-cert-wide" onClick={() => onGenerateCertificate(team)}>
+        <div className="drawer-footer-actions" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {onOpenRegistration && (
+            <button 
+              type="button"
+              className="btn-edit-submission-outline" 
+              style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minWidth: '180px' }}
+              onClick={() => {
+                onClose();
+                onOpenRegistration(team);
+              }}
+            >
+              <CheckCircle2 size={15} className="text-emerald" />
+              <span>{isRegistered ? 'Edit Registration Form' : 'Register 6-Member Team'}</span>
+            </button>
+          )}
+          <button className="btn-generate-cert-wide" style={{ flex: 1, minWidth: '180px' }} onClick={() => onGenerateCertificate(team)}>
             <FileText size={15} />
             <span>Generate Section 65B Digital Certificate</span>
           </button>

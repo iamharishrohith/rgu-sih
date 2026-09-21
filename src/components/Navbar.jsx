@@ -12,6 +12,7 @@ export default function Navbar({
   onOpenInOutPortal,
   onOpenEvaluationQueue,
   onOpenCertificateStudio,
+  onOpenTop100,
   currentView,
   isPortalClosed,
   onOpenTimerModal
@@ -80,9 +81,30 @@ export default function Navbar({
             </div>
           </div>
 
+          {/* Top 20 Specialization Awards Quick Nav (Always Available) */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              className={`btn-nav-admin ${currentView === 'top100' ? 'active-admin' : ''}`}
+              style={{
+                background: currentView === 'top100' ? '#f59e0b' : '#0f172a',
+                color: currentView === 'top100' ? '#000' : '#f8fafc',
+                border: '1px solid #334155',
+                fontFamily: "'Space Mono', monospace",
+                fontWeight: 700,
+                fontSize: '11.5px',
+                letterSpacing: '0.04em'
+              }}
+              onClick={onOpenTop100}
+              title="Open Top 20 Specialization Excellence Awards"
+            >
+              <Award size={14} color={currentView === 'top100' ? '#000' : '#f59e0b'} />
+              <span>TOP 20 AWARDS</span>
+            </button>
+          </div>
+
           {/* Action Navigation Controls */}
           {isAdminLoggedIn && (
-            <div className="header-actions-group" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="header-actions-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button 
                 className={`navbar-portal-status-btn ${isPortalClosed ? 'closed' : 'open'}`}
                 onClick={onOpenTimerModal}

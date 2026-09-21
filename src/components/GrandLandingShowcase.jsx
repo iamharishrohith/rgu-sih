@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Sparkles, ShieldCheck, Award, Filter, ArrowRight, Search, CheckCircle2, 
   Trophy, Star, Users, ExternalLink, Zap, ChevronRight, UserCheck, Flame, DoorOpen,
-  LayoutDashboard
+  LayoutDashboard, Edit3
 } from 'lucide-react';
 
 export default function GrandLandingShowcase({ 
@@ -228,11 +228,21 @@ export default function GrandLandingShowcase({
                         <>
                           <div className="congrats-text-note">
                             <CheckCircle2 size={16} className="text-emerald" />
-                            <span>Registration completed &amp; locked. Roster is verified.</span>
+                            <span>Registration submitted &amp; verified. You can update or modify your team roster anytime.</span>
                           </div>
-                          <div className="badge-status-confirmed">
-                            <CheckCircle2 size={16} className="text-emerald" />
-                            <span>Form Submitted</span>
+                          <div className="result-buttons-group" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div className="badge-status-confirmed">
+                              <CheckCircle2 size={16} className="text-emerald" />
+                              <span>Form Submitted</span>
+                            </div>
+                            <button 
+                              className="btn-result-register-now btn-result-edit-now"
+                              onClick={() => onOpenTeamRegistration(searchedTeam)}
+                              title="Click to view and edit registration details"
+                            >
+                              <Edit3 size={15} />
+                              <span>Edit / Update Form</span>
+                            </button>
                           </div>
                         </>
                       ) : (

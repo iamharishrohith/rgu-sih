@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { Search, Filter, ArrowUpDown, Award, ExternalLink, FileText, CheckCircle2, ChevronRight } from 'lucide-react';
 
-export default function ShortlistTable({ teams, onSelectTeam, onGenerateCertificate, title, subtitle, showStatusPills = true }) {
+export default function ShortlistTable({ 
+  teams, 
+  onSelectTeam, 
+  onGenerateCertificate, 
+  onOpenRegistration,
+  registrationsMap = {},
+  title, 
+  subtitle, 
+  showStatusPills = true 
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [domainFilter, setDomainFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -197,6 +206,20 @@ export default function ShortlistTable({ teams, onSelectTeam, onGenerateCertific
                       >
                         Details
                       </button>
+                      {onOpenRegistration && (
+                        <button
+                          className="view-btn"
+                          style={{
+                            borderColor: registrationsMap[t.temp_team_id] ? '#10b981' : '#6366f1',
+                            color: registrationsMap[t.temp_team_id] ? '#047857' : '#4f46e5',
+                            background: registrationsMap[t.temp_team_id] ? '#ecfdf5' : '#eef2ff'
+                          }}
+                          title={registrationsMap[t.temp_team_id] ? 'Edit submitted candidate registration form' : 'Register 6-member finalist team'}
+                          onClick={() => onOpenRegistration(t)}
+                        >
+                          {registrationsMap[t.temp_team_id] ? 'Edit Form' : 'Register'}
+                        </button>
+                      )}
                       <button
                         className="cert-btn"
                         title="Generate Section 65B Digital Certificate"

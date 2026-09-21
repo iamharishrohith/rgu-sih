@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>200+ Unique, Stylish Team Names for Hackathons</title>
+<style>
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; margin: 30px auto; max-width: 950px; color: #1e293b; background: #ffffff; }
+  h1 { color: #0f2c59; font-size: 24px; margin-bottom: 4px; }
+  p.sub { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+  .badge-bar { display: flex; gap: 12px; margin-bottom: 25px; }
+  .badge { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; flex: 1; text-align: center; }
+  .badge-num { font-size: 20px; font-weight: bold; color: #2563eb; }
+  .badge-lbl { font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 600; }
+  h2 { font-size: 17px; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-top: 30px; }
+  p.cat-desc { font-size: 12px; font-style: italic; color: #64748b; margin-top: -4px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+  th { background: #f8fafc; color: #334155; font-weight: bold; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+  td { border: 1px solid #e2e8f0; padding: 7px 10px; vertical-align: middle; }
+  tr:nth-child(even) { background: #fbfcfd; }
+  .name-col { font-weight: bold; color: #1d4ed8; font-size: 14px; }
+  .center { text-align: center; width: 40px; }
+  @media print {
+    body { margin: 12mm; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+  <h1>Smart India Hackathon - 200+ Unique & Stylish Team Names Guide</h1>
+  <p class="sub">Curated for Smart India Hackathon (SIH 2026) & National Hackathons &bull; Easy Pronunciation & High Jury Recall</p>
+
+  <div class="badge-bar">
+    <div class="badge">
+      <div class="badge-num">208</div>
+      <div class="badge-lbl">Unique Curated Names</div>
+    </div>
+    <div class="badge">
+      <div class="badge-num">10</div>
+      <div class="badge-lbl">Domain Categories</div>
+    </div>
+    <div class="badge">
+      <div class="badge-num">100%</div>
+      <div class="badge-lbl">Cliché & AI-Slop Free</div>
+    </div>
+  </div>
+  <h2>1. AI, Neural Networks & Machine Learning</h2>
+  <p class="cat-desc">Ideal for GenAI, Computer Vision, LLMs, Voice Cloning & Predictive Models</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">NeuraVault</td>
+        <td>AI & Data Vault</td>
+        <td>Modern & Robust</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">Synaptix</td>
+        <td>Neural Networks</td>
+        <td>Futuristic</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">Cortexia</td>
+        <td>Brain / AI Engine</td>
+        <td>Sleek</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">MindForge</td>
+        <td>AI Engineering</td>
+        <td>Powerful</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">PrismAI</td>
+        <td>Vision & Insights</td>
+        <td>Crisp</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">CogniVibe</td>
+        <td>Cognitive Tech</td>
+        <td>Cool & Modern</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">Aethel AI</td>
+        <td>Pure Intelligence</td>
+        <td>Sophisticated</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">DeepSpire</td>
+        <td>Deep Learning</td>
+        <td>Bold</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">NexaMind</td>
+        <td>Next-Gen AI</td>
+        <td>Tech Forward</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">Intellecta</td>
+        <td>Reasoning AI</td>
+        <td>Classic</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">AxonLogic</td>
+        <td>Neural Transmission</td>
+        <td>Scientific</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">TensorFlows</td>
+        <td>ML Models</td>
+        <td>Developer Core</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">HyperCognix</td>
+        <td>High-Speed AI</td>
+        <td>Dynamic</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">OmniSynapse</td>
+        <td>All-Round AI</td>
+        <td>Comprehensive</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">VividMind</td>
+        <td>Creative & Vision AI</td>
+        <td>Fresh</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">EchoBrain</td>
+        <td>Audio & NLP AI</td>
+        <td>Sharp</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">Algorix</td>
+        <td>Smart Algorithms</td>
+        <td>Minimalist</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">OptiMind</td>
+        <td>Optimized Models</td>
+        <td>Professional</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">NeuraLens</td>
+        <td>Vision Intelligence</td>
+        <td>Clean</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">Synthetix</td>
+        <td>Synthetic Data / GenAI</td>
+        <td>Cutting-Edge</td>
+      </tr>
+      <tr>
+        <td class="center">21</td>
+        <td class="name-col">GenZetta</td>
+        <td>Big Data & GenAI</td>
+        <td>Trendy</td>
+      </tr>
+      <tr>
+        <td class="center">22</td>
+        <td class="name-col">CerebroLab</td>
+        <td>Intelligence Lab</td>
+        <td>Impactful</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>2. Cybersecurity, Forensics & Threat Intelligence</h2>
+  <p class="cat-desc">Perfect for Email Forensics, Dark Web, Penetration Testing & Anti-Fraud</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">SentinEx</td>
+        <td>Next-Gen Sentinel</td>
+        <td>Sharp & Protective</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">CipherLock</td>
+        <td>Encryption & Security</td>
+        <td>Ironclad</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">IronGrid</td>
+        <td>Defense Infrastructure</td>
+        <td>Solid</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">VektorGuard</td>
+        <td>Threat Vector Shield</td>
+        <td>Modern Defense</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">AegisCore</td>
+        <td>Invulnerable Shield</td>
+        <td>Mythic Security</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">Cryptonix</td>
+        <td>Forensics & Crypto</td>
+        <td>Futuristic</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">PhishGuard</td>
+        <td>Anti-Phishing & Mail</td>
+        <td>Clear Intent</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">NullPoint</td>
+        <td>Zero Vulnerability</td>
+        <td>Cyber Specialist</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">ByteBastion</td>
+        <td>Digital Fortress</td>
+        <td>Classic Security</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">TraceSentry</td>
+        <td>Forensic Tracking</td>
+        <td>Investigative</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">SilentSec</td>
+        <td>Stealth Security</td>
+        <td>Elite</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">HexaShield</td>
+        <td>6-Layer Protection</td>
+        <td>Crisp</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">ZeroBreach</td>
+        <td>Secured Systems</td>
+        <td>Confident</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">SpecterGuard</td>
+        <td>Dark Web / Threat Ops</td>
+        <td>Mysterious & Cool</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">CyberArkis</td>
+        <td>Vault Security</td>
+        <td>Authoritative</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">NetraSec</td>
+        <td>Surveillance & Defense</td>
+        <td>Hybrid Sanskrit</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">VortexSec</td>
+        <td>Dynamic Threat Analysis</td>
+        <td>Aggressive</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">ForensIQ</td>
+        <td>Intelligent Forensics</td>
+        <td>Clever</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">FortiByte</td>
+        <td>Data Security</td>
+        <td>Sturdy</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">ShadowLock</td>
+        <td>Zero-Trust Architecture</td>
+        <td>Sleek</td>
+      </tr>
+      <tr>
+        <td class="center">21</td>
+        <td class="name-col">ApexCrypt</td>
+        <td>Peak Cryptography</td>
+        <td>Premium</td>
+      </tr>
+      <tr>
+        <td class="center">22</td>
+        <td class="name-col">TraceLogic</td>
+        <td>Investigation Logic</td>
+        <td>Precise</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>3. Indic & Sanskrit Heritage (High SIH Jury Impact)</h2>
+  <p class="cat-desc">Highly appreciated by Indian Ministry Evaluators, AICTE & SIH Nodal Centers</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">NetraAI</td>
+        <td>Divine Vision / CCTV AI</td>
+        <td>Powerful & Authentic</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">KavachCore</td>
+        <td>Armor / Defense</td>
+        <td>National Pride</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">DrishtiLens</td>
+        <td>Insightful Vision</td>
+        <td>Clear & Sharp</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">VakShodh</td>
+        <td>Voice / Speech Research</td>
+        <td>Domain-Perfect</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">GatiVikas</td>
+        <td>Speed & Infrastructure</td>
+        <td>Progressive</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">SuryaGrid</td>
+        <td>Clean Energy / Solar</td>
+        <td>Bright</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">AstraLabs</td>
+        <td>Advanced Tools & Tech</td>
+        <td>Elite Weaponry</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">VayuSense</td>
+        <td>Drone / Air Analytics</td>
+        <td>Agile</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">BodhiTech</td>
+        <td>Wisdom & Knowledge</td>
+        <td>Thoughtful</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">YantraAI</td>
+        <td>Machines & Automation</td>
+        <td>Industrial</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">BhoomiNet</td>
+        <td>Land & Cadastral Mapping</td>
+        <td>Rooted</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">RakshaPulse</td>
+        <td>Protection & Safety</td>
+        <td>Vigilant</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">VidurAI</td>
+        <td>Wise Governance / Advisory</td>
+        <td>Strategic</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">Pramaan</td>
+        <td>Proof & Truth / Section 65B</td>
+        <td>Legal & True</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">Samvaad</td>
+        <td>Seamless Dialogue / Chatbots</td>
+        <td>Communicative</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">Pratyaksh</td>
+        <td>Real-Time Direct Evidence</td>
+        <td>Transparent</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">Akashvani</td>
+        <td>Audio / Broadcasting Tech</td>
+        <td>Auditory</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">KshetraAI</td>
+        <td>Spatial & Geographic Mapping</td>
+        <td>Domain Focused</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">ChikitsaTech</td>
+        <td>Healthcare & Diagnosis</td>
+        <td>Medical</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">GarudaOps</td>
+        <td>Aerial Drone / Surveillance</td>
+        <td>Majestic</td>
+      </tr>
+      <tr>
+        <td class="center">21</td>
+        <td class="name-col">SetuBridge</td>
+        <td>Integration & Portals</td>
+        <td>Collaborative</td>
+      </tr>
+      <tr>
+        <td class="center">22</td>
+        <td class="name-col">AgniShield</td>
+        <td>Critical System Defense</td>
+        <td>Resilient</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>4. Smart Cities, Drones, Mobility & Traffic</h2>
+  <p class="cat-desc">Ideal for ANPR, Railway ETA, Traffic Congestion, Drones & Infrastructure</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">AeroGrid</td>
+        <td>Drone & Spatial Grid</td>
+        <td>High-Flying</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">UrbanPulse</td>
+        <td>City Analytics</td>
+        <td>Vibrant</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">Navix</td>
+        <td>Next-Gen Navigation</td>
+        <td>Short & Punchy</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">SkySentinel</td>
+        <td>Aerial Surveillance</td>
+        <td>Protective</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">VeloCity AI</td>
+        <td>Fast Transit & Traffic</td>
+        <td>Paced</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">GeoTrace</td>
+        <td>Geospatial Tracking</td>
+        <td>Accurate</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">DroneOps</td>
+        <td>Autonomous UAV Operations</td>
+        <td>Tactical</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">TrackNova</td>
+        <td>Fleet & Train Tracking</td>
+        <td>Modern</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">StratosAI</td>
+        <td>High-Altitude & Satellite</td>
+        <td>Atmospheric</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">MetroFlux</td>
+        <td>Urban Transit Flow</td>
+        <td>Dynamic</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">TraffixCore</td>
+        <td>ANPR & Traffic AI</td>
+        <td>Focused</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">RouteCraft</td>
+        <td>Smart Route Optimization</td>
+        <td>Crafted</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">AeroPulse</td>
+        <td>Drone Telemetry</td>
+        <td>Smooth</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">TransitIQ</td>
+        <td>Intelligent Public Transport</td>
+        <td>Smart</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">Civilis</td>
+        <td>City Infrastructure Planning</td>
+        <td>Architectural</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">FormaGrid</td>
+        <td>Urban Site Modeling</td>
+        <td>Structured</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">Orbitron</td>
+        <td>Satellite Mapping</td>
+        <td>Futuristic</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">GlideSense</td>
+        <td>Autonomous Vehicle Sensors</td>
+        <td>Fluid</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">OmniRoute</td>
+        <td>Multi-Modal Logistics</td>
+        <td>Comprehensive</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">RailMatrix</td>
+        <td>Railway Logistics & ETA</td>
+        <td>Engineered</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>5. AgriTech, Environment & Disaster Management</h2>
+  <p class="cat-desc">Great for Landslide Alert, Crop Disease, Flood Nowcasting & Weather Big Data</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">KrishiNet</td>
+        <td>Smart Agriculture Network</td>
+        <td>Cultivated</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">TerraNova</td>
+        <td>New Earth / Land Systems</td>
+        <td>Expansive</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">CropLens</td>
+        <td>Crop Disease AI Vision</td>
+        <td>Micro-Precision</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">GreenSync</td>
+        <td>Sustainable Farming</td>
+        <td>Eco-Smart</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">EcoSpire</td>
+        <td>Environmental Intelligence</td>
+        <td>Inspiring</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">HydroLogic</td>
+        <td>Flood & Drainage Systems</td>
+        <td>Water Tech</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">FloraTech</td>
+        <td>Plant Health & Biosystems</td>
+        <td>Bio-Focus</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">SoilSense</td>
+        <td>IoT Soil & Weather Sensing</td>
+        <td>Grounded</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">Climata</td>
+        <td>Weather Big Data</td>
+        <td>Meteorological</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">AgriVeda</td>
+        <td>Traditional + Modern Farming</td>
+        <td>Harmonious</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">QuakeWatch</td>
+        <td>Landslide & Disaster Alerts</td>
+        <td>Urgent</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">SolarisHarvest</td>
+        <td>Solar Mini Cold Storage</td>
+        <td>Renewable</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">AquaGuard</td>
+        <td>Flood Early Warning</td>
+        <td>Resilient</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">AgroMatrix</td>
+        <td>Agricultural Supply Chain</td>
+        <td>Systematic</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">VerdantAI</td>
+        <td>Green Tech Analytics</td>
+        <td>Organic</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">BreezeCast</td>
+        <td>Hyper-Local Weather Forecast</td>
+        <td>Fresh</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">BioPulse</td>
+        <td>Dairy & Livestock Health</td>
+        <td>Living</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">AgriLink</td>
+        <td>Market Linkage for Farmers</td>
+        <td>Connecting</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">PestScan</td>
+        <td>Rapid Insect & Pest Detection</td>
+        <td>Action-Oriented</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">TerraShield</td>
+        <td>Landslide Protection</td>
+        <td>Fortified</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>6. FinTech, Blockchain & Legal Tech</h2>
+  <p class="cat-desc">For Crypto Fraud Detection, BSA Legal Documents, Section 65B & Micro-Financing</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">BlockTrace</td>
+        <td>Blockchain Forensic Analytics</td>
+        <td>Investigative</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">Vaultix</td>
+        <td>Secure Digital Vaults</td>
+        <td>High Security</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">LedgerFlow</td>
+        <td>Transparent Financial Ledger</td>
+        <td>Financial</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">ProofGrid</td>
+        <td>Cryptographic Proofs</td>
+        <td>Verifiable</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">ChainSentry</td>
+        <td>Crypto Exchange Monitor</td>
+        <td>Watchdog</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">Quantis</td>
+        <td>Quantitative Finance</td>
+        <td>Premium</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">FinVanguard</td>
+        <td>Micro-Entrepreneur Advisory</td>
+        <td>Progressive</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">CoinPulse</td>
+        <td>Wallet Address Analytics</td>
+        <td>Real-Time</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">CaseVault</td>
+        <td>Legal & Court Evidence</td>
+        <td>Enterprise</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">LexiNova</td>
+        <td>Modern Legal Tech</td>
+        <td>Scholarly</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">TrustLedger</td>
+        <td>Zero-Knowledge Auditing</td>
+        <td>Ethical</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">Arbitron</td>
+        <td>Smart Contract Arbitrator</td>
+        <td>Decisive</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">MicroFund</td>
+        <td>Rural Finance & Scheme Matching</td>
+        <td>Empowering</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">JurixAI</td>
+        <td>Legal Assistance Chatbots</td>
+        <td>Authoritative</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">CryptaLink</td>
+        <td>Suspect Wallet Investigation</td>
+        <td>Connected</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">AuditByte</td>
+        <td>Fraud Detection Engine</td>
+        <td>Precise</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">KuberGrid</td>
+        <td>Financial Inclusion Tech</td>
+        <td>Prosperous</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">VeriDocs</td>
+        <td>Digital Document Screening</td>
+        <td>Authentic</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">NyayaSetu</td>
+        <td>Justice & Legal Bridge</td>
+        <td>Social Impact</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">PayShield</td>
+        <td>Transaction Fraud Shield</td>
+        <td>Defensive</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>7. Healthcare, MedTech & Assistive Tech</h2>
+  <p class="cat-desc">For Dementia Gaming, Bovine Mastitis, Rural Healthcare & Human Augmentation</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">Vitalix</td>
+        <td>Vital Signs & Care</td>
+        <td>Life-Affirming</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">CureVibe</td>
+        <td>Modern Wellness & MedTech</td>
+        <td>Uplifting</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">BioSentry</td>
+        <td>Disease Monitoring</td>
+        <td>Alert</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">PulseGrid</td>
+        <td>Telemetry & Hospital Systems</td>
+        <td>Connected</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">MedNova</td>
+        <td>Next-Gen Healthcare</td>
+        <td>Forward-Looking</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">OmniHealth</td>
+        <td>Rural Public Health Delivery</td>
+        <td>Universal</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">NeuroHeal</td>
+        <td>Dementia & Cognitive Therapy</td>
+        <td>Empathetic</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">ClinixAI</td>
+        <td>Clinical Assistance Models</td>
+        <td>Professional</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">CogniCare</td>
+        <td>Elderly Memory Support</td>
+        <td>Compassionate</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">AuraMed</td>
+        <td>Holistic Health Sensors</td>
+        <td>Gentle & Smart</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">ExoMotion</td>
+        <td>Human Augmentation & Exoskeleton</td>
+        <td>Mechanical</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">TheraPulse</td>
+        <td>Physiotherapy & Rehab</td>
+        <td>Active</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">TeleDoc AI</td>
+        <td>Remote Clinic Linkage</td>
+        <td>Accessible</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">BovineCare</td>
+        <td>Dairy Herd Mastitis Forecast</td>
+        <td>Veterinary</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">MindBloom</td>
+        <td>Mental Health Monitoring</td>
+        <td>Restorative</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">SanjivaniAI</td>
+        <td>Emergency & Rural Lifeline</td>
+        <td>Mythic Life-Saver</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">VisionAble</td>
+        <td>Assistive Sight Tech</td>
+        <td>Empowering</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">AudioAegis</td>
+        <td>Assistive Hearing & Voice</td>
+        <td>Protective</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">GenoPulse</td>
+        <td>Genomics & Bio-Informatics</td>
+        <td>Advanced</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">MedScribe</td>
+        <td>Automated Prescription Records</td>
+        <td>Administrative</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>8. Quantum, Space & Deep Tech</h2>
+  <p class="cat-desc">For Chandrayaan-2 Imagery, Quantum Learning, Manganese Reserves & Satellite SRM</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">Quantix</td>
+        <td>Quantum Algorithm Platform</td>
+        <td>Deep Tech</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">HyperFlux</td>
+        <td>High-Throughput Compute</td>
+        <td>Electric</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">QubitCore</td>
+        <td>Quantum Computing Logic</td>
+        <td>Fundamental</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">NanoLogic</td>
+        <td>Micro & Nano Computing</td>
+        <td>Precise</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">Spatium</td>
+        <td>Space & Satellite Coordinates</td>
+        <td>Cosmic</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">SynchroTech</td>
+        <td>Multi-Sensor Synchronization</td>
+        <td>Coordinated</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">VoltMatrix</td>
+        <td>Power & Physics Engines</td>
+        <td>Electrified</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">MechNova</td>
+        <td>Robotics & Quadrupeds</td>
+        <td>Industrial</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">Atomix</td>
+        <td>Atomic-Level Simulation</td>
+        <td>Base Element</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">AstroVision</td>
+        <td>Chandrayaan Image Processing</td>
+        <td>Astronomical</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">GeoQuantum</td>
+        <td>Mineral & Manganese Prospecting</td>
+        <td>Geological</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">SpectraAI</td>
+        <td>Hyperspectral Satellite Analysis</td>
+        <td>Scientific</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">Gravitas</td>
+        <td>High-Impact Deep Tech</td>
+        <td>Substantial</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">Photonix</td>
+        <td>Optical & Laser Sensors</td>
+        <td>Light-Speed</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">DarkMatter</td>
+        <td>Deep Data Analytics</td>
+        <td>Mysterious</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">PentaQubit</td>
+        <td>Quantum Simulator</td>
+        <td>Cutting-Edge</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">LunarLens</td>
+        <td>Moon Orbit Image Matching</td>
+        <td>Targeted</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">SubTerra</td>
+        <td>Underground Ore Detection</td>
+        <td>Earth-Probing</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">HelioTech</td>
+        <td>Solar Radiation & Space Weather</td>
+        <td>Solar</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">NovaStrata</td>
+        <td>Geological Super Resolution</td>
+        <td>Stratified</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>9. Cool Startup / Elite Product Studio Vibe (1-Word Punchy)</h2>
+  <p class="cat-desc">Ultra-sleek, easy to pronounce, sounds like a venture-backed tech company</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">Syntrix</td>
+        <td>Universal Tech Studio</td>
+        <td>Elite Minimal</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">ZenithLabs</td>
+        <td>Peak Innovation</td>
+        <td>Top Tier</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">ApexGrid</td>
+        <td>Scalable Platforms</td>
+        <td>Leadership</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">Lumina</td>
+        <td>Illuminating Data & AI</td>
+        <td>Clean & Bright</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">Nexora</td>
+        <td>Next Horizon Systems</td>
+        <td>Sleek</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">Hyperion</td>
+        <td>Massive Cloud-Edge Frameworks</td>
+        <td>Mighty</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">Vektor</td>
+        <td>Direct Path Execution</td>
+        <td>Sharp</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">Strata</td>
+        <td>Layered Architecture</td>
+        <td>Solid</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">Solarix</td>
+        <td>Clean Tech & High Energy</td>
+        <td>Radiant</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">Zephyr</td>
+        <td>Lightweight & Fast Systems</td>
+        <td>Swift</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">Omnix</td>
+        <td>All-Encompassing Tech</td>
+        <td>Universal</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">Fluxio</td>
+        <td>Fluid Reactive Interfaces</td>
+        <td>Agile</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">Vanguard</td>
+        <td>Front-Line Innovations</td>
+        <td>Pioneering</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">Kinetix</td>
+        <td>Continuous Motion & Build</td>
+        <td>Energetic</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">Axiom</td>
+        <td>Self-Evident Truth / Core Logic</td>
+        <td>Philosophical</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">Vertex</td>
+        <td>Intersection of AI & Hardware</td>
+        <td>Geometric</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">Novus</td>
+        <td>New Beginnings</td>
+        <td>Latin Classic</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">Helios</td>
+        <td>Sun / High Power Systems</td>
+        <td>Mythic</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">Altrix</td>
+        <td>Alternative Smart Solutions</td>
+        <td>Modern</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">Velox</td>
+        <td>High Velocity Computing</td>
+        <td>Fast</td>
+      </tr>
+      <tr>
+        <td class="center">21</td>
+        <td class="name-col">Radix</td>
+        <td>Root Cause / Foundation</td>
+        <td>Essential</td>
+      </tr>
+      <tr>
+        <td class="center">22</td>
+        <td class="name-col">Cobalt</td>
+        <td>Industrial Strength Software</td>
+        <td>Tough</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>10. Social Impact, Education & Rural Empowerment</h2>
+  <p class="cat-desc">For Artisan Cataloging, iGOT Karmayogi Training, Skill Mapping & Gig Economy</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">#</th>
+        <th>Team Name</th>
+        <th>Domain Focus / Tag</th>
+        <th>Vibe & Perception</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="name-col">KalaKriti</td>
+        <td>Artisan Smart Cataloging</td>
+        <td>Artistic & Cultural</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="name-col">ShikshaAI</td>
+        <td>Competency & Quiz Generator</td>
+        <td>Educational</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td class="name-col">SahyogNet</td>
+        <td>Cooperative Gig Services</td>
+        <td>Community</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td class="name-col">GraminIQ</td>
+        <td>Rural Advisory Assistant</td>
+        <td>Grassroots</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td class="name-col">KalaSetu</td>
+        <td>Artisan to Global Market</td>
+        <td>Connecting</td>
+      </tr>
+      <tr>
+        <td class="center">6</td>
+        <td class="name-col">Kaushalya</td>
+        <td>Skill Mapping & Placement</td>
+        <td>Empowering</td>
+      </tr>
+      <tr>
+        <td class="center">7</td>
+        <td class="name-col">Sarvodaya</td>
+        <td>Welfare Scheme Matching</td>
+        <td>Inclusive</td>
+      </tr>
+      <tr>
+        <td class="center">8</td>
+        <td class="name-col">Samriddhi</td>
+        <td>Rural Prosperity & Finance</td>
+        <td>Growth</td>
+      </tr>
+      <tr>
+        <td class="center">9</td>
+        <td class="name-col">DakshaAI</td>
+        <td>Expert Statistical Training</td>
+        <td>Competent</td>
+      </tr>
+      <tr>
+        <td class="center">10</td>
+        <td class="name-col">Sahayak</td>
+        <td>Community Help Assistant</td>
+        <td>Supportive</td>
+      </tr>
+      <tr>
+        <td class="center">11</td>
+        <td class="name-col">UdyamCore</td>
+        <td>Micro-Enterprise Incubation</td>
+        <td>Entrepreneurial</td>
+      </tr>
+      <tr>
+        <td class="center">12</td>
+        <td class="name-col">ShramikSync</td>
+        <td>Gig Worker Management</td>
+        <td>Fair & Modern</td>
+      </tr>
+      <tr>
+        <td class="center">13</td>
+        <td class="name-col">PragatiGrid</td>
+        <td>Progress Tracking for Villages</td>
+        <td>Transformative</td>
+      </tr>
+      <tr>
+        <td class="center">14</td>
+        <td class="name-col">VaniVikas</td>
+        <td>Multilingual Voice Advisory</td>
+        <td>Local Dialects</td>
+      </tr>
+      <tr>
+        <td class="center">15</td>
+        <td class="name-col">AnanyaTech</td>
+        <td>Unique Artisanal ID & NFT</td>
+        <td>Authentic</td>
+      </tr>
+      <tr>
+        <td class="center">16</td>
+        <td class="name-col">UnnatiAI</td>
+        <td>Upskilling & Career Pathing</td>
+        <td>Aspirational</td>
+      </tr>
+      <tr>
+        <td class="center">17</td>
+        <td class="name-col">JanKalyan</td>
+        <td>Public Welfare Access</td>
+        <td>Citizen-Centric</td>
+      </tr>
+      <tr>
+        <td class="center">18</td>
+        <td class="name-col">Silpkar</td>
+        <td>Handicrafts & Heritage Tech</td>
+        <td>Craftsmanship</td>
+      </tr>
+      <tr>
+        <td class="center">19</td>
+        <td class="name-col">Swarojgar</td>
+        <td>Self-Employment Advisory</td>
+        <td>Independent</td>
+      </tr>
+      <tr>
+        <td class="center">20</td>
+        <td class="name-col">MaitriBot</td>
+        <td>Elderly & Community Companion</td>
+        <td>Friendly</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

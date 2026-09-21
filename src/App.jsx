@@ -13,6 +13,7 @@ import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
 import EvaluationQueuePortal, { DEFAULT_EVALUATION_PANELS } from './components/EvaluationQueuePortal.jsx';
 import JuryStationPortal from './components/JuryStationPortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
+import Top100Students from './components/Top100Students.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -40,6 +41,10 @@ export default function App() {
       const search = window.location.search.toLowerCase();
       const hash = window.location.hash.toLowerCase();
 
+      // Check for top100 talent hall of fame
+      if (pathname.includes('/top100') || search.includes('top100') || hash.includes('top100')) {
+        return 'top100';
+      }
       // Check for standalone jury station page (strictly isolated)
       if (pathname.includes('/jury') || search.includes('jury') || hash.includes('jury')) {
         return 'jury_station';
@@ -1048,7 +1053,7 @@ export default function App() {
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && currentView !== 'admin' && <FlowerConfettiRain />}
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && currentView !== 'admin' && currentView !== 'top100' && <FlowerConfettiRain />}
 
       {/* Institutional Header (Rendered across all views) */}
       <Navbar
@@ -1070,6 +1075,11 @@ export default function App() {
           setIsReadOnlyAfterClosure(false);
           setCurrentView('eval_queue');
         }}
+        onOpenTop100={() => {
+          setIsReadOnlyAfterClosure(false);
+          setCurrentView('top100');
+          window.history.pushState(null, '', '#top100');
+        }}
         currentView={currentView}
         isPortalClosed={isPortalClosed}
         onOpenTimerModal={() => {
@@ -1083,7 +1093,7 @@ export default function App() {
       />
 
       {/* Live Midnight Closure Countdown Banner (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && (
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && currentView !== 'top100' && (
         <MidnightCountdownBanner 
           onActionClick={() => {
             if (currentView !== 'candidate_desk') {
@@ -1212,6 +1222,14 @@ export default function App() {
           }}
           onOpenAdminGateway={triggerSecretAdmin}
         />
+      ) : currentView === 'top100' ? (
+        /* VIEW: TOP 100 STUDENTS HALL OF FAME & TALENT VAULT */
+        <Top100Students 
+          onBackToMain={() => {
+            window.history.pushState(null, '', '/');
+            setCurrentView('landing');
+          }}
+        />
       ) : isPortalClosed && !isReadOnlyAfterClosure ? (
         /* PORTAL CLOSED VIEW (Active when portal is locked) */
         <PortalClosedView
@@ -1251,7 +1269,7 @@ export default function App() {
           allTeams={publicTeamsList}
           isAdminLoggedIn={isAdminLoggedIn}
           onOpenTeamRegistration={(team) => {
-            if (!isPortalClosed) setActiveRegTeam(team);
+            setActiveRegTeam(team);
           }}
         />
       ) : (
