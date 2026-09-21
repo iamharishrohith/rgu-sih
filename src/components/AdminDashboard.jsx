@@ -319,6 +319,7 @@ export default function AdminDashboard({
     if (activeTab === 'shortlist') list = teamRecords.filter(t => t.status === 'Shortlist');
     else if (activeTab === 'bench') list = teamRecords.filter(t => t.status === 'Bench');
     else if (activeTab === 'waitlist') list = teamRecords.filter(t => t.status === 'Waitlist');
+    else if (activeTab === 'filled') list = teamRecords.filter(t => t.isRegistered);
     else if (activeTab === 'pending') list = teamRecords.filter(t => !t.isRegistered);
 
     if (selectedSchoolFilter !== 'all') {
@@ -384,57 +385,148 @@ export default function AdminDashboard({
     setUploadText('');
   };
 
-  // Export Registered Dataset to CSV
-  const handleExportCSV = () => {
+  // 1. Export Filled / Submitted Registration Forms (with full 6-member roster & mentor)
+  const handleExportFilledCSV = (schoolOverride = selectedSchoolFilter) => {
+    const targetSchool = schoolOverride || 'all';
+    const list = teamRecords.filter(t => t.isRegistered && (targetSchool === 'all' || t.school === targetSchool));
+    
     const headers = [
-      'Temp Team ID', 'Team Name', 'Tier Status', 'PS ID', 'PS Title',
-      'Leader Name', 'Leader Reg No', 'Leader Personal Email', 'Leader College Email', 'Leader Phone', 'Leader WhatsApp', 'Leader Year', 'Leader Dept', 'Leader School',
-      'Member 2 Name', 'Member 2 Reg No', 'Member 2 Email', 'Member 2 Phone',
-      'Member 3 Name', 'Member 3 Reg No', 'Member 3 Email', 'Member 3 Phone',
-      'Member 4 Name', 'Member 4 Reg No', 'Member 4 Email', 'Member 4 Phone',
-      'Member 5 Name', 'Member 5 Reg No', 'Member 5 Email', 'Member 5 Phone',
-      'Member 6 Name', 'Member 6 Reg No', 'Member 6 Email', 'Member 6 Phone',
-      'Mentor Name', 'Mentor Designation', 'Mentor Email', 'Mentor Phone'
+      'Temp Team ID', 'Team Name', 'Tier Status', 'SIH PS ID', 'PS Title', 'School / Faculty', 'Department',
+      'Leader Name', 'Leader Reg No', 'Leader Gender', 'Leader Personal Email', 'Leader College Email', 'Leader Phone', 'Leader WhatsApp', 'Leader Year', 'Leader Dept',
+      'Member 2 Name', 'Member 2 Reg No', 'Member 2 Gender', 'Member 2 Dept', 'Member 2 Year', 'Member 2 Email', 'Member 2 Phone', 'Member 2 WhatsApp',
+      'Member 3 Name', 'Member 3 Reg No', 'Member 3 Gender', 'Member 3 Dept', 'Member 3 Year', 'Member 3 Email', 'Member 3 Phone', 'Member 3 WhatsApp',
+      'Member 4 Name', 'Member 4 Reg No', 'Member 4 Gender', 'Member 4 Dept', 'Member 4 Year', 'Member 4 Email', 'Member 4 Phone', 'Member 4 WhatsApp',
+      'Member 5 Name', 'Member 5 Reg No', 'Member 5 Gender', 'Member 5 Dept', 'Member 5 Year', 'Member 5 Email', 'Member 5 Phone', 'Member 5 WhatsApp',
+      'Member 6 Name', 'Member 6 Reg No', 'Member 6 Gender', 'Member 6 Dept', 'Member 6 Year', 'Member 6 Email', 'Member 6 Phone', 'Member 6 WhatsApp',
+      'Mentor Name', 'Mentor Designation', 'Mentor Email', 'Mentor Phone',
+      'Status', 'Submission Timestamp'
     ];
 
-    const rows = teamRecords.map(t => {
+    const rows = list.map(t => {
       const reg = t.registrationData || {};
       const m = reg.members || [];
       return [
         sanitizeCSVField(t.temp_team_id),
         sanitizeCSVField(reg.team_name || t.team_name),
         sanitizeCSVField(t.status),
-        sanitizeCSVField(t.ps_id),
-        sanitizeCSVField(reg.ps_title || ''),
-        sanitizeCSVField(t.leader_name),
-        sanitizeCSVField(t.reg_no),
+        sanitizeCSVField(reg.sih_ps_id || t.ps_id),
+        sanitizeCSVField(reg.ps_title || t.ps_title || ''),
+        sanitizeCSVField(reg.leader_school || t.school),
+        sanitizeCSVField(reg.leader_dept || ''),
+        sanitizeCSVField(reg.leader_name || t.leader_name),
+        sanitizeCSVField(reg.leader_reg_no || t.reg_no),
+        sanitizeCSVField(reg.leader_gender || 'Male'),
         sanitizeCSVField(reg.leader_personal_email || ''),
         sanitizeCSVField(reg.leader_college_email || ''),
         sanitizeCSVField(reg.leader_phone || t.effectivePhone),
         sanitizeCSVField(reg.leader_whatsapp || t.effectiveWhatsapp),
         sanitizeCSVField(reg.leader_year || ''),
         sanitizeCSVField(reg.leader_dept || ''),
-        sanitizeCSVField(reg.leader_school || t.school),
-        sanitizeCSVField(m[0]?.name || ''), sanitizeCSVField(m[0]?.reg_no || ''), sanitizeCSVField(m[0]?.personal_email || ''), sanitizeCSVField(m[0]?.phone || ''),
-        sanitizeCSVField(m[1]?.name || ''), sanitizeCSVField(m[1]?.reg_no || ''), sanitizeCSVField(m[1]?.personal_email || ''), sanitizeCSVField(m[1]?.phone || ''),
-        sanitizeCSVField(m[2]?.name || ''), sanitizeCSVField(m[2]?.reg_no || ''), sanitizeCSVField(m[2]?.personal_email || ''), sanitizeCSVField(m[2]?.phone || ''),
-        sanitizeCSVField(m[3]?.name || ''), sanitizeCSVField(m[3]?.reg_no || ''), sanitizeCSVField(m[3]?.personal_email || ''), sanitizeCSVField(m[3]?.phone || ''),
-        sanitizeCSVField(m[4]?.name || ''), sanitizeCSVField(m[4]?.reg_no || ''), sanitizeCSVField(m[4]?.personal_email || ''), sanitizeCSVField(m[4]?.phone || ''),
+        sanitizeCSVField(m[0]?.name || ''), sanitizeCSVField(m[0]?.reg_no || ''), sanitizeCSVField(m[0]?.gender || 'Male'), sanitizeCSVField(m[0]?.dept || ''), sanitizeCSVField(m[0]?.year || ''), sanitizeCSVField(m[0]?.personal_email || ''), sanitizeCSVField(m[0]?.phone || ''), sanitizeCSVField(m[0]?.whatsapp || ''),
+        sanitizeCSVField(m[1]?.name || ''), sanitizeCSVField(m[1]?.reg_no || ''), sanitizeCSVField(m[1]?.gender || 'Male'), sanitizeCSVField(m[1]?.dept || ''), sanitizeCSVField(m[1]?.year || ''), sanitizeCSVField(m[1]?.personal_email || ''), sanitizeCSVField(m[1]?.phone || ''), sanitizeCSVField(m[1]?.whatsapp || ''),
+        sanitizeCSVField(m[2]?.name || ''), sanitizeCSVField(m[2]?.reg_no || ''), sanitizeCSVField(m[2]?.gender || 'Male'), sanitizeCSVField(m[2]?.dept || ''), sanitizeCSVField(m[2]?.year || ''), sanitizeCSVField(m[2]?.personal_email || ''), sanitizeCSVField(m[2]?.phone || ''), sanitizeCSVField(m[2]?.whatsapp || ''),
+        sanitizeCSVField(m[3]?.name || ''), sanitizeCSVField(m[3]?.reg_no || ''), sanitizeCSVField(m[3]?.gender || 'Male'), sanitizeCSVField(m[3]?.dept || ''), sanitizeCSVField(m[3]?.year || ''), sanitizeCSVField(m[3]?.personal_email || ''), sanitizeCSVField(m[3]?.phone || ''), sanitizeCSVField(m[3]?.whatsapp || ''),
+        sanitizeCSVField(m[4]?.name || ''), sanitizeCSVField(m[4]?.reg_no || ''), sanitizeCSVField(m[4]?.gender || 'Male'), sanitizeCSVField(m[4]?.dept || ''), sanitizeCSVField(m[4]?.year || ''), sanitizeCSVField(m[4]?.personal_email || ''), sanitizeCSVField(m[4]?.phone || ''), sanitizeCSVField(m[4]?.whatsapp || ''),
         sanitizeCSVField(reg.mentor_name || ''),
         sanitizeCSVField(reg.mentor_designation || ''),
         sanitizeCSVField(reg.mentor_email || ''),
-        sanitizeCSVField(reg.mentor_phone || '')
+        sanitizeCSVField(reg.mentor_phone || ''),
+        sanitizeCSVField('SUBMITTED_AND_VERIFIED'),
+        sanitizeCSVField(reg.updated_at || new Date().toISOString())
       ].join(',');
     });
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `SIH2026_Finalist_Teams_Roster_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('href', encodeURI(csvContent));
+    const schoolSlug = targetSchool !== 'all' ? `_${targetSchool.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+    link.setAttribute('download', `SIH2026_Filled_Forms${schoolSlug}_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // 2. Export Non-Filled / Pending Teams Dataset
+  const handleExportPendingCSV = (schoolOverride = selectedSchoolFilter) => {
+    const targetSchool = schoolOverride || 'all';
+    const list = teamRecords.filter(t => !t.isRegistered && (targetSchool === 'all' || t.school === targetSchool));
+
+    const headers = [
+      'Temp Team ID', 'Team Name', 'Tier Status', 'PS ID', 'PS Title', 'School / Faculty',
+      'Team Leader Name', 'Leader Reg No', 'Leader Phone', 'Leader WhatsApp',
+      'Form Status', 'WhatsApp Follow-Up Link'
+    ];
+
+    const rows = list.map(t => {
+      const phone = t.effectivePhone;
+      const whatsapp = t.effectiveWhatsapp || phone;
+      const whatsappMsg = `Hello ${t.leader_name} (Team ${t.team_name}, ID: ${t.temp_team_id}), please complete your Smart India Hackathon 2026 finalist registration form on our portal.`;
+      const waUrl = whatsapp ? `https://wa.me/91${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMsg)}` : '';
+
+      return [
+        sanitizeCSVField(t.temp_team_id),
+        sanitizeCSVField(t.team_name),
+        sanitizeCSVField(t.status),
+        sanitizeCSVField(t.ps_id),
+        sanitizeCSVField(t.ps_title || ''),
+        sanitizeCSVField(t.school),
+        sanitizeCSVField(t.leader_name),
+        sanitizeCSVField(t.reg_no),
+        sanitizeCSVField(phone),
+        sanitizeCSVField(whatsapp),
+        sanitizeCSVField('PENDING_FILL'),
+        sanitizeCSVField(waUrl)
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    const schoolSlug = targetSchool !== 'all' ? `_${targetSchool.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+    link.setAttribute('download', `SIH2026_NonFilled_Pending_Teams${schoolSlug}_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 3. Export Current Filtered Table View
+  const handleExportCurrentViewCSV = () => {
+    const headers = [
+      'Temp Team ID', 'Team Name', 'Tier Status', 'PS ID', 'PS Title', 'School / Faculty',
+      'Team Leader Name', 'Leader Reg No', 'Leader Phone', 'Leader WhatsApp',
+      'Form Status', 'Registered Members'
+    ];
+
+    const rows = currentTabTeams.map(t => {
+      return [
+        sanitizeCSVField(t.temp_team_id),
+        sanitizeCSVField(t.registrationData?.team_name || t.team_name),
+        sanitizeCSVField(t.status),
+        sanitizeCSVField(t.ps_id),
+        sanitizeCSVField(t.registrationData?.ps_title || t.ps_title || ''),
+        sanitizeCSVField(t.school),
+        sanitizeCSVField(t.leader_name),
+        sanitizeCSVField(t.reg_no),
+        sanitizeCSVField(t.effectivePhone),
+        sanitizeCSVField(t.effectiveWhatsapp),
+        sanitizeCSVField(t.isRegistered ? 'COMPLETED' : 'PENDING'),
+        sanitizeCSVField(t.isRegistered ? '6 Members (Verified)' : '0 (Pending)')
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    const schoolSlug = selectedSchoolFilter !== 'all' ? `_${selectedSchoolFilter.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+    link.setAttribute('download', `SIH2026_${activeTab.toUpperCase()}_Export${schoolSlug}_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 4. Export Master All Roster Dataset to CSV
+  const handleExportCSV = () => {
+    handleExportFilledCSV('all');
   };
 
   // Arena Reveal State for 09:45 AM Gate
@@ -577,11 +669,21 @@ export default function AdminDashboard({
         </button>
 
         <button 
+          className={`admin-mod-tab ${activeTab === 'filled' ? 'active' : ''}`}
+          onClick={() => setActiveTab('filled')}
+          style={{ background: activeTab === 'filled' ? '#059669' : 'transparent', color: activeTab === 'filled' ? '#ffffff' : 'inherit' }}
+        >
+          <CheckCircle2 size={16} className={activeTab === 'filled' ? 'text-white' : 'text-emerald'} />
+          <span>Filled Forms ({stats.registered})</span>
+          <span className="mod-tab-sub-count">{stats.completionPct}%</span>
+        </button>
+
+        <button 
           className={`admin-mod-tab ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
           <Clock size={16} className="text-rose" />
-          <span>Pending Forms ({stats.pending})</span>
+          <span>Pending ({stats.pending})</span>
         </button>
 
         <button 
@@ -771,20 +873,92 @@ export default function AdminDashboard({
 
           {/* School-Wise Distribution Breakdown */}
           <div className="analytics-school-card">
-            <h3 className="section-card-title">School &amp; Faculty Distribution Breakdown</h3>
+            <div className="school-card-header-flex">
+              <div>
+                <h3 className="section-card-title">School &amp; Faculty Distribution Breakdown</h3>
+                <p className="section-card-subtitle">Live registration completion rates across all academic departments</p>
+              </div>
+              <div className="school-header-actions">
+                <button 
+                  className="btn-export-filled-pill"
+                  onClick={() => handleExportFilledCSV('all')}
+                  title="Export all completed registration forms across all schools"
+                >
+                  <Download size={13} />
+                  <span>Export All Filled Forms ({stats.registered})</span>
+                </button>
+                <button 
+                  className="btn-export-pending-pill"
+                  onClick={() => handleExportPendingCSV('all')}
+                  title="Export all pending non-filled teams across all schools"
+                >
+                  <Download size={13} />
+                  <span>Export All Pending Teams ({stats.pending})</span>
+                </button>
+              </div>
+            </div>
+
             <div className="school-bars-list">
               {Object.entries(stats.schoolMap).map(([schoolName, data]) => {
-                const pct = Math.round((data.reg / data.total) * 100);
+                const pct = data.total > 0 ? Math.round((data.reg / data.total) * 100) : 0;
+                const pendingCount = data.total - data.reg;
                 return (
                   <div key={schoolName} className="school-bar-row">
-                    <div className="school-bar-info">
-                      <span className="school-bar-name">{schoolName}</span>
-                      <span className="school-bar-counts">
-                        <strong>{data.reg}</strong> / {data.total} Forms Completed ({pct}%)
-                      </span>
+                    <div className="school-bar-top-line">
+                      <div className="school-bar-title-group">
+                        <span className="school-bar-name">{schoolName}</span>
+                        <div className="school-pill-tags">
+                          <span className="school-tag-stat total">{data.total} Total</span>
+                          <span className="school-tag-stat filled">{data.reg} Filled</span>
+                          {pendingCount > 0 && (
+                            <span className="school-tag-stat pending">{pendingCount} Pending</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="school-row-action-btns">
+                        <button 
+                          className="btn-school-jump-filter filled"
+                          onClick={() => {
+                            setSelectedSchoolFilter(schoolName);
+                            setActiveTab('filled');
+                          }}
+                          title={`View ${data.reg} filled forms from ${schoolName}`}
+                        >
+                          <CheckCircle2 size={12} />
+                          <span>View Filled ({data.reg})</span>
+                        </button>
+
+                        {pendingCount > 0 && (
+                          <button 
+                            className="btn-school-jump-filter pending"
+                            onClick={() => {
+                              setSelectedSchoolFilter(schoolName);
+                              setActiveTab('pending');
+                            }}
+                            title={`View ${pendingCount} pending teams from ${schoolName}`}
+                          >
+                            <Clock size={12} />
+                            <span>View Pending ({pendingCount})</span>
+                          </button>
+                        )}
+
+                        <button 
+                          className="btn-school-export-csv"
+                          onClick={() => handleExportFilledCSV(schoolName)}
+                          title={`Export ${schoolName} filled forms to CSV`}
+                        >
+                          <Download size={12} />
+                          <span>CSV</span>
+                        </button>
+                      </div>
                     </div>
+
                     <div className="progress-bar-wrap">
-                      <div className="progress-bar-fill indigo" style={{ width: `${pct}%` }}></div>
+                      <div 
+                        className={`progress-bar-fill ${pct === 100 ? 'emerald' : pct >= 50 ? 'indigo' : 'amber'}`} 
+                        style={{ width: `${pct}%` }}
+                      ></div>
                     </div>
                   </div>
                 );
@@ -1213,7 +1387,7 @@ export default function AdminDashboard({
               <Search size={16} />
               <input 
                 type="text" 
-                placeholder={`Search ${activeTab} candidates by ID, Team, Leader, Reg No, PS ID, Phone...`}
+                placeholder={`Search ${activeTab.toUpperCase()} candidates by ID, Team, Leader, Reg No, PS ID, Phone...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -1221,19 +1395,72 @@ export default function AdminDashboard({
             </div>
 
             <div className="admin-filter-controls">
-              <select 
-                className="school-filter-dropdown"
-                value={selectedSchoolFilter}
-                onChange={(e) => setSelectedSchoolFilter(e.target.value)}
-              >
-                <option value="all">All Schools / Faculties</option>
-                {distinctSchools.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+              <div className="school-filter-wrap">
+                <Filter size={14} className="school-filter-icon" />
+                <select 
+                  className="school-filter-dropdown"
+                  value={selectedSchoolFilter}
+                  onChange={(e) => setSelectedSchoolFilter(e.target.value)}
+                  title="Filter teams by School / Faculty"
+                >
+                  <option value="all">All Schools / Faculties ({teamRecords.length} Teams)</option>
+                  {distinctSchools.map(s => {
+                    const schData = stats.schoolMap[s] || { total: 0, reg: 0 };
+                    return (
+                      <option key={s} value={s}>
+                        {s} ({schData.total} teams • {schData.reg} filled)
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {(selectedSchoolFilter !== 'all' || searchTerm) && (
+                <button 
+                  className="btn-reset-filters-pill" 
+                  onClick={() => {
+                    setSelectedSchoolFilter('all');
+                    setSearchTerm('');
+                  }}
+                  title="Reset all active filters"
+                >
+                  <RotateCcw size={12} />
+                  <span>Reset Filter</span>
+                </button>
+              )}
+
+              {/* Action Export Buttons */}
+              <div className="admin-export-btn-group">
+                <button 
+                  className="btn-export-filled-pill"
+                  onClick={() => handleExportFilledCSV(selectedSchoolFilter)}
+                  title={`Export ${selectedSchoolFilter !== 'all' ? selectedSchoolFilter : 'All'} Filled Forms to CSV`}
+                >
+                  <Download size={13} />
+                  <span>Export Filled ({teamRecords.filter(t => t.isRegistered && (selectedSchoolFilter === 'all' || t.school === selectedSchoolFilter)).length})</span>
+                </button>
+
+                <button 
+                  className="btn-export-pending-pill"
+                  onClick={() => handleExportPendingCSV(selectedSchoolFilter)}
+                  title={`Export ${selectedSchoolFilter !== 'all' ? selectedSchoolFilter : 'All'} Non-Filled / Pending Teams to CSV`}
+                >
+                  <Download size={13} />
+                  <span>Export Pending ({teamRecords.filter(t => !t.isRegistered && (selectedSchoolFilter === 'all' || t.school === selectedSchoolFilter)).length})</span>
+                </button>
+
+                <button 
+                  className="btn-export-view-pill"
+                  onClick={handleExportCurrentViewCSV}
+                  title="Export currently displayed table rows to CSV"
+                >
+                  <Download size={13} />
+                  <span>Export View ({currentTabTeams.length})</span>
+                </button>
+              </div>
 
               <div className="table-count-tag">
-                Showing <strong>{currentTabTeams.length}</strong> teams
+                Showing <strong>{currentTabTeams.length}</strong> {selectedSchoolFilter !== 'all' ? `(${selectedSchoolFilter})` : 'teams'}
               </div>
             </div>
           </div>
