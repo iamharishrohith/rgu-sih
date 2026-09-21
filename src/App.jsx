@@ -1177,6 +1177,7 @@ export default function App() {
           onUpdatePortalSettings={handleUpdatePortalSettings}
           onOpenEvaluationQueue={() => setCurrentView('eval_queue')}
           onOpenAdminGateway={triggerSecretAdmin}
+          evaluationLedger={evaluationLedger}
         />
       ) : currentView === 'eval_queue' && isAdminLoggedIn ? (
         /* VIEW 2: MASTER EVALUATION PANEL (ADMIN ACCESS GRANTED) */

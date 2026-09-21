@@ -10,6 +10,7 @@ import {
   Phone, MessageSquare, Filter, Eye, ExternalLink, HelpCircle, FileSpreadsheet, UserX, AlertCircle, RefreshCw, Mail, Calendar, Edit3
 } from 'lucide-react';
 import { normalizeSchoolName } from '../data/sihMasterData';
+import { sanitizeCSVField } from '../crypto_security';
 import LivePixelDigitalClock from './LivePixelDigitalClock.jsx';
 import PanelManagerModal from './PanelManagerModal.jsx';
 import { playEvalSound } from '../utils/evalSoundEffects.js';
@@ -1471,6 +1472,77 @@ export default function EvaluationQueuePortal({
     document.body.removeChild(link);
   };
 
+  // Export Distinct Presented / Evaluated Teams Dataset to CSV
+  const handleExportEvaluatedTeamsCSV = () => {
+    const headers = [
+      'Rank', 'Temp Team ID', 'Team Name', 'School / Faculty', 'Problem Statement ID', 'PS Title',
+      'Team Leader Name', 'Leader Reg No', 'Leader Phone', 'Leader WhatsApp',
+      'Panel Code', 'Panel Name', 'Evaluation Room',
+      'Average Score (/50)', 'Score %', 'Juries Evaluated Count', 'Evaluators',
+      'Avg Innovation (10)', 'Avg Feasibility (10)', 'Avg Prototype (10)', 'Avg Presentation (10)', 'Avg Defense (10)',
+      'Evaluation Status', 'Last Evaluated Time', 'Jury Feedback & Notes'
+    ];
+
+    const rows = consolidatedLedger.map((team, idx) => {
+      const reg = registrationsMap[team.teamId] || {};
+      const masterTeam = (allTeams || []).find(t => t.temp_team_id === team.teamId) || {};
+      const evals = team.evaluations || [];
+      
+      const phone = reg.leader_phone || masterTeam.mobile || '';
+      const whatsapp = reg.leader_whatsapp || masterTeam.mobile || '';
+      const school = reg.leader_school || masterTeam.school || 'School of Quantum Science, Computing & AI';
+      const psTitle = reg.ps_title || masterTeam.ps_title || '';
+
+      const count = evals.length || 1;
+      const avgInnov = (evals.reduce((sum, e) => sum + (e.scores?.innovation || 0), 0) / count).toFixed(1);
+      const avgFeas = (evals.reduce((sum, e) => sum + (e.scores?.feasibility || 0), 0) / count).toFixed(1);
+      const avgProto = (evals.reduce((sum, e) => sum + (e.scores?.prototype || 0), 0) / count).toFixed(1);
+      const avgPres = (evals.reduce((sum, e) => sum + (e.scores?.presentation || 0), 0) / count).toFixed(1);
+      const avgDef = (evals.reduce((sum, e) => sum + (e.scores?.defense || 0), 0) / count).toFixed(1);
+
+      const evaluators = evals.map(e => e.evaluatorName || e.juries?.[0]?.name || 'Jury').join('; ');
+      const feedbacks = evals.map(e => e.feedback).filter(Boolean).join(' | ');
+      const lastTime = evals[evals.length - 1]?.evaluatedAtStr || '';
+
+      return [
+        idx + 1,
+        sanitizeCSVField(team.teamId),
+        sanitizeCSVField(team.teamName || reg.team_name || masterTeam.team_name || ''),
+        sanitizeCSVField(school),
+        sanitizeCSVField(team.psId || ''),
+        sanitizeCSVField(psTitle),
+        sanitizeCSVField(team.leaderName || reg.leader_name || masterTeam.leader_name || ''),
+        sanitizeCSVField(team.regNo || reg.leader_reg_no || masterTeam.reg_no || ''),
+        sanitizeCSVField(phone),
+        sanitizeCSVField(whatsapp),
+        sanitizeCSVField(team.panelId || ''),
+        sanitizeCSVField(team.panelName || ''),
+        sanitizeCSVField(team.room || ''),
+        team.avgScore,
+        `${team.avgPercentage}%`,
+        team.evalCount,
+        sanitizeCSVField(evaluators),
+        avgInnov,
+        avgFeas,
+        avgProto,
+        avgPres,
+        avgDef,
+        sanitizeCSVField('PRESENTED_AND_EVALUATED'),
+        sanitizeCSVField(lastTime),
+        sanitizeCSVField(feedbacks)
+      ];
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(',')).join('\n')].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `SIH2026_Teams_Presented_Evaluated_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Handle Single Score Deletion from Ledger
   const handleDeleteScoreEntry = (scoreIdOrIndex, teamName = 'this team', evaluatorName = '') => {
     const confirmMsg = evaluatorName 
@@ -2743,6 +2815,14 @@ export default function EvaluationQueuePortal({
               <p>Real-time telemetry across Panels 1–5, multi-jury throughput, delay tracking, and score distributions.</p>
             </div>
             <div className='analytics-header-right'>
+              <button 
+                className='btn-export-eval-teams-hero'
+                onClick={handleExportEvaluatedTeamsCSV}
+                title='Export comprehensive CSV of all teams presented and evaluated by jury'
+              >
+                <Download size={14} />
+                <span>Export Evaluated Teams ({analyticsData.evaluatedTeamsCount})</span>
+              </button>
               <div className='analytics-live-pulse-badge'>
                 <span className='pulse-dot-green'></span>
                 <span>Telemetry Live (Sync: 1s)</span>
@@ -2757,7 +2837,17 @@ export default function EvaluationQueuePortal({
                 <CheckCircle2 size={22} />
               </div>
               <div className='kpi-info'>
-                <span className='kpi-label'>Teams Evaluated</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <span className='kpi-label'>Teams Evaluated</span>
+                  <button 
+                    className='btn-kpi-download-pill'
+                    onClick={handleExportEvaluatedTeamsCSV}
+                    title='Export CSV of all presented and evaluated teams'
+                  >
+                    <Download size={11} />
+                    <span>CSV</span>
+                  </button>
+                </div>
                 <div className='kpi-value-row'>
                   <span className='kpi-num'>{analyticsData.evaluatedTeamsCount}</span>
                   <span className='kpi-sub-total'>/ {analyticsData.totalTeamsCount} Teams</span>
@@ -3560,9 +3650,22 @@ export default function EvaluationQueuePortal({
                   className='ledger-search-input'
                 />
 
-                <button className='btn-export-ledger-csv' onClick={handleExportLedgerCSV}>
+                <button 
+                  className='btn-export-eval-teams-hero' 
+                  onClick={handleExportEvaluatedTeamsCSV}
+                  title='Export consolidated list of all presented and evaluated teams with final scores'
+                >
                   <Download size={14} />
-                  <span>Export CSV</span>
+                  <span>Export Evaluated Teams ({consolidatedLedger.length})</span>
+                </button>
+
+                <button 
+                  className='btn-export-ledger-csv' 
+                  onClick={handleExportLedgerCSV}
+                  title='Export all individual jury scorecard log entries'
+                >
+                  <Download size={14} />
+                  <span>Export Scorecards</span>
                 </button>
 
                 {isAdminLoggedIn && (evaluationLedger || []).length > 0 && (

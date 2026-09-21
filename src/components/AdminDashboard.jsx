@@ -36,7 +36,8 @@ export default function AdminDashboard({
   onOpenTimerModal,
   onUpdatePortalSettings,
   onOpenEvaluationQueue,
-  onOpenAdminGateway
+  onOpenAdminGateway,
+  evaluationLedger = []
 }) {
   // Navigation Tabs: 'analytics' | 'arena' | 'shortlist' | 'bench' | 'waitlist' | 'pending' | 'upload' | 'whatsapp'
   const [activeTab, setActiveTab] = useState('analytics'); 
@@ -81,6 +82,16 @@ export default function AdminDashboard({
     if (onDeleteTeam) await onDeleteTeam(tempTeamId);
   };
 
+  // Evaluation Map for Completed Jury Presentations
+  const evaluatedMap = useMemo(() => {
+    const map = {};
+    (evaluationLedger || []).forEach(l => {
+      if (!map[l.teamId]) map[l.teamId] = [];
+      map[l.teamId].push(l);
+    });
+    return map;
+  }, [evaluationLedger]);
+
   // Combined Team Records for all 110 Finalized Teams
   const teamRecords = useMemo(() => {
     return allMasterTeams.map(t => {
@@ -93,6 +104,9 @@ export default function AdminDashboard({
         ? hiddenTeamIds.includes(t.temp_team_id) 
         : (hiddenTeamIds instanceof Set ? hiddenTeamIds.has(t.temp_team_id) : false);
 
+      const evals = evaluatedMap[t.temp_team_id] || [];
+      const isEvaluated = evals.length > 0;
+
       return {
         ...t,
         team_name: reg?.team_name || t.team_name,
@@ -102,6 +116,8 @@ export default function AdminDashboard({
         reg_no: reg?.leader_reg_no || reg?.reg_no || t.reg_no,
         school: normalizeSchoolName(reg?.leader_school || reg?.leader_dept || t.school),
         isRegistered,
+        isEvaluated,
+        evaluations: evals,
         registrationData: reg,
         contactData: contact,
         effectivePhone: phone,
@@ -109,7 +125,7 @@ export default function AdminDashboard({
         isHidden
       };
     });
-  }, [allMasterTeams, registrationsMap, teamContactsMap, hiddenTeamIds]);
+  }, [allMasterTeams, registrationsMap, teamContactsMap, hiddenTeamIds, evaluatedMap]);
 
   // Overall & Tier Analytics
   const stats = useMemo(() => {
@@ -528,7 +544,61 @@ export default function AdminDashboard({
     document.body.removeChild(link);
   };
 
-  // 4. Export Master All Roster Dataset to CSV
+  // 4. Export Presented / Evaluated Teams Dataset
+  const handleExportEvaluatedTeamsCSV = (schoolOverride = selectedSchoolFilter) => {
+    const targetSchool = schoolOverride || 'all';
+    const list = teamRecords.filter(t => t.isEvaluated && (targetSchool === 'all' || (t.school || '').toLowerCase() === targetSchool.toLowerCase()));
+
+    const headers = [
+      'Rank', 'Temp Team ID', 'Team Name', 'Tier Status', 'School / Faculty', 'PS ID', 'PS Title',
+      'Leader Name', 'Leader Reg No', 'Leader Phone', 'Leader WhatsApp',
+      'Average Score (/50)', 'Score %', 'Juries Evaluated Count', 'Evaluators',
+      'Status', 'Last Evaluation Time', 'Feedback'
+    ];
+
+    const rows = list.map((t, idx) => {
+      const evals = t.evaluations || [];
+      const count = evals.length || 1;
+      const totalSum = evals.reduce((sum, e) => sum + (e.totalScore || 0), 0);
+      const avgScore = count > 0 ? (totalSum / count).toFixed(1) : (t.total_score_50 || 0);
+      const avgPct = Math.round((parseFloat(avgScore) / 50) * 100);
+      const evaluators = evals.map(e => e.evaluatorName || e.juries?.[0]?.name || 'Jury').join('; ');
+      const feedbacks = evals.map(e => e.feedback).filter(Boolean).join(' | ');
+      const lastTime = evals[evals.length - 1]?.evaluatedAtStr || '';
+
+      return [
+        idx + 1,
+        sanitizeCSVField(t.temp_team_id),
+        sanitizeCSVField(t.team_name),
+        sanitizeCSVField(t.status),
+        sanitizeCSVField(t.school),
+        sanitizeCSVField(t.ps_id),
+        sanitizeCSVField(t.ps_title || ''),
+        sanitizeCSVField(t.leader_name),
+        sanitizeCSVField(t.reg_no),
+        sanitizeCSVField(t.effectivePhone),
+        sanitizeCSVField(t.effectiveWhatsapp),
+        avgScore,
+        `${avgPct}%`,
+        count,
+        sanitizeCSVField(evaluators),
+        sanitizeCSVField('PRESENTED_AND_EVALUATED'),
+        sanitizeCSVField(lastTime),
+        sanitizeCSVField(feedbacks)
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    const schoolSlug = targetSchool !== 'all' ? `_${targetSchool.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+    link.setAttribute('download', `SIH2026_Presented_Evaluated_Teams${schoolSlug}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 5. Export Master All Roster Dataset to CSV
   const handleExportCSV = () => {
     handleExportFilledCSV('all');
   };
@@ -883,6 +953,14 @@ export default function AdminDashboard({
                 <p className="section-card-subtitle">Live registration completion rates across all academic departments</p>
               </div>
               <div className="school-header-actions">
+                <button 
+                  className="btn-export-evaluated-pill"
+                  onClick={() => handleExportEvaluatedTeamsCSV('all')}
+                  title="Export all teams presented and evaluated by jury across all schools"
+                >
+                  <Download size={13} />
+                  <span>Export Evaluated Teams ({teamRecords.filter(t => t.isEvaluated).length})</span>
+                </button>
                 <button 
                   className="btn-export-filled-pill"
                   onClick={() => handleExportFilledCSV('all')}
@@ -1435,6 +1513,15 @@ export default function AdminDashboard({
 
               {/* Action Export Buttons */}
               <div className="admin-export-btn-group">
+                <button 
+                  className="btn-export-evaluated-pill"
+                  onClick={() => handleExportEvaluatedTeamsCSV(selectedSchoolFilter)}
+                  title={`Export ${selectedSchoolFilter !== 'all' ? selectedSchoolFilter : 'All'} Presented & Evaluated Teams to CSV`}
+                >
+                  <Download size={13} />
+                  <span>Export Evaluated ({teamRecords.filter(t => t.isEvaluated && (selectedSchoolFilter === 'all' || (t.school || '').toLowerCase() === selectedSchoolFilter.toLowerCase())).length})</span>
+                </button>
+
                 <button 
                   className="btn-export-filled-pill"
                   onClick={() => handleExportFilledCSV(selectedSchoolFilter)}
