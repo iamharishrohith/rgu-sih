@@ -140,7 +140,7 @@ export default function OnboardingShowcase({
             Live Showcase of <strong>{metrics.totalTeams} Form-Filled Teams</strong> ({metrics.totalInnovators} Verified Student Innovators) with Section 65B Electronic Record Compliance and 100% Unique National Problem Statements.
           </p>
 
-          {/* Quick Action Navigation Buttons */}
+          {/* Quick Action Navigation Button */}
           <div className="onboarding-cta-row">
             <button 
               className="btn-onboarding-primary-cta" 
@@ -151,25 +151,6 @@ export default function OnboardingShowcase({
             >
               <Users size={17} />
               <span>Explore {metrics.totalTeams} Onboarded Rosters</span>
-            </button>
-
-            <button 
-              className="btn-onboarding-secondary-cta" 
-              onClick={onExploreAllShortlist}
-              title="View full 110 Candidate Selection & Standby Desk"
-            >
-              <FileText size={17} className="text-indigo" />
-              <span>Full Shortlist Archive ({totalMasterCount})</span>
-              <ArrowRight size={15} />
-            </button>
-
-            <button 
-              className="btn-onboarding-secondary-cta" 
-              onClick={onOpenInOutPortal}
-              title="SIH Arena Gate Pass & In-Out Movement"
-            >
-              <ShieldCheck size={17} className="text-emerald" />
-              <span>Arena Gate Pass</span>
             </button>
           </div>
 
@@ -314,16 +295,6 @@ export default function OnboardingShowcase({
               {selectedSchool !== 'ALL' && ` in ${selectedSchool}`}
               {searchTerm && ` matching "${searchTerm}"`}
             </span>
-          </div>
-
-          <div className="results-actions-right">
-            <button 
-              className="btn-link-subtle" 
-              onClick={onExploreAllShortlist}
-            >
-              <span>Need to register? View Full 110 Shortlist Archive</span>
-              <ChevronRight size={14} />
-            </button>
           </div>
         </div>
 
@@ -559,13 +530,6 @@ export default function OnboardingShowcase({
               >
                 <RefreshCw size={15} />
                 <span>Reset All Filters</span>
-              </button>
-              <button 
-                className="btn-view-shortlist-alt" 
-                onClick={onExploreAllShortlist}
-              >
-                <span>View Full 110 Shortlist Selection Desk</span>
-                <ArrowRight size={15} />
               </button>
             </div>
           </div>
