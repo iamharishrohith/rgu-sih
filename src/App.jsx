@@ -651,28 +651,47 @@ export default function App() {
            });
          }
 
-         // B. Auto-flush any offline-queued registrations
-         try {
-           const queueStr = localStorage.getItem('sih_offline_pending_registrations');
-           if (queueStr) {
-             const queue = JSON.parse(queueStr);
-             const teamIds = Object.keys(queue);
-             for (const tId of teamIds) {
-               const item = queue[tId];
-               if (!item) continue;
-               const sanitizedItem = formatRegistrationPayloadForSupabase(item);
-               const { error: flushErr } = await supabase
-                 .from('registrations')
-                 .upsert(sanitizedItem, { onConflict: 'temp_team_id' });
-               if (!flushErr) {
-                 delete queue[tId];
-                 localStorage.setItem('sih_offline_pending_registrations', JSON.stringify(queue));
-               }
-             }
-           }
-         } catch (queueErr) {
-           console.warn('Offline queue flush notice:', queueErr);
-         }
+          // B. Auto-flush any offline-queued registrations
+          try {
+            const queueStr = localStorage.getItem('sih_offline_pending_registrations');
+            if (queueStr) {
+              const queue = JSON.parse(queueStr);
+              const teamIds = Object.keys(queue);
+              let queueChanged = false;
+              for (const tId of teamIds) {
+                const item = queue[tId];
+                if (!item) {
+                  delete queue[tId];
+                  queueChanged = true;
+                  continue;
+                }
+                const sanitizedItem = formatRegistrationPayloadForSupabase(item);
+                if (!sanitizedItem) {
+                  // Incomplete or invalid schema draft - drop to avoid infinite 400 retry loops
+                  delete queue[tId];
+                  queueChanged = true;
+                  continue;
+                }
+                const { error: flushErr } = await supabase
+                  .from('registrations')
+                  .upsert(sanitizedItem, { onConflict: 'temp_team_id' });
+                if (!flushErr) {
+                  delete queue[tId];
+                  queueChanged = true;
+                } else if (flushErr.code === '23502' || flushErr.code === 'PGRST204' || flushErr.status === 400) {
+                  // Client schema validation error - discard to prevent repeated 400 requests
+                  console.warn(`Cleaned un-syncable registration item for ${tId}:`, flushErr.message);
+                  delete queue[tId];
+                  queueChanged = true;
+                }
+              }
+              if (queueChanged) {
+                localStorage.setItem('sih_offline_pending_registrations', JSON.stringify(queue));
+              }
+            }
+          } catch (queueErr) {
+            console.warn('Offline queue flush notice:', queueErr);
+          }
 
          // C. Poll app_settings (Arena & Evaluation)
          const { data, error } = await supabase
