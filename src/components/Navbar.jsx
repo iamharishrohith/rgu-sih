@@ -83,25 +83,6 @@ export default function Navbar({
 
           {/* Action Navigation Controls */}
           <div className="header-actions-group">
-            {/* Top 20 Specialization Awards Quick Nav (Always Available) */}
-            <button 
-              className={`btn-nav-admin ${currentView === 'top100' ? 'active-admin' : ''}`}
-              style={{
-                background: currentView === 'top100' ? '#f59e0b' : '#0f172a',
-                color: currentView === 'top100' ? '#000' : '#f8fafc',
-                border: '1px solid #334155',
-                fontFamily: "'Space Mono', monospace",
-                fontWeight: 700,
-                fontSize: '11.5px',
-                letterSpacing: '0.04em'
-              }}
-              onClick={onOpenTop100}
-              title="Open Top 20 Specialization Excellence Awards"
-            >
-              <Award size={14} color={currentView === 'top100' ? '#000' : '#f59e0b'} />
-              <span>TOP 20 AWARDS</span>
-            </button>
-
             {isAdminLoggedIn && (
               <>
                 <button 
