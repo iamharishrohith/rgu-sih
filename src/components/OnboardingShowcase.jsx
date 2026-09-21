@@ -47,7 +47,6 @@ export default function OnboardingShowcase({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('ALL');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
   const [categoryFilter, setCategoryFilter] = useState('ALL'); // 'ALL', 'Hardware', 'Software'
 
   // Typewriter Writing Animation State for Quotes
@@ -249,34 +248,39 @@ export default function OnboardingShowcase({
                   {String(quoteIndex + 1).padStart(2, '0')} / {String(HACKATHON_QUOTES.length).padStart(2, '0')}
                 </span>
                 <button 
-                  className="btn-quote-ctrl" 
+                  className="btn-quote-step" 
                   onClick={handlePrevQuote} 
                   title="Previous Quote"
+                  aria-label="Previous quote"
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <button 
-                  className="btn-quote-ctrl" 
-                  onClick={() => setIsPaused(p => !p)} 
-                  title={isPaused ? "Resume Animation" : "Pause Animation"}
+                  className="btn-quote-step" 
+                  onClick={() => setIsPaused(!isPaused)} 
+                  title={isPaused ? "Resume auto-typing" : "Pause typing"}
+                  aria-label={isPaused ? "Resume auto-typing" : "Pause typing"}
                 >
-                  {isPaused ? <Play size={14} /> : <Pause size={14} />}
+                  {isPaused ? <Play size={13} /> : <Pause size={13} />}
                 </button>
                 <button 
-                  className="btn-quote-ctrl" 
+                  className="btn-quote-step" 
                   onClick={handleNextQuote} 
                   title="Next Quote"
+                  aria-label="Next quote"
                 >
                   <ChevronRight size={16} />
                 </button>
               </div>
             </div>
 
-            <div className="quote-body-container">
-              <Quote size={36} className="quote-watermark-icon" />
-              <div className="quote-text-big">
-                <span className="quote-char-stream">&ldquo;{displayedQuote}</span>
-                <span className="quote-typing-cursor">|</span>
+            <div className="quote-banner-body">
+              <div className="quote-text-wrapper">
+                <span className="quote-opening-mark">&ldquo;</span>
+                <span className="quote-main-content">
+                  {displayedQuote}
+                  <span className={`quote-typing-cursor ${isPaused ? 'paused' : ''}`}>|</span>
+                </span>
                 <span className="quote-closing-mark">&rdquo;</span>
               </div>
             </div>
@@ -299,7 +303,7 @@ export default function OnboardingShowcase({
       <section className="onboarding-showcase-container" id="onboard-search-box">
         {/* Search & Filter Header Control Bar */}
         <div className="onboarding-control-panel">
-          <div className="search-bar-unified">
+          <div className="search-bar-unified full-width-search">
             <Search size={18} className="search-icon-svg" />
             <input 
               type="text" 
@@ -313,28 +317,6 @@ export default function OnboardingShowcase({
                 Clear
               </button>
             )}
-          </div>
-
-          <div className="control-panel-right">
-            {/* View Mode Toggle */}
-            <div className="view-mode-toggle-group">
-              <button 
-                className={`btn-view-toggle ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-                title="Interactive Ticket Cards View"
-              >
-                <LayoutGrid size={16} />
-                <span>Pass Cards</span>
-              </button>
-              <button 
-                className={`btn-view-toggle ${viewMode === 'table' ? 'active' : ''}`}
-                onClick={() => setViewMode('table')}
-                title="Compact Table View"
-              >
-                <Table size={16} />
-                <span>Table</span>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -378,198 +360,105 @@ export default function OnboardingShowcase({
           </div>
         </div>
 
-        {/* VIEW 1: 3D CYBER TICKET CARDS (UIVERSE DEV PASS STYLE) */}
-        {viewMode === 'grid' && (
-          <div className="onboarding-tickets-grid">
-            {filteredTeams.map((team, idx) => {
-              const reg = team.registrationData || team;
-              const members = Array.isArray(reg.members) ? reg.members : [];
-              const psId = reg.sih_ps_id || reg.ps_id || team.ps_id || 'SIH26-';
-              const psTitle = reg.ps_title || team.ps_title || 'Smart India Hackathon Problem Statement';
-              const leaderSchool = normalizeSchoolName(reg.leader_school || team.school);
-              const teamNum = (team.temp_team_id || '').replace(/\D/g, '').slice(-3) || String(idx + 1).padStart(2, '0');
+        {/* 3D CYBER TICKET CARDS (UIVERSE DEV PASS STYLE) */}
+        <div className="onboarding-tickets-grid">
+          {filteredTeams.map((team, idx) => {
+            const reg = team.registrationData || team;
+            const members = Array.isArray(reg.members) ? reg.members : [];
+            const psId = reg.sih_ps_id || reg.ps_id || team.ps_id || 'SIH26-';
+            const psTitle = reg.ps_title || team.ps_title || 'Smart India Hackathon Problem Statement';
+            const leaderSchool = normalizeSchoolName(reg.leader_school || team.school);
+            const teamNum = (team.temp_team_id || '').replace(/\D/g, '').slice(-3) || String(idx + 1).padStart(2, '0');
 
-              return (
-                <div key={`${team.temp_team_id || 'ticket'}-${idx}`} className="ticket-canvas">
-                  <div className="ticket-wrapper">
-                    <div className="ticket">
-                      <div className="t-main">
-                        <div className="t-content">
-                          <div className="t-header">
-                            <div className="t-logo">
-                              <svg viewBox="0 0 24 24">
-                                <path
-                                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                ></path>
-                              </svg>
-                              <span>SIH '26</span>
-                            </div>
-                            <div className="t-type">VERIFIED ONBOARDED</div>
+            return (
+              <div key={`${team.temp_team_id || 'ticket'}-${idx}`} className="ticket-canvas">
+                <div className="ticket-wrapper">
+                  <div className="ticket">
+                    <div className="t-main">
+                      <div className="t-content">
+                        <div className="t-header">
+                          <div className="t-logo">
+                            <svg viewBox="0 0 24 24">
+                              <path
+                                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></path>
+                            </svg>
+                            <span>SIH '26</span>
                           </div>
-                          <div className="t-title" title={reg.team_name || team.team_name}>
-                            {reg.team_name || team.team_name}
-                          </div>
-                          <div className="t-subtitle" title={`${psId} • ${psTitle}`}>
-                            <span className="t-ps-id">{psId}</span> {psTitle}
-                          </div>
-                          <div className="t-details">
-                            <div className="t-detail-item">
-                              <span className="t-label">Leader</span>
-                              <span className="t-value">{reg.leader_name || team.leader_name}</span>
-                            </div>
-                            <div className="t-detail-item">
-                              <span className="t-label">Reg No</span>
-                              <span className="t-value">{reg.leader_reg_no || team.reg_no || 'Lead'}</span>
-                            </div>
-                            <div className="t-detail-item">
-                              <span className="t-label">School</span>
-                              <span className="t-value" title={leaderSchool}>{leaderSchool}</span>
-                            </div>
-                            <div className="t-detail-item">
-                              <span className="t-label">Roster</span>
-                              <span className="t-value">{1 + members.length} Innovators</span>
-                            </div>
-                          </div>
+                          <div className="t-type">VERIFIED ONBOARDED</div>
                         </div>
-                        <div
-                          className="t-perforation"
-                          style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', transform: 'translateY(50%)' }}
-                        >
-                          <div className="t-perf-line"></div>
+                        <div className="t-title" title={reg.team_name || team.team_name}>
+                          {reg.team_name || team.team_name}
+                        </div>
+                        <div className="t-subtitle" title={`${psId} • ${psTitle}`}>
+                          <span className="t-ps-id">{psId}</span> {psTitle}
+                        </div>
+                        <div className="t-details">
+                          <div className="t-detail-item">
+                            <span className="t-label">Leader</span>
+                            <span className="t-value">{reg.leader_name || team.leader_name}</span>
+                          </div>
+                          <div className="t-detail-item">
+                            <span className="t-label">Reg No</span>
+                            <span className="t-value">{reg.leader_reg_no || team.reg_no || 'Lead'}</span>
+                          </div>
+                          <div className="t-detail-item">
+                            <span className="t-label">School</span>
+                            <span className="t-value" title={leaderSchool}>{leaderSchool}</span>
+                          </div>
+                          <div className="t-detail-item">
+                            <span className="t-label">Roster</span>
+                            <span className="t-value">{1 + members.length} Innovators</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="t-stub">
-                        <div className="t-barcode-container">
-                          <div className="t-barcode"></div>
-                          <div className="t-barcode-id">{team.temp_team_id}</div>
-                        </div>
-                        <div className="t-admit">
-                          <div className="t-admit-text">TEAM</div>
-                          <div className="t-admit-num">{teamNum}</div>
-                        </div>
-                      </div>
-                      <div className="t-actions-strip">
-                        <button 
-                          className="btn-t-action roster"
-                          onClick={() => onViewTeamRoster && onViewTeamRoster(team)}
-                          title="View 6-Member Roster & Section 65B Record"
-                        >
-                          <Eye size={13} />
-                          <span>View Roster</span>
-                        </button>
-                        <button 
-                          className="btn-t-action edit"
-                          onClick={() => onEditRegistration && onEditRegistration(team)}
-                          title="Edit Registration Form"
-                        >
-                          <Edit3 size={13} />
-                          <span>Edit</span>
-                        </button>
+                      <div
+                        className="t-perforation"
+                        style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', transform: 'translateY(50%)' }}
+                      >
+                        <div className="t-perf-line"></div>
                       </div>
                     </div>
+                    <div className="t-stub">
+                      <div className="t-barcode-container">
+                        <div className="t-barcode"></div>
+                        <div className="t-barcode-id">{team.temp_team_id}</div>
+                      </div>
+                      <div className="t-admit">
+                        <div className="t-admit-text">TEAM</div>
+                        <div className="t-admit-num">{teamNum}</div>
+                      </div>
+                    </div>
+                    <div className="t-actions-strip">
+                      <button 
+                        className="btn-t-action roster"
+                        onClick={() => onViewTeamRoster && onViewTeamRoster(team)}
+                        title="View 6-Member Roster & Section 65B Record"
+                      >
+                        <Eye size={13} />
+                        <span>View Roster</span>
+                      </button>
+                      <button 
+                        className="btn-t-action edit"
+                        onClick={() => onEditRegistration && onEditRegistration(team)}
+                        title="Edit Registration Form"
+                      >
+                        <Edit3 size={13} />
+                        <span>Edit</span>
+                      </button>
+                    </div>
+
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            );
+          })}
+        </div>
 
-        {/* VIEW 2: DENSE TABLE VIEW */}
-        {viewMode === 'table' && (
-          <div className="onboarding-table-card">
-            <div className="table-responsive-box">
-              <table className="onboarding-matrix-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Temp Team ID</th>
-                    <th>Team Name</th>
-                    <th>Problem Statement</th>
-                    <th>Team Leader</th>
-                    <th>Members (5)</th>
-                    <th>School &amp; Department</th>
-                    <th>Faculty Mentor</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTeams.map((team, idx) => {
-                    const reg = team.registrationData || team;
-                    const members = Array.isArray(reg.members) ? reg.members : [];
-                    const psId = reg.sih_ps_id || reg.ps_id || team.ps_id || 'SIH26-';
-                    const psTitle = reg.ps_title || team.ps_title || '';
-                    const leaderSchool = normalizeSchoolName(reg.leader_school || team.school);
-
-                    return (
-                      <tr key={`${team.temp_team_id || 'tbl-row'}-${idx}`}>
-                        <td className="col-idx">{idx + 1}</td>
-                        <td className="col-team-id">
-                          <span className="table-id-pill">{team.temp_team_id}</span>
-                          <span className="table-status-pill">{team.status || 'Shortlist'}</span>
-                        </td>
-                        <td className="col-team-name">
-                          <strong>{reg.team_name || team.team_name}</strong>
-                        </td>
-                        <td className="col-ps">
-                          <span className="table-ps-id">{psId}</span>
-                          <div className="table-ps-title-clamp" title={psTitle}>{psTitle}</div>
-                        </td>
-                        <td className="col-leader">
-                          <div className="table-leader-cell">
-                            <strong>{reg.leader_name || team.leader_name}</strong>
-                            <span className="table-reg-sub">{reg.leader_reg_no || team.reg_no}</span>
-                            <span className={`gender-badge-sm ${reg.leader_gender === 'Female' ? 'female' : 'male'}`}>
-                              {reg.leader_gender || 'Male'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="col-members-list">
-                          <div className="table-members-summary">
-                            <span className="members-badge-count">{members.length} Members</span>
-                            <div className="table-members-names">
-                              {members.map(m => m.name).filter(Boolean).join(', ')}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="col-school">
-                          <div className="table-school-cell">
-                            <span className="table-school-name">{leaderSchool}</span>
-                            <span className="table-dept-sub">{reg.leader_dept || team.department}</span>
-                          </div>
-                        </td>
-                        <td className="col-mentor">
-                          <span className="table-mentor-name">{reg.mentor_name || 'Faculty Guide Assigned'}</span>
-                        </td>
-                        <td className="col-actions">
-                          <div className="table-actions-cell">
-                            <button 
-                              className="btn-table-action"
-                              onClick={() => onViewTeamRoster && onViewTeamRoster(team)}
-                              title="View Full Team Roster"
-                            >
-                              <Eye size={14} />
-                            </button>
-                            <button 
-                              className="btn-table-action edit"
-                              onClick={() => onEditRegistration && onEditRegistration(team)}
-                              title="Edit Registration"
-                            >
-                              <Edit3 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
         {/* Empty Search Results */}
         {filteredTeams.length === 0 && (
