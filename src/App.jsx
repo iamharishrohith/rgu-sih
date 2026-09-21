@@ -15,7 +15,7 @@ import JuryStationPortal from './components/JuryStationPortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
 import Top100Students from './components/Top100Students.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
-import { supabase } from './supabaseClient.js';
+import { supabase, formatRegistrationPayloadForSupabase } from './supabaseClient.js';
 import { 
   Search, ArrowUpDown, UserCheck, ShieldCheck, Sparkles, Filter, Award, 
   ArrowRight, Lock, Unlock, CheckCircle2, Home, ArrowLeft, Building2, DoorOpen
@@ -660,9 +660,10 @@ export default function App() {
              for (const tId of teamIds) {
                const item = queue[tId];
                if (!item) continue;
+               const sanitizedItem = formatRegistrationPayloadForSupabase(item);
                const { error: flushErr } = await supabase
                  .from('registrations')
-                 .upsert(item, { onConflict: 'temp_team_id' });
+                 .upsert(sanitizedItem, { onConflict: 'temp_team_id' });
                if (!flushErr) {
                  delete queue[tId];
                  localStorage.setItem('sih_offline_pending_registrations', JSON.stringify(queue));

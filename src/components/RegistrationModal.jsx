@@ -4,7 +4,7 @@ import {
   ExternalLink, Users, Award, BookOpen, MessageSquare, AlertCircle, 
   ChevronRight, Save, Check
 } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { supabase, formatRegistrationPayloadForSupabase } from '../supabaseClient';
 import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
 
 export default function RegistrationModal({ team, onClose, onConfirmRegistration, existingRegistration }) {
@@ -315,9 +315,10 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Network timeout - saved to offline queue')), 12000)
       );
+      const sanitizedPayload = formatRegistrationPayloadForSupabase(payload);
       const upsertPromise = supabase
         .from('registrations')
-        .upsert(payload, { onConflict: 'temp_team_id' });
+        .upsert(sanitizedPayload, { onConflict: 'temp_team_id' });
 
       const { error: sbError } = await Promise.race([upsertPromise, timeoutPromise]);
 
