@@ -1,11 +1,39 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Sparkles, ShieldCheck, Award, Search, Users, ExternalLink, 
   ArrowRight, Filter, CheckCircle2, UserCheck, LayoutGrid, Table, 
   Building2, BookOpen, Layers, Edit3, Eye, FileText, ChevronRight,
-  TrendingUp, Heart, Check, RefreshCw
+  ChevronLeft, TrendingUp, Heart, Check, RefreshCw, Quote, Play, Pause, Terminal
 } from 'lucide-react';
 import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
+
+const HACKATHON_QUOTES = [
+  { text: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs", tag: "Leadership" },
+  { text: "You have to dream before your dreams can come true.", author: "Dr. A.P.J. Abdul Kalam", tag: "Inspiration" },
+  { text: "Talk is cheap. Show me the code.", author: "Linus Torvalds", tag: "Engineering" },
+  { text: "The best way to predict the future is to invent it.", author: "Alan Kay", tag: "Innovation" },
+  { text: "Dream, dream, dream. Dreams transform into thoughts and thoughts result in action.", author: "Dr. A.P.J. Abdul Kalam", tag: "Youth Power" },
+  { text: "Simplicity is the soul of efficiency.", author: "Austin Freeman", tag: "Architecture" },
+  { text: "Software is a great combination between artistry and engineering.", author: "Bill Gates", tag: "Craftsmanship" },
+  { text: "The true sign of intelligence is not knowledge but imagination.", author: "Albert Einstein", tag: "Imagination" },
+  { text: "First, solve the problem. Then, write the code.", author: "John Johnson", tag: "Problem Solving" },
+  { text: "Make it work, make it right, make it fast.", author: "Kent Beck", tag: "Agile" },
+  { text: "Technology is best when it brings people together.", author: "Matt Mullenweg", tag: "Impact" },
+  { text: "Code is like humor. When you have to explain it, it’s bad.", author: "Cory House", tag: "Clean Code" },
+  { text: "If you fail, never give up because F.A.I.L. means First Attempt In Learning.", author: "Dr. A.P.J. Abdul Kalam", tag: "Resilience" },
+  { text: "Empowering youth through innovation is the cornerstone of a self-reliant nation.", author: "Smart India Hackathon", tag: "Viksit Bharat" },
+  { text: "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.", author: "Martin Fowler", tag: "Excellence" },
+  { text: "Optimism is an essential ingredient of innovation.", author: "Robert Noyce", tag: "Mindset" },
+  { text: "Creativity is thinking up new things. Innovation is doing new things.", author: "Theodore Levitt", tag: "Action" },
+  { text: "Small aim is a crime; have great aim.", author: "Dr. A.P.J. Abdul Kalam", tag: "Big Ambition" },
+  { text: "Building indigenous tech solutions today powers India’s technological sovereignty tomorrow.", author: "MoE Innovation Cell", tag: "Tech Sovereignty" },
+  { text: "Fix the cause, not the symptom.", author: "Steve Maguire", tag: "Root Cause" },
+  { text: "It's not about ideas. It's about making ideas happen.", author: "Scott Belsky", tag: "Execution" },
+  { text: "A problem clearly stated is a problem half solved.", author: "Charles Kettering", tag: "Strategy" },
+  { text: "Youth of today are the architects of tomorrow's Viksit Bharat.", author: "Smart India Hackathon 2026", tag: "Nation Building" },
+  { text: "Every great developer you know got there by solving problems they were unqualified to solve.", author: "Patrick McKenzie", tag: "Growth Mindset" },
+  { text: "The purpose of technology is not to replace human capability, but to amplify human potential.", author: "AICTE MoE Innovation Cell", tag: "Human Potential" }
+];
 
 export default function OnboardingShowcase({ 
   onboardedTeams = [], 
@@ -21,6 +49,58 @@ export default function OnboardingShowcase({
   const [selectedSchool, setSelectedSchool] = useState('ALL');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
   const [categoryFilter, setCategoryFilter] = useState('ALL'); // 'ALL', 'Hardware', 'Software'
+
+  // Typewriter Writing Animation State for Quotes
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [displayedQuote, setDisplayedQuote] = useState('');
+  const [isTyping, setIsTyping] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const activeQuote = HACKATHON_QUOTES[quoteIndex] || HACKATHON_QUOTES[0];
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    let timeout;
+    const fullText = activeQuote.text;
+
+    if (isTyping) {
+      if (displayedQuote.length < fullText.length) {
+        timeout = setTimeout(() => {
+          setDisplayedQuote(fullText.slice(0, displayedQuote.length + 1));
+        }, 32);
+      } else {
+        // Finished typing current quote, pause to let user read
+        timeout = setTimeout(() => {
+          setIsTyping(false);
+        }, 4000);
+      }
+    } else {
+      // Transition to next quote
+      if (displayedQuote.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayedQuote(prev => prev.slice(0, -2) || '');
+        }, 15);
+      } else {
+        setQuoteIndex(prev => (prev + 1) % HACKATHON_QUOTES.length);
+        setIsTyping(true);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayedQuote, isTyping, isPaused, activeQuote]);
+
+  const handleNextQuote = () => {
+    setQuoteIndex(prev => (prev + 1) % HACKATHON_QUOTES.length);
+    setDisplayedQuote('');
+    setIsTyping(true);
+  };
+
+  const handlePrevQuote = () => {
+    setQuoteIndex(prev => (prev - 1 + HACKATHON_QUOTES.length) % HACKATHON_QUOTES.length);
+    setDisplayedQuote('');
+    setIsTyping(true);
+  };
 
   // Deduplicate incoming onboardedTeams by temp_team_id
   const uniqueOnboardedTeams = useMemo(() => {
@@ -156,42 +236,59 @@ export default function OnboardingShowcase({
             Official Live Registry of <strong>{metrics.totalTeams} Form-Filled Teams</strong> ({metrics.totalInnovators} Verified Student Innovators) with Section 65B Electronic Record Compliance across 17 SIH Technology Themes.
           </p>
 
-          {/* 3 Crisp Key Metric Highlight Cards */}
-          <div className="onboarding-stats-cards-grid">
-            <div className="onboarding-stat-card card-innovators">
-              <div className="stat-card-top">
-                <div className="stat-icon-badge indigo">
-                  <Users size={22} />
-                </div>
-                <span className="stat-number-big">{metrics.totalInnovators}</span>
+          {/* 20+ Animated Innovation & Hackathon Quote Writing Banner (Big Size) */}
+          <div className="onboarding-quote-terminal-banner">
+            <div className="quote-banner-header">
+              <div className="quote-badge-tag">
+                <Terminal size={14} className="text-emerald" />
+                <span>INNOVATION DISPATCH &bull; {activeQuote.tag}</span>
               </div>
-              <div className="stat-card-title">Student Innovators</div>
-              <div className="stat-card-desc">6 Members per Verified Team Roster</div>
-              <div className="stat-meta-pill indigo">Full 6-Member Rosters</div>
+              <div className="quote-nav-controls">
+                <span className="quote-counter-pill">
+                  {String(quoteIndex + 1).padStart(2, '0')} / {String(HACKATHON_QUOTES.length).padStart(2, '0')}
+                </span>
+                <button 
+                  className="btn-quote-ctrl" 
+                  onClick={handlePrevQuote} 
+                  title="Previous Quote"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  className="btn-quote-ctrl" 
+                  onClick={() => setIsPaused(p => !p)} 
+                  title={isPaused ? "Resume Animation" : "Pause Animation"}
+                >
+                  {isPaused ? <Play size={14} /> : <Pause size={14} />}
+                </button>
+                <button 
+                  className="btn-quote-ctrl" 
+                  onClick={handleNextQuote} 
+                  title="Next Quote"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
 
-            <div className="onboarding-stat-card card-diversity">
-              <div className="stat-card-top">
-                <div className="stat-icon-badge rose">
-                  <Heart size={22} />
-                </div>
-                <span className="stat-number-big">{metrics.femalePercentage}%</span>
+            <div className="quote-body-container">
+              <Quote size={36} className="quote-watermark-icon" />
+              <div className="quote-text-big">
+                <span className="quote-char-stream">&ldquo;{displayedQuote}</span>
+                <span className="quote-typing-cursor">|</span>
+                <span className="quote-closing-mark">&rdquo;</span>
               </div>
-              <div className="stat-card-title">Women in STEM</div>
-              <div className="stat-card-desc">{metrics.femaleCount} Female Innovators Active</div>
-              <div className="stat-meta-pill rose">Mandatory Inclusivity</div>
             </div>
 
-            <div className="onboarding-stat-card card-ps">
-              <div className="stat-card-top">
-                <div className="stat-icon-badge amber">
-                  <Award size={22} />
-                </div>
-                <span className="stat-number-big">{metrics.uniquePsCount}</span>
+            <div className="quote-banner-footer">
+              <div className="quote-author-info">
+                <div className="quote-author-line"></div>
+                <span className="quote-author-name">{activeQuote.author}</span>
               </div>
-              <div className="stat-card-title">Problem Statements</div>
-              <div className="stat-card-desc">Across 17 SIH Technology Themes</div>
-              <div className="stat-meta-pill amber">Zero Duplicate PS</div>
+              <div className="quote-footer-pill">
+                <Sparkles size={13} className="text-amber" />
+                <span>Smart India Hackathon 2026</span>
+              </div>
             </div>
           </div>
         </div>
