@@ -310,8 +310,10 @@ export default function AdminDashboard({
 
   // List of distinct schools for filtering
   const distinctSchools = useMemo(() => {
-    return OFFICIAL_SCHOOLS;
-  }, []);
+    const fromRecords = Array.from(new Set(teamRecords.map(t => t.school).filter(Boolean)));
+    const combined = Array.from(new Set([...OFFICIAL_SCHOOLS, ...fromRecords]));
+    return combined;
+  }, [teamRecords]);
 
   // Filtered List based on active tab & search
   const currentTabTeams = useMemo(() => {
@@ -322,21 +324,23 @@ export default function AdminDashboard({
     else if (activeTab === 'filled') list = teamRecords.filter(t => t.isRegistered);
     else if (activeTab === 'pending') list = teamRecords.filter(t => !t.isRegistered);
 
-    if (selectedSchoolFilter !== 'all') {
-      list = list.filter(t => t.school === selectedSchoolFilter);
+    if (selectedSchoolFilter && selectedSchoolFilter !== 'all') {
+      const target = selectedSchoolFilter.toLowerCase();
+      list = list.filter(t => (t.school || '').toLowerCase() === target);
     }
 
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       list = list.filter(t => 
-        t.temp_team_id.toLowerCase().includes(q) ||
-        t.team_name.toLowerCase().includes(q) ||
-        t.leader_name.toLowerCase().includes(q) ||
-        t.reg_no.toLowerCase().includes(q) ||
-        t.ps_id.toLowerCase().includes(q) ||
-        t.school.toLowerCase().includes(q) ||
-        t.effectivePhone.includes(q) ||
-        t.effectiveWhatsapp.includes(q)
+        (t.temp_team_id || '').toLowerCase().includes(q) ||
+        (t.team_name || '').toLowerCase().includes(q) ||
+        (t.leader_name || '').toLowerCase().includes(q) ||
+        (t.reg_no || '').toLowerCase().includes(q) ||
+        (t.ps_id || '').toLowerCase().includes(q) ||
+        (t.ps_title || '').toLowerCase().includes(q) ||
+        (t.school || '').toLowerCase().includes(q) ||
+        (t.effectivePhone || '').includes(q) ||
+        (t.effectiveWhatsapp || '').includes(q)
       );
     }
 
@@ -388,7 +392,7 @@ export default function AdminDashboard({
   // 1. Export Filled / Submitted Registration Forms (with full 6-member roster & mentor)
   const handleExportFilledCSV = (schoolOverride = selectedSchoolFilter) => {
     const targetSchool = schoolOverride || 'all';
-    const list = teamRecords.filter(t => t.isRegistered && (targetSchool === 'all' || t.school === targetSchool));
+    const list = teamRecords.filter(t => t.isRegistered && (targetSchool === 'all' || (t.school || '').toLowerCase() === targetSchool.toLowerCase()));
     
     const headers = [
       'Temp Team ID', 'Team Name', 'Tier Status', 'SIH PS ID', 'PS Title', 'School / Faculty', 'Department',
@@ -449,7 +453,7 @@ export default function AdminDashboard({
   // 2. Export Non-Filled / Pending Teams Dataset
   const handleExportPendingCSV = (schoolOverride = selectedSchoolFilter) => {
     const targetSchool = schoolOverride || 'all';
-    const list = teamRecords.filter(t => !t.isRegistered && (targetSchool === 'all' || t.school === targetSchool));
+    const list = teamRecords.filter(t => !t.isRegistered && (targetSchool === 'all' || (t.school || '').toLowerCase() === targetSchool.toLowerCase()));
 
     const headers = [
       'Temp Team ID', 'Team Name', 'Tier Status', 'PS ID', 'PS Title', 'School / Faculty',
@@ -1377,9 +1381,9 @@ export default function AdminDashboard({
       )}
 
       {/* =========================================================================
-          VIEW 3, 4, 5, 6: TABLE VIEWS (Shortlist, Bench, Waitlist, Pending)
+          VIEW 3, 4, 5, 6: TABLE VIEWS (Shortlist, Bench, Waitlist, Filled, Pending)
           ========================================================================= */}
-      {activeTab !== 'analytics' && activeTab !== 'upload' && activeTab !== 'whatsapp' && (
+      {activeTab !== 'analytics' && activeTab !== 'arena' && activeTab !== 'upload' && activeTab !== 'whatsapp' && (
         <div className="admin-table-container">
           {/* Top Search & Filter Bar */}
           <div className="admin-table-controls-strip">
@@ -1437,7 +1441,7 @@ export default function AdminDashboard({
                   title={`Export ${selectedSchoolFilter !== 'all' ? selectedSchoolFilter : 'All'} Filled Forms to CSV`}
                 >
                   <Download size={13} />
-                  <span>Export Filled ({teamRecords.filter(t => t.isRegistered && (selectedSchoolFilter === 'all' || t.school === selectedSchoolFilter)).length})</span>
+                  <span>Export Filled ({teamRecords.filter(t => t.isRegistered && (selectedSchoolFilter === 'all' || (t.school || '').toLowerCase() === selectedSchoolFilter.toLowerCase())).length})</span>
                 </button>
 
                 <button 
@@ -1446,7 +1450,7 @@ export default function AdminDashboard({
                   title={`Export ${selectedSchoolFilter !== 'all' ? selectedSchoolFilter : 'All'} Non-Filled / Pending Teams to CSV`}
                 >
                   <Download size={13} />
-                  <span>Export Pending ({teamRecords.filter(t => !t.isRegistered && (selectedSchoolFilter === 'all' || t.school === selectedSchoolFilter)).length})</span>
+                  <span>Export Pending ({teamRecords.filter(t => !t.isRegistered && (selectedSchoolFilter === 'all' || (t.school || '').toLowerCase() === selectedSchoolFilter.toLowerCase())).length})</span>
                 </button>
 
                 <button 

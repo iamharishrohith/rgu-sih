@@ -4940,20 +4940,30 @@ export const OFFICIAL_SCHOOLS = [
 
 export function normalizeSchoolName(raw) {
   if (!raw || typeof raw !== 'string') return 'School of Quantum Science, Computing & AI';
-  const s = raw.trim().toLowerCase();
+  const trimmed = raw.trim();
   
+  // Exact match against official schools first
+  const exactMatch = OFFICIAL_SCHOOLS.find(sch => sch.toLowerCase() === trimmed.toLowerCase());
+  if (exactMatch) return exactMatch;
+
+  const s = trimmed.toLowerCase();
+  
+  if (s.includes('fashion') || s.includes('design') || s.includes('viscom') || s.includes('visual') || s.includes('performing') || s.includes('costume') || s.includes('media') || s.includes('animation') || s.includes('fine arts')) {
+    return 'School of Fashion Design, Media & Performing Arts';
+  }
   if (s.includes('bioscience') || s.includes('applied bio') || s.includes('biotech') || s.includes('biotechnology') || s.includes('microbiology') || s.includes('biochem') || s.includes('bio-science') || s.includes('bio science') || s.includes('botany') || s.includes('zoology') || s.includes('life science') || s.includes('allied health') || s.includes('health science')) {
     return 'School of Applied Bioscience';
   }
-  if (s.includes('business') || s.includes('commerce') || s.includes('management') || s.includes('bba') || s.includes('b.com') || s.includes('mba') || s.includes('finance')) {
+  if (s.includes('business') || s.includes('commerce') || s.includes('management') || s.includes('bba') || s.includes('b.com') || s.includes('mba') || s.includes('finance') || s.includes('economics') || s.includes('accounting')) {
     return 'School of Business & Commerce';
   }
-  if (s.includes('liberal') || s.includes('arts') || s.includes('humanities') || s.includes('psychology') || s.includes('english') || s.includes('social')) {
+  if (s.includes('liberal') || s.includes('humanities') || s.includes('psychology') || s.includes('english') || s.includes('social') || s.includes('journalism') || s.includes('literature') || s.includes('arts')) {
     return 'School of Liberal Arts and Science';
   }
-  if (s.includes('fashion') || s.includes('design') || s.includes('viscom') || s.includes('visual') || s.includes('performing') || s.includes('costume') || s.includes('media')) {
-    return 'School of Fashion Design, Media & Performing Arts';
+  if (s.includes('quantum') || s.includes('computing') || s.includes('computer') || s.includes('cse') || s.includes('it') || s.includes('ai') || s.includes('artificial') || s.includes('data science') || s.includes('cyber') || s.includes('engineering') || s.includes('technology') || s.includes('tech') || s.includes('science')) {
+    return 'School of Quantum Science, Computing & AI';
   }
   return 'School of Quantum Science, Computing & AI';
 }
+
 
