@@ -22,25 +22,36 @@ export default function OnboardingShowcase({
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
   const [categoryFilter, setCategoryFilter] = useState('ALL'); // 'ALL', 'Hardware', 'Software'
 
+  // Deduplicate incoming onboardedTeams by temp_team_id
+  const uniqueOnboardedTeams = useMemo(() => {
+    const seen = new Set();
+    return onboardedTeams.filter(t => {
+      const id = (t.temp_team_id || '').trim();
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [onboardedTeams]);
+
   // Extract distinct schools from onboarded teams
   const schoolCounts = useMemo(() => {
-    const counts = { ALL: onboardedTeams.length };
-    onboardedTeams.forEach(t => {
+    const counts = { ALL: uniqueOnboardedTeams.length };
+    uniqueOnboardedTeams.forEach(t => {
       const reg = t.registrationData || t;
       const school = normalizeSchoolName(reg.leader_school || t.school || 'General');
       counts[school] = (counts[school] || 0) + 1;
     });
     return counts;
-  }, [onboardedTeams]);
+  }, [uniqueOnboardedTeams]);
 
   // Comprehensive metric computations
   const metrics = useMemo(() => {
-    const totalTeams = onboardedTeams.length;
+    const totalTeams = uniqueOnboardedTeams.length;
     let totalInnovators = 0;
     let femaleCount = 0;
     const uniquePs = new Set();
 
-    onboardedTeams.forEach(t => {
+    uniqueOnboardedTeams.forEach(t => {
       const reg = t.registrationData || t;
       const members = Array.isArray(reg.members) ? reg.members : [];
       // Leader + members
@@ -66,11 +77,16 @@ export default function OnboardingShowcase({
       femalePercentage,
       uniquePsCount: uniquePs.size
     };
-  }, [onboardedTeams]);
+  }, [uniqueOnboardedTeams]);
 
   // Filter and search logic
   const filteredTeams = useMemo(() => {
-    return onboardedTeams.filter(team => {
+    const seen = new Set();
+    return uniqueOnboardedTeams.filter(team => {
+      const id = (team.temp_team_id || '').trim();
+      if (seen.has(id)) return false;
+      seen.add(id);
+
       const reg = team.registrationData || team;
       const school = normalizeSchoolName(reg.leader_school || team.school || '');
 
@@ -81,7 +97,7 @@ export default function OnboardingShowcase({
 
       // Category filter (Hardware/Software)
       if (categoryFilter !== 'ALL') {
-        const cat = (team.category || reg.category || '').toLowerCase();
+        const cat = (team.category || reg.category || team.ps_category || '').toLowerCase();
         if (!cat.includes(categoryFilter.toLowerCase())) return false;
       }
 
@@ -117,7 +133,7 @@ export default function OnboardingShowcase({
         memberMatch
       );
     });
-  }, [onboardedTeams, selectedSchool, categoryFilter, searchTerm]);
+  }, [uniqueOnboardedTeams, selectedSchool, categoryFilter, searchTerm]);
 
   return (
     <div className="onboarding-viewport">
@@ -276,7 +292,7 @@ export default function OnboardingShowcase({
               const teamNum = (team.temp_team_id || '').replace(/\D/g, '').slice(-3) || String(idx + 1).padStart(2, '0');
 
               return (
-                <div key={team.temp_team_id || idx} className="ticket-canvas">
+                <div key={`${team.temp_team_id || 'ticket'}-${idx}`} className="ticket-canvas">
                   <div className="ticket-wrapper">
                     <div className="ticket">
                       <div className="t-main">
@@ -391,7 +407,7 @@ export default function OnboardingShowcase({
                     const leaderSchool = normalizeSchoolName(reg.leader_school || team.school);
 
                     return (
-                      <tr key={team.temp_team_id || idx}>
+                      <tr key={`${team.temp_team_id || 'tbl-row'}-${idx}`}>
                         <td className="col-idx">{idx + 1}</td>
                         <td className="col-team-id">
                           <span className="table-id-pill">{team.temp_team_id}</span>

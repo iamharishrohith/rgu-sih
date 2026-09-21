@@ -379,6 +379,7 @@ export default function App() {
       return {
         ...teamObj,
         isRegistered: true,
+        registrationData: reg,
         team_name: reg.team_name || teamObj.team_name,
         ps_id: reg.sih_ps_id || reg.ps_id || teamObj.ps_id,
         ps_title: reg.ps_title || teamObj.ps_title,
@@ -390,31 +391,79 @@ export default function App() {
       };
     };
 
-    const baseList = FINALIZED_MASTER_TEAMS
-      .filter(t => !deletedTeamIds.has(t.temp_team_id))
-      .map(t => {
-        const custom = customTeamsMap[t.temp_team_id] || t;
-        return mergeWithReg(custom);
-      });
+    const seenIds = new Set();
+    const result = [];
 
-    const baseIds = new Set(FINALIZED_MASTER_TEAMS.map(t => t.temp_team_id));
-    const newlyCreated = Object.values(customTeamsMap)
-      .filter(t => !baseIds.has(t.temp_team_id) && !deletedTeamIds.has(t.temp_team_id) && !t.is_deleted)
-      .map(t => mergeWithReg(t));
+    // 1. Base finalized teams (deduplicated)
+    FINALIZED_MASTER_TEAMS.forEach(t => {
+      const id = (t.temp_team_id || '').trim();
+      if (!id || seenIds.has(id) || deletedTeamIds.has(id)) return;
+      seenIds.add(id);
+      const custom = customTeamsMap[id] || t;
+      result.push(mergeWithReg(custom));
+    });
 
-    return [...baseList, ...newlyCreated];
+    // 2. Newly created custom teams (deduplicated)
+    Object.values(customTeamsMap).forEach(t => {
+      const id = (t.temp_team_id || '').trim();
+      if (!id || seenIds.has(id) || deletedTeamIds.has(id) || t.is_deleted) return;
+      seenIds.add(id);
+      result.push(mergeWithReg(t));
+    });
+
+    return result;
   }, [customTeamsMap, deletedTeamIds, registrationsMap]);
 
   // Public Teams List for Students (excludes teams marked as Hidden by Admin)
   const publicTeamsList = useMemo(() => {
     const hiddenArr = Array.isArray(hiddenTeamIds) ? hiddenTeamIds : [];
-    return masterTeamsList.filter(t => !hiddenArr.includes(t.temp_team_id));
+    const seen = new Set();
+    return masterTeamsList.filter(t => {
+      const id = (t.temp_team_id || '').trim();
+      if (!id || seen.has(id) || hiddenArr.includes(id)) return false;
+      seen.add(id);
+      return true;
+    });
   }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
 
-  // Form-Filled / Onboarded Teams Only (Excludes teams without registrations)
+  // Form-Filled / Onboarded Teams Only (Excludes teams without registrations, deduplicated strictly)
   const onboardedTeamsList = useMemo(() => {
-    return publicTeamsList.filter(t => Boolean(registrationsMap[t.temp_team_id]));
-  }, [publicTeamsList, registrationsMap]);
+    const seen = new Set();
+    const list = [];
+    
+    // First, all registered teams in publicTeamsList
+    publicTeamsList.forEach(t => {
+      const id = (t.temp_team_id || '').trim();
+      if (id && !seen.has(id) && Boolean(registrationsMap[id])) {
+        seen.add(id);
+        list.push(t);
+      }
+    });
+
+    // Also include any other valid registrations in registrationsMap
+    Object.values(registrationsMap).forEach(reg => {
+      const id = (reg.temp_team_id || '').trim();
+      if (!id || seen.has(id) || deletedTeamIds.has(id) || (Array.isArray(hiddenTeamIds) && hiddenTeamIds.includes(id))) return;
+      seen.add(id);
+      const masterMatch = MASTER_TEAMS.find(mt => mt.temp_team_id === id) || {};
+      list.push({
+        ...masterMatch,
+        temp_team_id: id,
+        isRegistered: true,
+        registrationData: reg,
+        team_name: reg.team_name || masterMatch.team_name || 'Team ' + id,
+        ps_id: reg.sih_ps_id || reg.ps_id || masterMatch.ps_id || '',
+        ps_title: reg.ps_title || masterMatch.ps_title || '',
+        leader_name: reg.leader_name || masterMatch.leader_name || '',
+        reg_no: reg.leader_reg_no || reg.reg_no || masterMatch.reg_no || '',
+        school: normalizeSchoolName(reg.leader_school || reg.leader_dept || masterMatch.school || 'General'),
+        mobile: reg.leader_phone || masterMatch.mobile || '',
+        status: reg.status || masterMatch.status || 'Shortlist'
+      });
+    });
+
+    return list;
+  }, [publicTeamsList, registrationsMap, deletedTeamIds, hiddenTeamIds]);
 
   
   // Subbranch URL / Hash listener & Secret Keyboard Listener (Ctrl + Shift + A for Master Admin Gateway)
