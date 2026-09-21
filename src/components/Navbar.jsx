@@ -83,6 +83,36 @@ export default function Navbar({
 
           {/* Action Navigation Controls */}
           <div className="header-actions-group">
+            {/* Public Quick Navigation Switcher */}
+            <div className="public-nav-switcher">
+              <button 
+                className={`btn-header-nav ${currentView === 'onboarding' || currentView === 'landing' ? 'active' : ''}`}
+                onClick={onOpenLandingView}
+                title="View Verified Onboarded Teams"
+              >
+                <CheckCircle2 size={14} className="text-emerald" />
+                <span>Onboarded Teams ({registeredCount})</span>
+              </button>
+
+              <button 
+                className={`btn-header-nav ${currentView === 'candidate_desk' ? 'active' : ''}`}
+                onClick={onOpenCandidateDesk}
+                title="View Full 110 Finalist Selection Standby Archive"
+              >
+                <UserCheck size={14} className="text-indigo" />
+                <span>Full Shortlist ({totalFinalizedCount})</span>
+              </button>
+
+              <button 
+                className={`btn-header-nav ${currentView === 'inout_portal' ? 'active' : ''}`}
+                onClick={onOpenInOutPortal}
+                title="SIH Arena In-Out Movement & Gate Pass"
+              >
+                <DoorOpen size={14} className="text-orange" />
+                <span>Gate Pass</span>
+              </button>
+            </div>
+
             {isAdminLoggedIn && (
               <>
                 <button 

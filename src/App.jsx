@@ -5,6 +5,7 @@ import PasscodeModal from './components/PasscodeModal.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import TeamDetailsModal from './components/TeamDetailsModal.jsx';
 import GrandLandingShowcase from './components/GrandLandingShowcase.jsx';
+import OnboardingShowcase from './components/OnboardingShowcase.jsx';
 import FlowerConfettiRain from './components/FlowerConfettiRain.jsx';
 import MidnightCountdownBanner from './components/MidnightCountdownBanner.jsx';
 import PortalClosedView from './components/PortalClosedView.jsx';
@@ -67,14 +68,18 @@ export default function App() {
       }
       if (
         pathname.includes('/desk') || pathname.includes('/shortlist') || pathname.includes('/bench') || pathname.includes('/waitlist') ||
+        search.includes('view=shortlist') || search.includes('mode=all') || search.includes('view=all') || search.includes('shortlist') ||
         hash.includes('desk') || hash.includes('shortlist') || hash.includes('bench') || hash.includes('waitlist')
       ) {
         return 'candidate_desk';
       }
+      if (pathname.includes('/landing') || search.includes('landing') || hash.includes('landing')) {
+        return 'landing';
+      }
     } catch (e) {
       // Default fallback
     }
-    return 'landing';
+    return 'onboarding';
   });
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
@@ -406,6 +411,11 @@ export default function App() {
     return masterTeamsList.filter(t => !hiddenArr.includes(t.temp_team_id));
   }, [masterTeamsList, hiddenTeamIds]); // strictly: 'shortlist' | 'bench' | 'waitlist'
 
+  // Form-Filled / Onboarded Teams Only (Excludes teams without registrations)
+  const onboardedTeamsList = useMemo(() => {
+    return publicTeamsList.filter(t => Boolean(registrationsMap[t.temp_team_id]));
+  }, [publicTeamsList, registrationsMap]);
+
   
   // Subbranch URL / Hash listener & Secret Keyboard Listener (Ctrl + Shift + A for Master Admin Gateway)
   useEffect(() => {
@@ -441,11 +451,14 @@ export default function App() {
         triggerSecretAdmin();
       } else if (
         pathname.includes('/desk') || pathname.includes('/shortlist') || pathname.includes('/bench') || pathname.includes('/waitlist') ||
+        search.includes('view=shortlist') || search.includes('mode=all') || search.includes('view=all') || search.includes('shortlist') ||
         hash.includes('desk') || hash.includes('shortlist') || hash.includes('bench') || hash.includes('waitlist')
       ) {
         setCurrentView('candidate_desk');
-      } else {
+      } else if (pathname.includes('/landing') || search.includes('landing') || hash.includes('landing')) {
         setCurrentView('landing');
+      } else {
+        setCurrentView('onboarding');
       }
     };
 
@@ -1084,9 +1097,14 @@ export default function App() {
         isAdminLoggedIn={isAdminLoggedIn}
         onOpenLandingView={() => {
           setIsReadOnlyAfterClosure(false);
-          setCurrentView('landing');
+          window.history.pushState(null, '', '/');
+          setCurrentView('onboarding');
         }}
-        onOpenCandidateDesk={() => setCurrentView('candidate_desk')}
+        onOpenCandidateDesk={() => {
+          setIsReadOnlyAfterClosure(false);
+          window.history.pushState(null, '', '?view=shortlist');
+          setCurrentView('candidate_desk');
+        }}
         onOpenInOutPortal={() => {
           setIsReadOnlyAfterClosure(false);
           setCurrentView('inout_portal');
@@ -1272,6 +1290,29 @@ export default function App() {
             setCurrentView('candidate_desk');
           }}
         />
+      ) : currentView === 'onboarding' ? (
+        /* VIEW: SIH 2026 ONBOARDED TEAMS SHOWCASE (DEFAULT PUBLIC PORTAL) */
+        <OnboardingShowcase
+          onboardedTeams={onboardedTeamsList}
+          totalMasterCount={tierCounts.totalFinalized}
+          onViewTeamRoster={(team) => {
+            setActiveDetailsTeam(team);
+          }}
+          onEditRegistration={(team) => {
+            setActiveRegTeam(team);
+          }}
+          onExploreAllShortlist={() => {
+            setIsReadOnlyAfterClosure(false);
+            window.history.pushState(null, '', '?view=shortlist');
+            setCurrentView('candidate_desk');
+          }}
+          onOpenInOutPortal={() => {
+            setIsReadOnlyAfterClosure(false);
+            setCurrentView('inout_portal');
+          }}
+          onOpenAdminGateway={triggerSecretAdmin}
+          isAdminLoggedIn={isAdminLoggedIn}
+        />
       ) : currentView === 'landing' ? (
         /* VIEW 3: GRAND ANNOUNCEMENT LANDING SHOWCASE */
         <GrandLandingShowcase
@@ -1294,7 +1335,7 @@ export default function App() {
           }}
         />
       ) : (
-        /* VIEW 4: CANDIDATE REGISTRATION DESK TABLE */
+        /* VIEW 4: CANDIDATE REGISTRATION DESK TABLE (FULL 110 SHORTLIST ARCHIVE) */
         <main className="main-viewport">
           <div className="desk-top-navigation-strip">
             <button className="btn-back-to-landing" onClick={() => setCurrentView('inout_portal')}>
@@ -1307,11 +1348,14 @@ export default function App() {
             </div>
             <button 
               className="btn-back-to-landing" 
-              onClick={() => setCurrentView('landing')}
+              onClick={() => {
+                window.history.pushState(null, '', '/');
+                setCurrentView('onboarding');
+              }}
               style={{ marginLeft: 'auto' }}
             >
               <ArrowLeft size={16} />
-              <span>Announcement Landing</span>
+              <span>Onboarded Teams Portal</span>
             </button>
           </div>
 
