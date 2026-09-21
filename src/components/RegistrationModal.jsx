@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, CheckCircle, ShieldCheck, User, Mail, Phone, Building, Hash, 
   ExternalLink, Users, Award, BookOpen, MessageSquare, AlertCircle, 
@@ -9,6 +9,9 @@ import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
 
 export default function RegistrationModal({ team, onClose, onConfirmRegistration, existingRegistration }) {
   if (!team) return null;
+
+  const currentTeamId = team.temp_team_id || team.teamId || team.temp_id || '';
+  const prevTeamIdRef = useRef(currentTeamId);
 
   // Active sub-step in form (0: Team & PS, 1: Team Leader, 2: 5 Members, 3: Mentor & Submit)
   const [activeStep, setActiveStep] = useState(0);
@@ -102,19 +105,26 @@ export default function RegistrationModal({ team, onClose, onConfirmRegistration
     }
   }, [formData, submitted]);
 
-  // Keep form data synchronized when active team updates
+  // Keep form data synchronized ONLY when switching to a DIFFERENT team
   useEffect(() => {
-    if (team) {
+    if (currentTeamId && currentTeamId !== prevTeamIdRef.current) {
+      prevTeamIdRef.current = currentTeamId;
       const initial = getInitialFormData();
       setFormData(initial);
       setSubmitted(false);
+      setActiveStep(0);
+      setErrorMsg('');
+      setValidationErrors({});
       try {
         if (localStorage.getItem(`sih_draft_${initial.temp_team_id}`)) {
           setIsDraftRestored(true);
+        } else {
+          setIsDraftRestored(false);
         }
       } catch (e) {}
     }
-  }, [team, existingRegistration]);
+  }, [currentTeamId]);
+
 
   // Active member tab in Step 2
   const [activeMemberTab, setActiveMemberTab] = useState(0);

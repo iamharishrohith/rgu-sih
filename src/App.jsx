@@ -15,7 +15,7 @@ import EvaluationQueuePortal, { DEFAULT_EVALUATION_PANELS } from './components/E
 import JuryStationPortal from './components/JuryStationPortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
 import Top100Students from './components/Top100Students.jsx';
-import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
+import { MASTER_TEAMS, normalizeSchoolName, isTestTeam } from './data/sihMasterData.js';
 import { supabase, formatRegistrationPayloadForSupabase } from './supabaseClient.js';
 import { 
   Search, ArrowUpDown, UserCheck, ShieldCheck, Sparkles, Filter, Award, 
@@ -25,7 +25,7 @@ import './App.css';
 
 // Strictly finalized 110 teams from Excel (80 Shortlist + 10 Bench + 20 Waitlist)
 const FINALIZED_MASTER_TEAMS = MASTER_TEAMS.filter(t => 
-  ['Shortlist', 'Bench', 'Waitlist'].includes(t.status)
+  ['Shortlist', 'Bench', 'Waitlist'].includes(t.status) && !isTestTeam(t)
 );
 
 export default function App() {
@@ -397,16 +397,17 @@ export default function App() {
     // 1. Base finalized teams (deduplicated)
     FINALIZED_MASTER_TEAMS.forEach(t => {
       const id = (t.temp_team_id || '').trim();
-      if (!id || seenIds.has(id) || deletedTeamIds.has(id)) return;
+      if (!id || seenIds.has(id) || deletedTeamIds.has(id) || isTestTeam(t)) return;
       seenIds.add(id);
       const custom = customTeamsMap[id] || t;
+      if (isTestTeam(custom)) return;
       result.push(mergeWithReg(custom));
     });
 
     // 2. Newly created custom teams (deduplicated)
     Object.values(customTeamsMap).forEach(t => {
       const id = (t.temp_team_id || '').trim();
-      if (!id || seenIds.has(id) || deletedTeamIds.has(id) || t.is_deleted) return;
+      if (!id || seenIds.has(id) || deletedTeamIds.has(id) || t.is_deleted || isTestTeam(t)) return;
       seenIds.add(id);
       result.push(mergeWithReg(t));
     });
@@ -420,7 +421,7 @@ export default function App() {
     const seen = new Set();
     return masterTeamsList.filter(t => {
       const id = (t.temp_team_id || '').trim();
-      if (!id || seen.has(id) || hiddenArr.includes(id)) return false;
+      if (!id || seen.has(id) || hiddenArr.includes(id) || isTestTeam(t)) return false;
       seen.add(id);
       return true;
     });
@@ -434,7 +435,7 @@ export default function App() {
     // First, all registered teams in publicTeamsList
     publicTeamsList.forEach(t => {
       const id = (t.temp_team_id || '').trim();
-      if (id && !seen.has(id) && Boolean(registrationsMap[id])) {
+      if (id && !seen.has(id) && Boolean(registrationsMap[id]) && !isTestTeam(t) && !isTestTeam(registrationsMap[id])) {
         seen.add(id);
         list.push(t);
       }
@@ -443,9 +444,10 @@ export default function App() {
     // Also include any other valid registrations in registrationsMap
     Object.values(registrationsMap).forEach(reg => {
       const id = (reg.temp_team_id || '').trim();
-      if (!id || seen.has(id) || deletedTeamIds.has(id) || (Array.isArray(hiddenTeamIds) && hiddenTeamIds.includes(id))) return;
+      if (!id || seen.has(id) || deletedTeamIds.has(id) || (Array.isArray(hiddenTeamIds) && hiddenTeamIds.includes(id)) || isTestTeam(reg)) return;
       seen.add(id);
       const masterMatch = MASTER_TEAMS.find(mt => mt.temp_team_id === id) || {};
+      if (isTestTeam(masterMatch)) return;
       list.push({
         ...masterMatch,
         temp_team_id: id,
@@ -464,6 +466,7 @@ export default function App() {
 
     return list;
   }, [publicTeamsList, registrationsMap, deletedTeamIds, hiddenTeamIds]);
+
 
   
   // Subbranch URL / Hash listener & Secret Keyboard Listener (Ctrl + Shift + A for Master Admin Gateway)
@@ -535,7 +538,7 @@ export default function App() {
   // Hydrate registrations, contacts, custom teams, and app settings from Supabase & LocalStorage on boot
   useEffect(() => {
     async function loadData() {
-      // 1. Load LocalStorage first
+      // 1. Load LocalStorage first (with active test data purge)
       try {
         const localRegs = JSON.parse(localStorage.getItem('sih_registrations') || '{}');
         const localContacts = JSON.parse(localStorage.getItem('sih_team_contacts') || '{}');
@@ -543,9 +546,26 @@ export default function App() {
         const localDeleted = JSON.parse(localStorage.getItem('sih_deleted_teams') || '[]');
         const localHidden = JSON.parse(localStorage.getItem('sih_hidden_teams') || '[]');
 
-        setRegistrationsMap(localRegs);
+        // Clean out test teams from local cache
+        const cleanRegs = {};
+        Object.keys(localRegs).forEach(k => {
+          if (!isTestTeam(localRegs[k]) && !isTestTeam({ temp_team_id: k })) {
+            cleanRegs[k] = localRegs[k];
+          }
+        });
+        localStorage.setItem('sih_registrations', JSON.stringify(cleanRegs));
+
+        const cleanCustom = {};
+        Object.keys(localCustom).forEach(k => {
+          if (!isTestTeam(localCustom[k]) && !isTestTeam({ temp_team_id: k })) {
+            cleanCustom[k] = localCustom[k];
+          }
+        });
+        localStorage.setItem('sih_custom_teams', JSON.stringify(cleanCustom));
+
+        setRegistrationsMap(cleanRegs);
         setTeamContactsMap(localContacts);
-        setCustomTeamsMap(prev => ({ ...prev, ...localCustom }));
+        setCustomTeamsMap(prev => ({ ...prev, ...cleanCustom }));
         setDeletedTeamIds(prev => new Set([...prev, ...localDeleted]));
         if (Array.isArray(localHidden) && localHidden.length > 0) {
           setHiddenTeamIds(localHidden);
@@ -563,7 +583,9 @@ export default function App() {
         if (!regError && regData) {
           const remoteRegMap = {};
           regData.forEach(r => {
-            remoteRegMap[r.temp_team_id] = r;
+            if (r && r.temp_team_id && !isTestTeam(r)) {
+              remoteRegMap[r.temp_team_id] = r;
+            }
           });
           setRegistrationsMap(prev => ({ ...prev, ...remoteRegMap }));
         }
@@ -575,7 +597,9 @@ export default function App() {
         if (!contactError && contactData) {
           const remoteContactMap = {};
           contactData.forEach(c => {
-            remoteContactMap[c.temp_team_id] = c;
+            if (c && c.temp_team_id && !isTestTeam(c)) {
+              remoteContactMap[c.temp_team_id] = c;
+            }
           });
           setTeamContactsMap(prev => ({ ...prev, ...remoteContactMap }));
         }
@@ -591,7 +615,7 @@ export default function App() {
           customData.forEach(c => {
             if (c.is_deleted) {
               remoteDeleted.push(c.temp_team_id);
-            } else {
+            } else if (!isTestTeam(c)) {
               remoteCustom[c.temp_team_id] = c;
             }
           });
@@ -681,7 +705,7 @@ export default function App() {
     const regChannel = supabase
       .channel('realtime_public_registrations')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
-        if (payload.new && payload.new.temp_team_id) {
+        if (payload.new && payload.new.temp_team_id && !isTestTeam(payload.new)) {
           const rec = payload.new;
           setRegistrationsMap(prev => {
             const next = { ...prev, [rec.temp_team_id]: rec };
@@ -703,7 +727,7 @@ export default function App() {
          if (!pollRegErr && pollRegs) {
            const remoteMap = {};
            pollRegs.forEach(r => {
-             if (r && r.temp_team_id) remoteMap[r.temp_team_id] = r;
+             if (r && r.temp_team_id && !isTestTeam(r)) remoteMap[r.temp_team_id] = r;
            });
            setRegistrationsMap(prev => {
              const merged = { ...prev, ...remoteMap };
@@ -712,6 +736,7 @@ export default function App() {
              return merged;
            });
          }
+
 
           // B. Auto-flush any offline-queued registrations
           try {

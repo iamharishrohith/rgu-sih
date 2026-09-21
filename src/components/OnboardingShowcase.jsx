@@ -5,7 +5,7 @@ import {
   Building2, BookOpen, Layers, Edit3, Eye, FileText, ChevronRight,
   ChevronLeft, TrendingUp, Heart, Check, RefreshCw, Quote, Play, Pause, Terminal
 } from 'lucide-react';
-import { OFFICIAL_SCHOOLS, normalizeSchoolName } from '../data/sihMasterData';
+import { OFFICIAL_SCHOOLS, normalizeSchoolName, isTestTeam } from '../data/sihMasterData';
 
 const HACKATHON_QUOTES = [
   { text: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs", tag: "Leadership" },
@@ -102,16 +102,17 @@ export default function OnboardingShowcase({
     setIsTyping(true);
   };
 
-  // Deduplicate incoming onboardedTeams by temp_team_id
+  // Deduplicate incoming onboardedTeams by temp_team_id and exclude any test records
   const uniqueOnboardedTeams = useMemo(() => {
     const seen = new Set();
     return onboardedTeams.filter(t => {
       const id = (t.temp_team_id || '').trim();
-      if (!id || seen.has(id)) return false;
+      if (!id || seen.has(id) || isTestTeam(t) || isTestTeam(t.registrationData)) return false;
       seen.add(id);
       return true;
     });
   }, [onboardedTeams]);
+
 
   // Extract distinct schools from onboarded teams
   const schoolCounts = useMemo(() => {

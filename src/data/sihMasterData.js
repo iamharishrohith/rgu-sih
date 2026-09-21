@@ -4966,4 +4966,31 @@ export function normalizeSchoolName(raw) {
   return 'School of Quantum Science, Computing & AI';
 }
 
-
+export function isTestTeam(t) {
+  if (!t) return false;
+  const id = String(t.temp_team_id || t.team_id || t.id || '').toLowerCase().trim();
+  const name = String(t.team_name || '').toLowerCase().trim();
+  const leader = String(t.leader_name || '').toLowerCase().trim();
+  const ps = String(t.sih_ps_id || t.ps_id || '').toLowerCase().trim();
+  
+  if (
+    id.includes('test') || 
+    id.includes('syncpayload') || 
+    id.includes('dummy') ||
+    id.startsWith('mock') ||
+    name.includes('test team') || 
+    name.includes('deleted_test') || 
+    name.includes('test record') ||
+    name.includes('dummy') ||
+    name.includes('test_') ||
+    name.startsWith('test ') ||
+    leader.includes('test user') ||
+    leader.includes('test leader') ||
+    ps.includes('test') ||
+    t.is_deleted === true ||
+    t.is_test === true
+  ) {
+    return true;
+  }
+  return false;
+}
