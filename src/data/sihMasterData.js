@@ -4083,6 +4083,32 @@ export const MASTER_TEAMS = [
     "status": "Shortlist",
     "ps_rank": 1,
     "selection_reason": "Top Ranked Team for Problem Statement (Unique PS Shortlist Guarantee)"
+  },
+  {
+    "rank": 81,
+    "temp_team_id": "SIH26-TM-180",
+    "team_name": "Ryvanta",
+    "leader_name": "Harshini Pechiee M",
+    "reg_no": "RGU2026BCS023",
+    "school": "School of Quantum Science, Computing & AI",
+    "venue": "Tower C312",
+    "mobile": "9629388896",
+    "ps_id": "SIH26210",
+    "ps_title": "AI-Powered Real-Time Autonomous Edge System",
+    "ps_category": "Software",
+    "domain": "Smart Education, AI & Software Engineering",
+    "organization": "AICTE",
+    "c1_understanding_10": 9.2,
+    "c2_innovation_10": 9.2,
+    "c3_tech_feasibility_15": 14.0,
+    "c4_scalability_10": 9.2,
+    "c5_presentation_5": 4.4,
+    "total_score_50": 46.0,
+    "score_percentage": 92.0,
+    "reasons": "Exceptional edge-computing architecture with rigorous data verification and high feasibility.",
+    "status": "Shortlist",
+    "ps_rank": 1,
+    "selection_reason": "Top Ranked Team for Problem Statement (Unique PS Shortlist Guarantee)"
   }
 ];
 
