@@ -36,13 +36,23 @@ export default function CertificatePortal({ onBackToLanding }) {
     }
     loadRegistrations();
   }, []);
-
-  // Map master teams with registered member details
+  // Map unique master teams with registered member details
   const enrichedTeams = useMemo(() => {
-    return MASTER_TEAMS.map(team => {
+    const seenIds = new Set();
+    const uniqueTeams = [];
+
+    for (const team of MASTER_TEAMS) {
+      if (!team || !team.temp_team_id) continue;
+      if (!seenIds.has(team.temp_team_id)) {
+        seenIds.add(team.temp_team_id);
+        uniqueTeams.push(team);
+      }
+    }
+
+    return uniqueTeams.map(team => {
       const regMatch = dbRegistrations.find(r => 
         r.temp_team_id === team.temp_team_id || 
-        r.team_name?.trim().toLowerCase() === team.team_name?.trim().toLowerCase()
+        (r.team_name && team.team_name && r.team_name.trim().toLowerCase() === team.team_name.trim().toLowerCase())
       );
 
       let leaderName = team.leader_name;
@@ -166,11 +176,11 @@ export default function CertificatePortal({ onBackToLanding }) {
           </div>
 
           <div className="sidebar-teams-list">
-            {filteredTeams.map(team => {
+            {filteredTeams.map((team, idx) => {
               const isSelected = team.temp_team_id === activeTeam?.temp_team_id;
               return (
                 <div 
-                  key={team.temp_team_id}
+                  key={`${team.temp_team_id}-${idx}`}
                   className={`team-item-card ${isSelected ? 'active' : ''}`}
                   onClick={() => setSelectedTeamId(team.temp_team_id)}
                 >
