@@ -13,6 +13,7 @@ import InOutAttendancePortal from './components/InOutAttendancePortal.jsx';
 import EvaluationQueuePortal, { DEFAULT_EVALUATION_PANELS } from './components/EvaluationQueuePortal.jsx';
 import JuryStationPortal from './components/JuryStationPortal.jsx';
 import AdminGatewayModal from './components/AdminGatewayModal.jsx';
+import CertificatePortal from './components/CertificatePortal.jsx';
 import { MASTER_TEAMS, normalizeSchoolName } from './data/sihMasterData.js';
 import { supabase } from './supabaseClient.js';
 import { 
@@ -41,6 +42,9 @@ export default function App() {
       const hash = window.location.hash.toLowerCase();
 
       // Check for standalone jury station page (strictly isolated)
+      if (pathname.includes('/cert') || search.includes('cert') || hash.includes('cert')) {
+        return 'certificate';
+      }
       if (pathname.includes('/jury') || search.includes('jury') || hash.includes('jury')) {
         return 'jury_station';
       }
@@ -1804,6 +1808,8 @@ export default function App() {
               window.history.pushState(null, '', '#queue');
             } else if (v === 'inout_portal') {
               window.history.pushState(null, '', '#arena');
+            } else if (v === 'certificate') {
+              window.history.pushState(null, '', '#cert');
             } else if (v === 'candidate_desk') {
               window.history.pushState(null, '', '#desk');
             } else if (v === 'admin') {

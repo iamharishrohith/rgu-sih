@@ -183,6 +183,31 @@ export default function AdminGatewayModal({
               </div>
             </div>
 
+            {/* CARD 5: OFFICIAL CERTIFICATE STUDIO */}
+            <div 
+              className={`gateway-card cert-card ${currentView === 'certificate' ? 'active-gateway-card' : ''}`}
+              onClick={() => {
+                onSelectView('certificate');
+                onClose();
+              }}
+              style={{ border: '2px solid #d97706', background: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 100%)' }}
+            >
+              <div className="card-top-icon-row">
+                <div className="gateway-card-icon" style={{ background: '#fef3c7', color: '#b45309' }}>
+                  <Award size={22} />
+                </div>
+                <span className="gateway-status-pill pill-amber" style={{ background: '#fef3c7', color: '#92400e' }}>
+                  <span>Executive Studio</span>
+                </span>
+              </div>
+              <h4 style={{ color: '#78350f' }}>Official Certificate Studio</h4>
+              <p>Generate &amp; print high-resolution certificates with Registrar &amp; SPOC signatures, updated RGU NAAC A++ branding, and special leader badges.</p>
+              <div className="card-bottom-action" style={{ color: '#b45309', fontWeight: 'bold' }}>
+                <span>Launch Certificate Studio</span>
+                <ArrowRight size={15} />
+              </div>
+            </div>
+
             {/* CARD 4: REGISTRATION WINDOW TIMER */}
             <div 
               className="gateway-card timer-card"
