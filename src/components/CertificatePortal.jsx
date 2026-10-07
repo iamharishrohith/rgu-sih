@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Printer, Download, Search, Award, Sparkles, CheckCircle2, 
-  User, Crown, RefreshCw, ArrowLeft, ShieldCheck, Star
+  User, Crown, RefreshCw, ArrowLeft, ShieldCheck, Star, FileText, Image as ImageIcon, Loader2
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { MASTER_TEAMS } from '../data/sihMasterData.js';
 import { supabase } from '../supabaseClient.js';
 
@@ -15,6 +17,8 @@ export default function CertificatePortal({ onBackToLanding }) {
   const [isLoadingDb, setIsLoadingDb] = useState(false);
   const [selectedRecipientIdx, setSelectedRecipientIdx] = useState(0);
   const [isBatchMode, setIsBatchMode] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState('');
 
   // Fetch full registrations from Supabase to get complete member rosters
   useEffect(() => {
@@ -149,6 +153,110 @@ export default function CertificatePortal({ onBackToLanding }) {
     }
   }, [selectedTeamName, recipientsList.length, selectedRecipientIdx]);
 
+  // Direct PDF Export (Single or Multi-Page Batch)
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    setExportMessage(isBatchMode ? 'Generating Multi-Page PDF (All 6 Members)...' : 'Generating High-Res A4 PDF...');
+    
+    try {
+      if (isBatchMode) {
+        // Multi-page batch export
+        const elements = document.querySelectorAll('.batch-certificate-page-item .exact-certificate-canvas-root');
+        if (!elements || elements.length === 0) throw new Error('No certificates found for batch export');
+
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        for (let i = 0; i < elements.length; i++) {
+          setExportMessage(`Rendering page ${i + 1} of ${elements.length}...`);
+          const canvas = await html2canvas(elements[i], {
+            scale: 2.2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false
+          });
+
+          const imgData = canvas.toDataURL('image/jpeg', 0.98);
+          if (i > 0) pdf.addPage('a4', 'landscape');
+          pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+        }
+
+        const safeTeam = activeTeam.team_name.replace(/[^a-zA-Z0-9_-]/g, '_');
+        pdf.save(`SIH2026_AllCertificates_Team_${safeTeam}.pdf`);
+        setExportMessage('Batch PDF Downloaded!');
+      } else {
+        // Single certificate export
+        const targetElement = document.getElementById('print-certificate-target');
+        if (!targetElement) throw new Error('Certificate element not found');
+
+        const canvas = await html2canvas(targetElement, {
+          scale: 2.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+
+        const currentRecipient = recipientsList[selectedRecipientIdx] || recipientsList[0];
+        const safeName = (currentRecipient?.name || activeTeam.team_name).replace(/[^a-zA-Z0-9_-]/g, '_');
+        pdf.save(`SIH2026_Certificate_${safeName}.pdf`);
+        setExportMessage('PDF Downloaded!');
+      }
+    } catch (err) {
+      console.error('PDF Export Error:', err);
+      window.print();
+    } finally {
+      setIsExporting(false);
+      setTimeout(() => setExportMessage(''), 2500);
+    }
+  };
+
+  // Direct High-Res PNG Image Export
+  const handleExportPNG = async () => {
+    setIsExporting(true);
+    setExportMessage('Generating HD PNG Image (300 DPI)...');
+    try {
+      const targetElement = document.getElementById('print-certificate-target');
+      if (!targetElement) throw new Error('Certificate element not found');
+
+      const canvas = await html2canvas(targetElement, {
+        scale: 3.0,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+
+      const currentRecipient = recipientsList[selectedRecipientIdx] || recipientsList[0];
+      const safeName = (currentRecipient?.name || activeTeam.team_name).replace(/[^a-zA-Z0-9_-]/g, '_');
+      
+      const link = document.createElement('a');
+      link.download = `SIH2026_Certificate_${safeName}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      setExportMessage('PNG Downloaded!');
+    } catch (err) {
+      console.error('PNG Export Error:', err);
+      alert('Could not export PNG image. Please use PDF or Print option.');
+    } finally {
+      setIsExporting(false);
+      setTimeout(() => setExportMessage(''), 2500);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -193,12 +301,47 @@ export default function CertificatePortal({ onBackToLanding }) {
               </select>
             </div>
 
-            <button className="btn-studio-print" onClick={handlePrint}>
-              <Printer size={16} />
-              <span>{isBatchMode ? 'Print All 6 Certificates (A4 Landscape)' : 'Print / Export PDF (A4 Landscape)'}</span>
-            </button>
+            {/* Direct Export & Print Action Buttons */}
+            <div className="studio-action-buttons-group">
+              <button 
+                className="btn-studio-export-pdf" 
+                onClick={handleExportPDF} 
+                disabled={isExporting}
+                title="Direct PDF Download"
+              >
+                {isExporting ? <Loader2 size={16} className="spin" /> : <FileText size={16} />}
+                <span>{isBatchMode ? 'Download Batch PDF (All 6)' : 'Download PDF'}</span>
+              </button>
+
+              <button 
+                className="btn-studio-export-png" 
+                onClick={handleExportPNG} 
+                disabled={isExporting || isBatchMode}
+                title="Direct High-Res PNG Image Download"
+              >
+                <ImageIcon size={16} />
+                <span>Download PNG</span>
+              </button>
+
+              <button 
+                className="btn-studio-print" 
+                onClick={handlePrint}
+                disabled={isExporting}
+                title="Browser System Print Dialog"
+              >
+                <Printer size={16} />
+                <span>Print Dialog</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        {exportMessage && (
+          <div className="export-status-toast">
+            <Sparkles size={14} className="text-amber" />
+            <span>{exportMessage}</span>
+          </div>
+        )}
       </div>
 
       <div className="studio-layout-container">
@@ -330,7 +473,7 @@ export default function CertificatePortal({ onBackToLanding }) {
   );
 }
 
-// Ornate Royal Gold Filigree Corner Ornament
+// Ornate Royal Gold Filigree Corner Ornament (Sharp Right-Angle Stepped Corner)
 function GoldCornerFlourish({ position }) {
   return (
     <div className={`exact-gold-corner ${position}`}>
@@ -344,26 +487,23 @@ function GoldCornerFlourish({ position }) {
             <stop offset="100%" stopColor="#996515" />
           </linearGradient>
         </defs>
-        {/* Outer corner frame lines */}
-        <path d="M4 64 V14 C4 8.48 8.48 4 14 4 H64" stroke={`url(#goldGrad-${position})`} strokeWidth="3" strokeLinecap="round" />
-        <path d="M12 52 V18 C12 14.68 14.68 12 18 12 H52" stroke={`url(#goldGrad-${position})`} strokeWidth="1.2" strokeLinecap="round" />
+        {/* Sharp right-angle geometric outer corner */}
+        <path d="M4 64 V4 H64" stroke={`url(#goldGrad-${position})`} strokeWidth="3.5" strokeLinecap="square" strokeLinejoin="miter" />
+        <path d="M10 52 V10 H52" stroke={`url(#goldGrad-${position})`} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" />
         
         {/* Inner filigree scroll work */}
-        <path d="M14 14 Q32 14 36 28 Q40 42 54 44 Q38 46 26 36 Q14 28 14 14 Z" fill={`url(#goldGrad-${position})`} fillOpacity="0.3" stroke={`url(#goldGrad-${position})`} strokeWidth="0.8" />
-        <path d="M22 22 C30 16 38 20 44 26 C36 30 28 28 22 22 Z" fill={`url(#goldGrad-${position})`} fillOpacity="0.6" />
+        <path d="M12 12 Q30 12 34 26 Q38 40 52 42 Q36 44 24 34 Q12 26 12 12 Z" fill={`url(#goldGrad-${position})`} fillOpacity="0.3" stroke={`url(#goldGrad-${position})`} strokeWidth="0.8" />
+        <path d="M20 20 C28 14 36 18 42 24 C34 28 26 26 20 20 Z" fill={`url(#goldGrad-${position})`} fillOpacity="0.6" />
         
-        {/* Corner 8-point gold star rosette */}
-        <circle cx="14" cy="14" r="3.5" fill={`url(#goldGrad-${position})`} />
-        <path d="M14 6 L16 12 L22 14 L16 16 L14 22 L12 16 L6 14 L12 12 Z" fill={`url(#goldGrad-${position})`} />
+        {/* Sharp corner diamond / square jewel */}
+        <rect x="7" y="7" width="6" height="6" transform="rotate(45 10 10)" fill={`url(#goldGrad-${position})`} />
         
-        {/* Finial pearl accents */}
-        <circle cx="64" cy="4" r="2.2" fill={`url(#goldGrad-${position})`} />
-        <circle cx="4" cy="64" r="2.2" fill={`url(#goldGrad-${position})`} />
-        <circle cx="52" cy="12" r="1.6" fill={`url(#goldGrad-${position})`} />
-        <circle cx="12" cy="52" r="1.6" fill={`url(#goldGrad-${position})`} />
+        {/* Finial sharp square / diamond accents */}
+        <rect x="62" y="2" width="4" height="4" transform="rotate(45 64 4)" fill={`url(#goldGrad-${position})`} />
+        <rect x="2" y="62" width="4" height="4" transform="rotate(45 4 64)" fill={`url(#goldGrad-${position})`} />
         
-        {/* Dotted accent line */}
-        <path d="M20 56 V24 C20 21.8 21.8 20 24 20 H56" stroke={`url(#goldGrad-${position})`} strokeWidth="0.8" strokeDasharray="2 3" />
+        {/* Sharp dashed inner geometric line */}
+        <path d="M16 46 V16 H46" stroke={`url(#goldGrad-${position})`} strokeWidth="0.9" strokeDasharray="2 2" strokeLinejoin="miter" />
       </svg>
     </div>
   );
@@ -465,7 +605,7 @@ function ExactOfficialCertificateCanvas({ team, recipient, certificateTitle, awa
             <div className="exact-sign-col left">
               <div className="exact-sig-script-box">
                 <img 
-                  src="/logos/spoc_sign.png?v=4" 
+                  src="/logos/spoc_sign.png?v=5" 
                   alt="S. Manikandan Signature" 
                   className="exact-sig-image"
                 />
@@ -479,7 +619,7 @@ function ExactOfficialCertificateCanvas({ team, recipient, certificateTitle, awa
             <div className="exact-sign-col right">
               <div className="exact-sig-script-box">
                 <img 
-                  src="/logos/registrar_sign.png?v=4" 
+                  src="/logos/registrar_sign.png?v=5" 
                   alt="C. Krishnaraj Signature" 
                   className="exact-sig-image"
                 />
