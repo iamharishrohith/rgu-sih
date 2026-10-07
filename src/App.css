@@ -27487,11 +27487,17 @@ body {
 .exact-corner-bracket.br { bottom: 5px; right: 5px; border-left: none; border-top: none; }
 
 /* Signature image sizing for transparent enhanced ink */
+.exact-sig-script-box {
+  background: transparent !important;
+}
+
 .exact-sig-image {
   max-height: 52px;
   max-width: 200px;
   object-fit: contain;
-  filter: contrast(1.15) brightness(0.95);
+  mix-blend-mode: multiply;
+  background: transparent !important;
+  filter: contrast(1.1) drop-shadow(0 0 0.5px rgba(10, 35, 95, 0.4));
 }
 
 .exact-signatures-bottom-row.two-col {
