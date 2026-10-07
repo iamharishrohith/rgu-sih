@@ -13,6 +13,8 @@ export default function CertificatePortal({ onBackToLanding }) {
   const [awardRibbonText, setAwardRibbonText] = useState('INTERNAL HACKATHON FINALIST');
   const [dbRegistrations, setDbRegistrations] = useState([]);
   const [isLoadingDb, setIsLoadingDb] = useState(false);
+  const [selectedRecipientIdx, setSelectedRecipientIdx] = useState(0);
+  const [isBatchMode, setIsBatchMode] = useState(false);
 
   // Fetch full registrations from Supabase to get complete member rosters
   useEffect(() => {
@@ -109,6 +111,44 @@ export default function CertificatePortal({ onBackToLanding }) {
     return enrichedTeams.find(t => t.team_name.trim().toLowerCase() === selectedTeamName.trim().toLowerCase()) || enrichedTeams[0];
   }, [enrichedTeams, selectedTeamName]);
 
+  // List of all recipients for active team (Leader + 5 Members)
+  const recipientsList = useMemo(() => {
+    if (!activeTeam) return [];
+    
+    const list = [
+      {
+        id: 'leader',
+        name: activeTeam.leader_name,
+        reg_no: activeTeam.leader_reg_no,
+        role: 'Team Leader',
+        isLeader: true,
+        dept: activeTeam.department || ''
+      }
+    ];
+
+    if (Array.isArray(activeTeam.members_roster)) {
+      activeTeam.members_roster.forEach((m, idx) => {
+        list.push({
+          id: `member-${m.id || idx + 2}`,
+          name: m.name,
+          reg_no: m.reg_no,
+          role: 'Team Member',
+          isLeader: false,
+          dept: m.dept || ''
+        });
+      });
+    }
+
+    return list;
+  }, [activeTeam]);
+
+  // Reset selected recipient index if out of bounds
+  useEffect(() => {
+    if (selectedRecipientIdx >= recipientsList.length) {
+      setSelectedRecipientIdx(0);
+    }
+  }, [selectedTeamName, recipientsList.length, selectedRecipientIdx]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -155,7 +195,7 @@ export default function CertificatePortal({ onBackToLanding }) {
 
             <button className="btn-studio-print" onClick={handlePrint}>
               <Printer size={16} />
-              <span>Print / Export PDF (A4 Landscape)</span>
+              <span>{isBatchMode ? 'Print All 6 Certificates (A4 Landscape)' : 'Print / Export PDF (A4 Landscape)'}</span>
             </button>
           </div>
         </div>
@@ -187,7 +227,10 @@ export default function CertificatePortal({ onBackToLanding }) {
                 <div 
                   key={`${team.team_name}-${idx}`}
                   className={`team-item-card ${isSelected ? 'active' : ''}`}
-                  onClick={() => setSelectedTeamName(team.team_name)}
+                  onClick={() => {
+                    setSelectedTeamName(team.team_name);
+                    setSelectedRecipientIdx(0);
+                  }}
                 >
                   <div className="team-item-header">
                     <span className="team-item-status status-shortlist">
@@ -215,11 +258,70 @@ export default function CertificatePortal({ onBackToLanding }) {
         <main className="certificate-viewport">
           {activeTeam && (
             <div className="certificate-sheet-wrapper">
-              <ExactOfficialCertificateCanvas 
-                team={activeTeam} 
-                certificateTitle={certificateTitle}
-                awardRibbonText={awardRibbonText}
-              />
+              
+              {/* Recipient Member Selector Toolbar */}
+              <div className="recipient-selector-toolbar no-print">
+                <div className="recipient-selector-header">
+                  <div className="recipient-title-tag">
+                    <Sparkles size={14} className="text-amber" />
+                    <span>Select Certificate Recipient ({recipientsList.length} Members)</span>
+                  </div>
+                  
+                  <button 
+                    className={`btn-batch-toggle ${isBatchMode ? 'active' : ''}`}
+                    onClick={() => setIsBatchMode(!isBatchMode)}
+                  >
+                    <Printer size={14} />
+                    <span>{isBatchMode ? 'Viewing All 6 Certificates (Batch)' : 'Batch Mode: Print All 6 Members'}</span>
+                  </button>
+                </div>
+
+                <div className="recipient-pills-row">
+                  {recipientsList.map((rec, idx) => {
+                    const isSelected = selectedRecipientIdx === idx && !isBatchMode;
+                    return (
+                      <button
+                        key={rec.id}
+                        className={`recipient-pill-btn ${isSelected ? 'active' : ''} ${rec.isLeader ? 'is-leader' : ''}`}
+                        onClick={() => {
+                          setSelectedRecipientIdx(idx);
+                          setIsBatchMode(false);
+                        }}
+                      >
+                        {rec.isLeader ? <Crown size={14} className="pill-crown" /> : <User size={14} className="pill-user" />}
+                        <div className="pill-text-col">
+                          <span className="pill-name">{rec.name}</span>
+                          <span className="pill-role">{rec.role}</span>
+                        </div>
+                        {isSelected && <CheckCircle2 size={13} className="pill-check" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Certificate Canvas: Single or Batch */}
+              {isBatchMode ? (
+                <div className="batch-certificates-list">
+                  {recipientsList.map((rec) => (
+                    <div key={rec.id} className="batch-certificate-page-item">
+                      <ExactOfficialCertificateCanvas 
+                        team={activeTeam} 
+                        recipient={rec}
+                        certificateTitle={certificateTitle}
+                        awardRibbonText={awardRibbonText}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ExactOfficialCertificateCanvas 
+                  team={activeTeam} 
+                  recipient={recipientsList[selectedRecipientIdx] || recipientsList[0]}
+                  certificateTitle={certificateTitle}
+                  awardRibbonText={awardRibbonText}
+                />
+              )}
             </div>
           )}
         </main>
@@ -268,8 +370,14 @@ function GoldCornerFlourish({ position }) {
 }
 
 // EXACT Clean, Powerful Certificate Canvas with Internal Hackathon Recognition, Gold Frame & 2-Column Signatures
-function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonText }) {
+function ExactOfficialCertificateCanvas({ team, recipient, certificateTitle, awardRibbonText }) {
   if (!team) return null;
+
+  const activeRecipient = recipient || {
+    name: team.leader_name,
+    role: 'Team Leader',
+    isLeader: true
+  };
 
   return (
     <div className="exact-certificate-canvas-root" id="print-certificate-target">
@@ -329,9 +437,9 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
 
           {/* 4. Large Calligraphy Recipient Name */}
           <div className="exact-recipient-calligraphy-wrap">
-            <span className="exact-calligraphy-name">{team.leader_name}</span>
+            <span className="exact-calligraphy-name">{activeRecipient.name}</span>
             <div className="exact-recipient-team-sub">
-              Team Leader - <strong>Team {team.team_name}</strong>
+              {activeRecipient.role || 'Team Member'} - <strong>Team {team.team_name}</strong>
             </div>
           </div>
 
