@@ -78,6 +78,15 @@ export default function GrandLandingShowcase({
               </button>
             )}
 
+                        <button 
+              className="btn-grand-secondary-cta" 
+              onClick={onOpenCertificateStudio}
+              style={{ background: '#fffbeb', color: '#b45309', borderColor: '#fde68a' }}
+            >
+              <Award size={18} className="text-amber" />
+              <span>Official Certificates</span>
+            </button>
+
             <button className="btn-grand-secondary-cta" onClick={() => onExploreBench('bench')}>
               <Award size={18} className="text-amber" />
               <span>Bench Pool ({benchCount})</span>

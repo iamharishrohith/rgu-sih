@@ -108,6 +108,52 @@ export default function App() {
 
   const isPortalClosed = portalSettings.isClosed;
 
+  // Global HashChange and PopState listener for real-time subbranch URL switching
+  useEffect(() => {
+    const handleUrlChange = () => {
+      try {
+        const pathname = window.location.pathname.toLowerCase();
+        const search = window.location.search.toLowerCase();
+        const hash = window.location.hash.toLowerCase();
+
+        if (pathname.includes('/cert') || search.includes('cert') || hash.includes('cert')) {
+          setCurrentView('certificate');
+          return;
+        }
+        if (pathname.includes('/jury') || search.includes('jury') || hash.includes('jury')) {
+          setCurrentView('jury_station');
+          return;
+        }
+        if (search.includes('action=out') || search.includes('action=in') || hash.includes('action=out') || hash.includes('action=in') || pathname.includes('/arena') || pathname.includes('/inout') || hash.includes('arena') || hash.includes('inout')) {
+          setCurrentView('inout_portal');
+          return;
+        }
+        if (pathname.includes('/eval') || pathname.includes('/queue') || pathname.includes('/projector') || pathname.includes('/student') || pathname.includes('/ledger') || pathname.includes('/pending') || search.includes('queue') || search.includes('eval') || search.includes('projector') || hash.includes('queue') || hash.includes('eval') || hash.includes('projector') || hash.includes('student') || hash.includes('book') || hash.includes('ledger') || hash.includes('pending')) {
+          setCurrentView('eval_queue');
+          return;
+        }
+        if (pathname.includes('/desk') || pathname.includes('/shortlist') || pathname.includes('/bench') || pathname.includes('/waitlist') || hash.includes('desk') || hash.includes('shortlist') || hash.includes('bench') || hash.includes('waitlist')) {
+          setCurrentView('candidate_desk');
+          return;
+        }
+        if (hash === '' || hash === '#' || hash === '#landing' || hash === '#home') {
+          setCurrentView('landing');
+          return;
+        }
+      } catch (e) {
+        console.error('Error handling URL change', e);
+      }
+    };
+
+    window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+    };
+  }, []);
+
+
   // Active Timer Tick Handler: automatically locks portal when closeTimestamp is reached
   useEffect(() => {
     const checkTimer = () => {
