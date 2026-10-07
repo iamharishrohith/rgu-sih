@@ -226,8 +226,10 @@ export default function CertificatePortal({ onBackToLanding }) {
 
 // Minimal, Pristine, and High-Resolution Single Certificate Canvas
 function SingleCertificateCanvas({ team, certificateType, subtitle }) {
-  const certId = `SIH26-CRT-${team.temp_team_id.replace('SIH26-TM-', '')}`;
-  const verificationUrl = `https://rgu-sih.web.app/#verify?id=${team.temp_team_id}`;
+  if (!team) return null;
+  const rawId = team.temp_team_id || 'SIH26-TM-000';
+  const certId = `SIH26-CRT-${String(rawId).replace('SIH26-TM-', '')}`;
+  const verificationUrl = `https://rgu-sih.web.app/#verify?id=${rawId}`;
 
   return (
     <div className="official-certificate-canvas" id="print-certificate-target">
