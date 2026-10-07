@@ -357,7 +357,7 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
             <div className="exact-sign-col left">
               <div className="exact-sig-script-box">
                 <img 
-                  src="/logos/spoc_sign.png?v=3" 
+                  src="/logos/spoc_sign.png?v=4" 
                   alt="S. Manikandan Signature" 
                   className="exact-sig-image"
                 />
@@ -371,7 +371,7 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
             <div className="exact-sign-col right">
               <div className="exact-sig-script-box">
                 <img 
-                  src="/logos/registrar_sign.png?v=3" 
+                  src="/logos/registrar_sign.png?v=4" 
                   alt="C. Krishnaraj Signature" 
                   className="exact-sig-image"
                 />
