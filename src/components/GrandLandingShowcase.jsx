@@ -12,7 +12,7 @@ export default function GrandLandingShowcase({
   onOpenInOutPortal,
   onOpenEvaluationQueue,
   onOpenAdminGateway,
-  onOpenCertificateStudio,
+  onOpenCertificateStudio = () => {},
   allTeams,
   onOpenTeamRegistration,
   isAdminLoggedIn = false
@@ -81,7 +81,7 @@ export default function GrandLandingShowcase({
 
                         <button 
               className="btn-grand-secondary-cta" 
-              onClick={onOpenCertificateStudio}
+              onClick={() => onOpenCertificateStudio && onOpenCertificateStudio()}
               style={{ background: '#fffbeb', color: '#b45309', borderColor: '#fde68a' }}
             >
               <Award size={18} className="text-amber" />
