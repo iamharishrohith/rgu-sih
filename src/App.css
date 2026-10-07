@@ -27390,3 +27390,27 @@ body {
 .exact-signatures-bottom-row.two-col .exact-sign-col {
   width: 280px;
 }
+
+
+.exact-body-boxed-card {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px 28px;
+  margin: 0 auto 22px;
+  max-width: 880px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.exact-citation-p1 {
+  font-size: 0.86rem;
+  color: #334155;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.exact-citation-p1 strong {
+  color: #0f172a;
+  font-weight: 800;
+}

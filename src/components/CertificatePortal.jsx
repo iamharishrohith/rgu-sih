@@ -306,16 +306,7 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
             <p className="exact-citation-p1">
               In formal recognition of pioneering technical innovation, exceptional problem-solving, and active participation in the <strong>Smart India Hackathon (SIH) 2026 — Internal Hackathon</strong> conducted at Rathinam Global University.
             </p>
-            {team.members_roster && team.members_roster.length > 0 && (
-              <div className="exact-members-compact-strip">
-                <span className="members-strip-label">Team Members:</span>
-                {team.members_roster.map((m, idx) => (
-                  <span key={m.id || idx} className="member-compact-item">
-                    {m.name}{m.reg_no && ` (${m.reg_no})`}{idx < team.members_roster.length - 1 ? ' • ' : ''}
-                  </span>
-                ))}
-              </div>
-            )}
+
           </div>
 
           {/* 7. Signatures Row (2 Clean Balanced Columns - No Center Seal) */}
