@@ -2,18 +2,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   Printer, Download, Search, Award, Sparkles, CheckCircle2, 
-  User, Crown, RefreshCw, ArrowLeft
+  User, Crown, RefreshCw, ArrowLeft, ShieldCheck, Star
 } from 'lucide-react';
 import { MASTER_TEAMS } from '../data/sihMasterData.js';
 import { supabase } from '../supabaseClient.js';
 
 export default function CertificatePortal({ onBackToLanding }) {
-  const [selectedTeamId, setSelectedTeamId] = useState('SIH26-TM-175'); // Default Monarchs
+  const [selectedTeamName, setSelectedTeamName] = useState('Monarchs');
   const [searchQuery, setSearchQuery] = useState('');
   const [certificateType, setCertificateType] = useState('Certificate of Appreciation');
   const [dbRegistrations, setDbRegistrations] = useState([]);
   const [isLoadingDb, setIsLoadingDb] = useState(false);
-  const [customSubtitle, setCustomSubtitle] = useState('Smart India Hackathon 2026 — Internal Hackathon');
 
   // Fetch full registrations from Supabase to get complete member rosters
   useEffect(() => {
@@ -36,23 +35,25 @@ export default function CertificatePortal({ onBackToLanding }) {
     }
     loadRegistrations();
   }, []);
+
   // Map unique master teams with registered member details
   const enrichedTeams = useMemo(() => {
-    const seenIds = new Set();
+    const seenNames = new Set();
     const uniqueTeams = [];
 
     for (const team of MASTER_TEAMS) {
-      if (!team || !team.temp_team_id) continue;
-      if (!seenIds.has(team.temp_team_id)) {
-        seenIds.add(team.temp_team_id);
+      if (!team || !team.team_name) continue;
+      const normalizedName = team.team_name.trim().toLowerCase();
+      if (!seenNames.has(normalizedName)) {
+        seenNames.add(normalizedName);
         uniqueTeams.push(team);
       }
     }
 
     return uniqueTeams.map(team => {
       const regMatch = dbRegistrations.find(r => 
-        r.temp_team_id === team.temp_team_id || 
-        (r.team_name && team.team_name && r.team_name.trim().toLowerCase() === team.team_name.trim().toLowerCase())
+        (r.team_name && team.team_name && r.team_name.trim().toLowerCase() === team.team_name.trim().toLowerCase()) ||
+        r.temp_team_id === team.temp_team_id
       );
 
       let leaderName = team.leader_name;
@@ -99,7 +100,6 @@ export default function CertificatePortal({ onBackToLanding }) {
     const q = searchQuery.toLowerCase().trim();
     return enrichedTeams.filter(t => 
       t.team_name.toLowerCase().includes(q) ||
-      t.temp_team_id.toLowerCase().includes(q) ||
       t.leader_name.toLowerCase().includes(q) ||
       (t.leader_reg_no && t.leader_reg_no.toLowerCase().includes(q))
     );
@@ -107,8 +107,8 @@ export default function CertificatePortal({ onBackToLanding }) {
 
   // Selected team object
   const activeTeam = useMemo(() => {
-    return enrichedTeams.find(t => t.temp_team_id === selectedTeamId) || enrichedTeams[0];
-  }, [enrichedTeams, selectedTeamId]);
+    return enrichedTeams.find(t => t.team_name.trim().toLowerCase() === selectedTeamName.trim().toLowerCase()) || enrichedTeams[0];
+  }, [enrichedTeams, selectedTeamName]);
 
   const handlePrint = () => {
     window.print();
@@ -177,17 +177,16 @@ export default function CertificatePortal({ onBackToLanding }) {
 
           <div className="sidebar-teams-list">
             {filteredTeams.map((team, idx) => {
-              const isSelected = team.temp_team_id === activeTeam?.temp_team_id;
+              const isSelected = team.team_name.trim().toLowerCase() === activeTeam?.team_name.trim().toLowerCase();
               return (
                 <div 
-                  key={`${team.temp_team_id}-${idx}`}
+                  key={`${team.team_name}-${idx}`}
                   className={`team-item-card ${isSelected ? 'active' : ''}`}
-                  onClick={() => setSelectedTeamId(team.temp_team_id)}
+                  onClick={() => setSelectedTeamName(team.team_name)}
                 >
                   <div className="team-item-header">
-                    <span className="team-item-id">{team.temp_team_id}</span>
-                    <span className={`team-item-status status-${team.status?.toLowerCase()}`}>
-                      {team.status}
+                    <span className="team-item-status status-shortlist">
+                      {team.status || 'Finalist'}
                     </span>
                   </div>
                   <div className="team-item-name">{team.team_name}</div>
@@ -211,10 +210,9 @@ export default function CertificatePortal({ onBackToLanding }) {
         <main className="certificate-viewport">
           {activeTeam && (
             <div className="certificate-sheet-wrapper">
-              <SingleCertificateCanvas 
+              <PreviousGuillocheCertificateCanvas 
                 team={activeTeam} 
                 certificateType={certificateType}
-                subtitle={customSubtitle}
               />
             </div>
           )}
@@ -224,140 +222,199 @@ export default function CertificatePortal({ onBackToLanding }) {
   );
 }
 
-// Minimal, Pristine, and High-Resolution Single Certificate Canvas
-function SingleCertificateCanvas({ team, certificateType, subtitle }) {
+// Previous Classic Guilloche Security Certificate Canvas (Without Team ID, Minimized Content, Special Leader)
+function PreviousGuillocheCertificateCanvas({ team, certificateType }) {
   if (!team) return null;
-  const rawId = team.temp_team_id || 'SIH26-TM-000';
-  const certId = `SIH26-CRT-${String(rawId).replace('SIH26-TM-', '')}`;
-  const verificationUrl = `https://rgu-sih.web.app/#verify?id=${rawId}`;
+
+  const verificationUrl = `https://rgu-sih.web.app/#verify?team=${encodeURIComponent(team.team_name)}`;
+  const certNumber = `SIH26-CRT-${Math.abs(team.team_name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 1000))}`;
 
   return (
-    <div className="official-certificate-canvas" id="print-certificate-target">
-      {/* Outer Executive Border with Corner Geometrics */}
-      <div className="cert-outer-border">
-        <div className="cert-inner-frame">
+    <div className="certificate-a4-canvas theme-classic-white" id="print-certificate-target">
+      {/* Outer Security Border with Double Gold/Navy Frame */}
+      <div className="cert-outer-security-border">
+        
+        {/* Mathematical Guilloche Security Corners */}
+        <svg className="guilloche-corner tl" viewBox="0 0 100 100">
+          <path d="M0,0 L100,0 C60,0 0,60 0,100 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M5,5 L95,5 C55,5 5,55 5,95 Z" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+          <circle cx="25" cy="25" r="14" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.7" />
+          <circle cx="25" cy="25" r="8" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+        </svg>
+        <svg className="guilloche-corner tr" viewBox="0 0 100 100">
+          <path d="M100,0 L0,0 C40,0 100,60 100,100 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M95,5 L5,5 C45,5 95,55 95,95 Z" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+          <circle cx="75" cy="25" r="14" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.7" />
+          <circle cx="75" cy="25" r="8" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+        </svg>
+        <svg className="guilloche-corner bl" viewBox="0 0 100 100">
+          <path d="M0,100 L100,100 C60,100 0,40 0,0 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M5,95 L95,95 C55,95 5,45 5,5 Z" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+          <circle cx="25" cy="75" r="14" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.7" />
+          <circle cx="25" cy="75" r="8" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+        </svg>
+        <svg className="guilloche-corner br" viewBox="0 0 100 100">
+          <path d="M100,100 L0,100 C40,100 100,40 100,0 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M95,95 L5,95 C45,95 95,45 95,5 Z" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+          <circle cx="75" cy="75" r="14" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.7" />
+          <circle cx="75" cy="75" r="8" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+        </svg>
+        
+        {/* Inner Guilloche Security Margin Frame */}
+        <div className="cert-inner-content-frame">
           
-          {/* Subtle Corner Ornaments */}
-          <div className="corner-ornament top-left"></div>
-          <div className="corner-ornament top-right"></div>
-          <div className="corner-ornament bottom-left"></div>
-          <div className="corner-ornament bottom-right"></div>
-
-          {/* 1. Header Dual Brand Logos */}
-          <div className="cert-header-row">
-            <div className="cert-brand-rgu">
-              <img 
-                src="/logos/rgu_naac_logo.png" 
-                alt="Rathinam Global University - NAAC Grade A++ Accredited" 
-                className="cert-img-rgu"
-              />
-            </div>
-
-            <div className="cert-brand-sih">
+          {/* 1. Header Row: Dual Institutional Emblems & Hackathon Title */}
+          <div className="cert-canvas-header">
+            <div className="cert-header-left-emblem">
               <img 
                 src="/logos/sih_moe_aicte_logo.png" 
-                alt="Ministry of Education, AICTE, MoE Innovation Cell, Smart India Hackathon 2026" 
-                className="cert-img-sih"
+                alt="Ministry of Education & AICTE - Smart India Hackathon 2026" 
+                className="cert-partner-logo moe-logo"
+              />
+            </div>
+
+            <div className="cert-header-center-titles">
+              <div className="cert-authority-sup">
+                <span>MINISTRY OF EDUCATION INNOVATION CELL • GOVERNMENT OF INDIA</span>
+              </div>
+              <h2 className="cert-host-institution">RATHINAM GLOBAL UNIVERSITY</h2>
+              <div className="cert-institution-accreditation">
+                <span>COIMBATORE, TAMIL NADU • NAAC A++ ACCREDITED • NIRF TOP RANKED</span>
+              </div>
+              <div className="cert-event-badge-strip">
+                <span className="event-gold-tag">SMART INDIA HACKATHON 2026 — INTERNAL HACKATHON</span>
+              </div>
+            </div>
+
+            <div className="cert-header-right-emblem">
+              <img 
+                src="/logos/rgu_naac_logo.png" 
+                alt="Rathinam Global University Crest" 
+                className="cert-partner-logo rgu-logo"
               />
             </div>
           </div>
 
-          {/* 2. Certificate Title & Badge */}
+          {/* 2. Certificate Title Section */}
           <div className="cert-title-section">
-            <div className="cert-gold-ribbon">
-              <Sparkles size={12} className="sparkle-icon" />
-              <span>INTERNAL HACKATHON EVALUATION ROUND</span>
-              <Sparkles size={12} className="sparkle-icon" />
+            <div className="cert-gold-ribbon-line">
+              <div className="ribbon-glow-diamond"></div>
             </div>
+            <h1 className="cert-main-honor-title">{certificateType}</h1>
+            <div className="cert-statutory-clause">
+              <span>Section 65B Electronic Proof Ledger Record • Bharatiya Sakshya Adhiniyam 2023</span>
+            </div>
+          </div>
+
+          {/* 3. Minimized Body Content (NO Team ID) */}
+          <div className="cert-canvas-body">
+            <p className="cert-proclamation-text">This official credential of distinction is proudly conferred upon</p>
             
-            <h1 className="cert-main-title">{certificateType}</h1>
-            <p className="cert-subtitle">{subtitle}</p>
-          </div>
+            {/* Team Showcase */}
+            <div className="cert-team-showcase-title">
+              <span className="team-prefix-gold">TEAM</span>
+              <h2 className="team-name-bold">{team.team_name}</h2>
+            </div>
 
-          {/* 3. Minimized Core Body Statement */}
-          <div className="cert-presentation-text">
-            This is proudly awarded to the following team in recognition of their active participation, exemplary innovation, and high technical merit.
-          </div>
-
-          {/* 4. Team Name Showcase */}
-          <div className="cert-team-banner">
-            <span className="team-label-prefix">TEAM</span>
-            <span className="team-display-name">{team.team_name}</span>
-            <span className="team-id-badge">{team.temp_team_id}</span>
-          </div>
-
-          {/* 5. Special Team Leader & Members Roster (Clean Minimalist Layout) */}
-          <div className="cert-roster-container">
-            {/* Special Distinction for Team Leader */}
-            <div className="leader-special-badge">
-              <div className="leader-badge-pill">
-                <Crown size={15} className="crown-icon" />
-                <span className="leader-pill-label">TEAM LEADER:</span>
-                <span className="leader-pill-name">{team.leader_name}</span>
+            {/* Special Team Leader & Members Roster Box */}
+            <div className="cert-roster-box-clean">
+              {/* Leader Special Highlight */}
+              <div className="cert-leader-pill-gold">
+                <Crown size={15} className="crown-icon-gold" />
+                <span className="leader-title-tag">👑 TEAM LEADER:</span>
+                <span className="leader-name-tag">{team.leader_name}</span>
                 {team.leader_reg_no && (
-                  <span className="leader-pill-reg">({team.leader_reg_no})</span>
+                  <span className="leader-reg-tag">({team.leader_reg_no})</span>
                 )}
               </div>
+
+              {/* Members Grid */}
+              <div className="cert-members-pills-row">
+                {team.members_roster?.map((m, idx) => (
+                  <div key={m.id || idx} className="member-pill-chip">
+                    <span className="m-num">{idx + 1}.</span>
+                    <span className="m-name">{m.name}</span>
+                    {m.reg_no && <span className="m-reg">({m.reg_no})</span>}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Team Members Grid */}
-            <div className="members-minimal-grid">
-              {team.members_roster?.map((member, idx) => (
-                <div key={member.id || idx} className="member-item-chip">
-                  <span className="member-index">{idx + 1}.</span>
-                  <span className="member-name">{member.name}</span>
-                  {member.reg_no && (
-                    <span className="member-reg">({member.reg_no})</span>
-                  )}
-                </div>
-              ))}
-            </div>
+            {/* Concise Recognition Citation */}
+            <p className="cert-narrative-citation">
+              In recognition of their commendable innovation, technical excellence, and active participation in the Smart India Hackathon 2026 Internal Evaluation Round.
+            </p>
           </div>
 
-          {/* 6. Signatures Row (1st: Registrar, Center: Digital Verification, 2nd: SPOC) */}
-          <div className="cert-signatures-row">
+          {/* 4. Footer: Signatories, Holographic Cryptographic Seal & Verification QR */}
+          <div className="cert-canvas-footer">
+            
             {/* 1st Signature: Registrar */}
-            <div className="sign-column sign-registrar">
-              <div className="signature-img-wrap">
+            <div className="cert-signatory-col">
+              <div className="sig-img-box">
                 <img 
                   src="/logos/registrar_sign.png" 
-                  alt="Registrar Signature" 
-                  className="sig-img registrar-sig"
+                  alt="Registrar Sign" 
+                  className="sig-img-canvas"
                 />
               </div>
-              <div className="sign-rule"></div>
-              <div className="sign-title">Registrar</div>
-              <div className="sign-organization">Rathinam Global University</div>
+              <div className="sig-divider-line"></div>
+              <p className="sig-name">Registrar</p>
+              <p className="sig-title">Rathinam Global University</p>
             </div>
 
-            {/* Center: Verification Seal & QR Code */}
-            <div className="sign-column sign-verification">
-              <div className="cert-qr-wrap">
-                <QRCodeSVG 
-                  value={verificationUrl} 
-                  size={50} 
-                  level="M" 
-                  fgColor="#0f172a"
-                  bgColor="#ffffff"
-                />
+            {/* Center: Holographic Security Seal */}
+            <div className="cert-center-security-seal">
+              <div className="holographic-foil-medallion">
+                <div className="medallion-crest-core">
+                  <ShieldCheck size={26} className="medallion-shield-icon" />
+                  <span className="medallion-seal-caption">OFFICIAL VERIFIED</span>
+                  <span className="medallion-year">SIH 2026</span>
+                </div>
               </div>
-              <div className="cert-id-text">{certId}</div>
-              <div className="cert-seal-text">Official Digital Authenticity</div>
+              <div className="cert-hash-footer-strip">
+                <span className="hash-lbl">RECORD ID:</span>
+                <code className="hash-code-mono">{certNumber}</code>
+              </div>
             </div>
 
-            {/* 2nd Signature: SPOC */}
-            <div className="sign-column sign-spoc">
-              <div className="signature-img-wrap">
-                <img 
-                  src="/logos/spoc_sign.png" 
-                  alt="SPOC Signature" 
-                  className="sig-img spoc-sig"
-                />
+            {/* 2nd Signature: SPOC & QR Code */}
+            <div className="cert-signatory-col right">
+              <div className="cert-qr-sig-group">
+                <div className="cert-qr-box" title="Scan to verify electronic authenticity">
+                  <QRCodeSVG 
+                    value={verificationUrl}
+                    size={52}
+                    level="M"
+                    fgColor="#0f172a"
+                    bgColor="#ffffff"
+                  />
+                  <span className="qr-caption-tag">SCAN TO VERIFY</span>
+                </div>
+                <div className="sig-text-block">
+                  <div className="sig-img-box right-align">
+                    <img 
+                      src="/logos/spoc_sign.png" 
+                      alt="SPOC Sign" 
+                      className="sig-img-canvas"
+                    />
+                  </div>
+                  <div className="sig-divider-line"></div>
+                  <p className="sig-name">Single Point of Contact (SPOC)</p>
+                  <p className="sig-title">Smart India Hackathon 2026, RGU</p>
+                </div>
               </div>
-              <div className="sign-rule"></div>
-              <div className="sign-title">Single Point of Contact (SPOC)</div>
-              <div className="sign-organization">Smart India Hackathon 2026, RGU</div>
             </div>
+
+          </div>
+
+          {/* Micro Legal Security Ribbon */}
+          <div className="cert-bottom-legal-ribbon">
+            <span>ISSUED: OCTOBER 2026</span>
+            <span>•</span>
+            <span>RATHINAM GLOBAL UNIVERSITY • SMART INDIA HACKATHON 2026</span>
+            <span>•</span>
+            <span>TAMPER-PROOF ELECTRONIC CREDENTIAL</span>
           </div>
 
         </div>

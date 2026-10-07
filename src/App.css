@@ -26562,3 +26562,442 @@ body {
     page-break-inside: avoid !important;
   }
 }
+
+
+/* ==========================================================================
+   PREVIOUS GUILLOCHE LUXURY CERTIFICATE CANVAS STYLING (NO TEAM ID)
+   ========================================================================== */
+
+.certificate-a4-canvas {
+  width: 100%;
+  max-width: 980px;
+  background: #ffffff;
+  color: #0f172a;
+  position: relative;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+}
+
+.cert-outer-security-border {
+  border: 4px solid #1e3a8a;
+  padding: 6px;
+  position: relative;
+  background: #ffffff;
+}
+
+.guilloche-corner {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  color: #d97706;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.guilloche-corner.tl { top: 6px; left: 6px; }
+.guilloche-corner.tr { top: 6px; right: 6px; }
+.guilloche-corner.bl { bottom: 6px; left: 6px; }
+.guilloche-corner.br { bottom: 6px; right: 6px; }
+
+.cert-inner-content-frame {
+  border: 1.5px solid #d97706;
+  padding: 22px 30px 18px;
+  background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fafcff 70%, #f0f7ff 100%);
+  position: relative;
+}
+
+/* Header */
+.cert-canvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.cert-header-left-emblem .moe-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.cert-header-right-emblem .rgu-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.cert-header-center-titles {
+  text-align: center;
+}
+
+.cert-authority-sup {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cert-host-institution {
+  font-family: 'Georgia', serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.05em;
+  margin: 2px 0;
+}
+
+.cert-institution-accreditation {
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.08em;
+}
+
+.cert-event-badge-strip {
+  margin-top: 4px;
+}
+
+.event-gold-tag {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 2px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+
+/* Title Section */
+.cert-title-section {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.cert-gold-ribbon-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #d97706, transparent);
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.ribbon-glow-diamond {
+  width: 8px;
+  height: 8px;
+  background: #d97706;
+  transform: rotate(45deg);
+  position: absolute;
+  top: -3px;
+  left: calc(50% - 4px);
+  box-shadow: 0 0 8px #f59e0b;
+}
+
+.cert-main-honor-title {
+  font-family: 'Georgia', 'Playfair Display', serif;
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.cert-statutory-clause {
+  font-size: 0.60rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-top: 3px;
+  letter-spacing: 0.04em;
+}
+
+/* Body */
+.cert-canvas-body {
+  text-align: center;
+}
+
+.cert-proclamation-text {
+  font-size: 0.82rem;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.cert-team-showcase-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.team-prefix-gold {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #d97706;
+  letter-spacing: 0.12em;
+}
+
+.team-name-bold {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+/* Roster Box */
+.cert-roster-box-clean {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 0 auto 12px;
+  max-width: 860px;
+}
+
+.cert-leader-pill-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1.5px solid #f59e0b;
+  padding: 4px 16px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+  margin-bottom: 8px;
+}
+
+.crown-icon-gold {
+  color: #d97706;
+}
+
+.leader-title-tag {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #b45309;
+  letter-spacing: 0.05em;
+}
+
+.leader-name-tag {
+  font-size: 0.90rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.leader-reg-tag {
+  font-family: monospace;
+  font-size: 0.80rem;
+  font-weight: 800;
+  color: #78350f;
+}
+
+.cert-members-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+}
+
+.member-pill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.m-num {
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 0.70rem;
+}
+
+.m-name {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.m-reg {
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.cert-narrative-citation {
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.45;
+  max-width: 740px;
+  margin: 0 auto 12px;
+}
+
+/* Footer Signatures */
+.cert-canvas-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding: 0 6px;
+}
+
+.cert-signatory-col {
+  width: 220px;
+  text-align: left;
+}
+
+.cert-signatory-col.right {
+  width: 240px;
+  text-align: right;
+}
+
+.sig-img-box {
+  height: 48px;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 4px;
+}
+
+.sig-img-box.right-align {
+  justify-content: flex-end;
+}
+
+.sig-img-canvas {
+  max-height: 46px;
+  max-width: 170px;
+  object-fit: contain;
+}
+
+.sig-divider-line {
+  width: 100%;
+  height: 1.5px;
+  background: #0f172a;
+  margin-bottom: 4px;
+}
+
+.sig-name {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.sig-title {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+/* Center Holographic Seal */
+.cert-center-security-seal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.holographic-foil-medallion {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fef08a 0%, #f59e0b 60%, #b45309 100%);
+  border: 2px dashed #ffffff;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.medallion-crest-core {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+}
+
+.medallion-shield-icon {
+  color: #0f172a;
+}
+
+.medallion-seal-caption {
+  font-size: 0.46rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 1px;
+}
+
+.medallion-year {
+  font-size: 0.50rem;
+  font-weight: 900;
+}
+
+.cert-hash-footer-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.58rem;
+  color: #64748b;
+}
+
+.hash-code-mono {
+  font-family: monospace;
+  font-weight: 700;
+  color: #b45309;
+}
+
+/* QR Code */
+.cert-qr-sig-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.cert-qr-box {
+  background: #ffffff;
+  padding: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.qr-caption-tag {
+  font-size: 0.42rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Bottom Legal Ribbon */
+.cert-bottom-legal-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  margin-top: 8px;
+  padding-top: 4px;
+  border-top: 1px solid #e2e8f0;
+}
