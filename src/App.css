@@ -27414,3 +27414,20 @@ body {
   color: #0f172a;
   font-weight: 800;
 }
+
+
+.exact-cert-header-row.centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.exact-header-logo-divider {
+  width: 1.5px;
+  height: 42px;
+  background: #cbd5e1;
+}

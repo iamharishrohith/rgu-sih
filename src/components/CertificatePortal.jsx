@@ -244,8 +244,8 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
           <div className="exact-corner-bracket bl"></div>
           <div className="exact-corner-bracket br"></div>
 
-          {/* 1. Header Dual Brand Logos Bar */}
-          <div className="exact-cert-header-row">
+          {/* 1. Header Dual Brand Logos Bar (Centered) */}
+          <div className="exact-cert-header-row centered">
             {/* Left: MoE + AICTE + Innovation Cell + SIH 2026 */}
             <div className="exact-logo-left-group">
               <img 
@@ -254,6 +254,8 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
                 className="exact-img-moe-sih"
               />
             </div>
+
+            <div className="exact-header-logo-divider"></div>
 
             {/* Right: Updated RGU + NAAC Grade A++ Accredited */}
             <div className="exact-logo-right-group">
