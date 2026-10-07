@@ -27431,3 +27431,73 @@ body {
   height: 42px;
   background: #cbd5e1;
 }
+
+
+/* ==========================================================================
+   A4 LANDSCAPE LUXURY FRAME & ASPECT RATIO (297mm x 210mm)
+   ========================================================================== */
+
+.exact-certificate-canvas-root {
+  width: 100%;
+  max-width: 1020px;
+  aspect-ratio: 1.414 / 1;
+  background: #ffffff;
+  color: #0f172a;
+  position: relative;
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.exact-cert-outer-box {
+  border: 4px solid #0f172a;
+  padding: 6px;
+  background: #ffffff;
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.exact-cert-inner-box {
+  border: 1.5px solid #d97706;
+  padding: 22px 36px 18px;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fafbfc 65%, #f4f6fa 100%);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Corner Stepped Brackets with Gold Accents */
+.exact-corner-bracket {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d97706;
+}
+
+.exact-corner-bracket.tl { top: 5px; left: 5px; border-right: none; border-bottom: none; }
+.exact-corner-bracket.tr { top: 5px; right: 5px; border-left: none; border-bottom: none; }
+.exact-corner-bracket.bl { bottom: 5px; left: 5px; border-right: none; border-top: none; }
+.exact-corner-bracket.br { bottom: 5px; right: 5px; border-left: none; border-top: none; }
+
+/* Signature image sizing for transparent enhanced ink */
+.exact-sig-image {
+  max-height: 52px;
+  max-width: 200px;
+  object-fit: contain;
+  filter: contrast(1.15) brightness(0.95);
+}
+
+.exact-signatures-bottom-row.two-col {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 0 45px;
+}

@@ -274,7 +274,7 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
             <div className="exact-sub-ribbon-row">
               <div className="exact-ribbon-line-left"></div>
               <span className="exact-ribbon-tag-text">
-                ✦ INTERNAL HACKATHON &bull; RATHINAM GLOBAL UNIVERSITY ✦
+                ✦ INTERNAL HACKATHON - RATHINAM GLOBAL UNIVERSITY ✦
               </span>
               <div className="exact-ribbon-line-right"></div>
             </div>
@@ -291,7 +291,7 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
           <div className="exact-recipient-calligraphy-wrap">
             <span className="exact-calligraphy-name">{team.leader_name}</span>
             <div className="exact-recipient-team-sub">
-              Team Leader &bull; <strong>Team {team.team_name}</strong>
+              Team Leader - <strong>Team {team.team_name}</strong>
             </div>
           </div>
 
@@ -303,12 +303,11 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
             </div>
           </div>
 
-          {/* 6. Simple, Powerful Body Statement (With Internal Hackathon) */}
+          {/* 6. Simple, Powerful Body Statement (With Internal Hackathon & Innovation Best Wishes) */}
           <div className="exact-body-boxed-card">
             <p className="exact-citation-p1">
-              In formal recognition of pioneering technical innovation, exceptional problem-solving, and active participation in the <strong>Smart India Hackathon (SIH) 2026 — Internal Hackathon</strong> conducted at Rathinam Global University.
+              In formal recognition of pioneering technical ingenuity, collaborative problem-solving, and commendable performance in the <strong>Smart India Hackathon (SIH) 2026 - Internal Hackathon</strong> conducted at Rathinam Global University. We commend your passion for breakthrough innovation and extend our warmest wishes for your continuous growth, technical leadership, and future impactful solutions.
             </p>
-
           </div>
 
           {/* 7. Signatures Row (2 Clean Balanced Columns - No Center Seal) */}
