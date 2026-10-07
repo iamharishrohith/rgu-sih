@@ -12,6 +12,7 @@ export default function GrandLandingShowcase({
   onOpenInOutPortal,
   onOpenEvaluationQueue,
   onOpenAdminGateway,
+  onOpenCertificateStudio,
   allTeams,
   onOpenTeamRegistration,
   isAdminLoggedIn = false
