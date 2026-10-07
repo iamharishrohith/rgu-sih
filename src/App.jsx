@@ -1098,7 +1098,7 @@ export default function App() {
   return (
     <div className="app-shell">
       {/* Flower Petals & Confetti Shower (Only on Landing/Desk) */}
-      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && currentView !== 'admin' && <FlowerConfettiRain />}
+      {currentView !== 'inout_portal' && currentView !== 'eval_queue' && currentView !== 'jury_station' && currentView !== 'admin' && currentView !== 'certificate' && <FlowerConfettiRain />}
 
       {/* Institutional Header (Rendered across all views) */}
       <Navbar
@@ -1236,6 +1236,14 @@ export default function App() {
           onOpenRegistrationForm={(team) => setActiveRegTeam(team)}
           onOpenAdminGateway={triggerSecretAdmin}
           onBackToMain={() => {
+            window.history.pushState(null, '', '/');
+            setCurrentView('landing');
+          }}
+        />
+            ) : currentView === 'certificate' ? (
+        /* VIEW: OFFICIAL SIH 2026 CERTIFICATE STUDIO */
+        <CertificatePortal
+          onBackToLanding={() => {
             window.history.pushState(null, '', '/');
             setCurrentView('landing');
           }}
