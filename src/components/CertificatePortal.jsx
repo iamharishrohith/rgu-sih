@@ -228,24 +228,64 @@ export default function CertificatePortal({ onBackToLanding }) {
   );
 }
 
-// EXACT Clean, Powerful Certificate Canvas with Internal Hackathon Recognition & 2-Column Signatures
+// Ornate Royal Gold Filigree Corner Ornament
+function GoldCornerFlourish({ position }) {
+  return (
+    <div className={`exact-gold-corner ${position}`}>
+      <svg viewBox="0 0 80 80" className="gold-flourish-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id={`goldGrad-${position}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#d4af37" />
+            <stop offset="28%" stopColor="#fff4c2" />
+            <stop offset="50%" stopColor="#c59b27" />
+            <stop offset="78%" stopColor="#fdf6c7" />
+            <stop offset="100%" stopColor="#996515" />
+          </linearGradient>
+        </defs>
+        {/* Outer corner frame lines */}
+        <path d="M4 64 V14 C4 8.48 8.48 4 14 4 H64" stroke={`url(#goldGrad-${position})`} strokeWidth="3" strokeLinecap="round" />
+        <path d="M12 52 V18 C12 14.68 14.68 12 18 12 H52" stroke={`url(#goldGrad-${position})`} strokeWidth="1.2" strokeLinecap="round" />
+        
+        {/* Inner filigree scroll work */}
+        <path d="M14 14 Q32 14 36 28 Q40 42 54 44 Q38 46 26 36 Q14 28 14 14 Z" fill={`url(#goldGrad-${position})`} fillOpacity="0.3" stroke={`url(#goldGrad-${position})`} strokeWidth="0.8" />
+        <path d="M22 22 C30 16 38 20 44 26 C36 30 28 28 22 22 Z" fill={`url(#goldGrad-${position})`} fillOpacity="0.6" />
+        
+        {/* Corner 8-point gold star rosette */}
+        <circle cx="14" cy="14" r="3.5" fill={`url(#goldGrad-${position})`} />
+        <path d="M14 6 L16 12 L22 14 L16 16 L14 22 L12 16 L6 14 L12 12 Z" fill={`url(#goldGrad-${position})`} />
+        
+        {/* Finial pearl accents */}
+        <circle cx="64" cy="4" r="2.2" fill={`url(#goldGrad-${position})`} />
+        <circle cx="4" cy="64" r="2.2" fill={`url(#goldGrad-${position})`} />
+        <circle cx="52" cy="12" r="1.6" fill={`url(#goldGrad-${position})`} />
+        <circle cx="12" cy="52" r="1.6" fill={`url(#goldGrad-${position})`} />
+        
+        {/* Dotted accent line */}
+        <path d="M20 56 V24 C20 21.8 21.8 20 24 20 H56" stroke={`url(#goldGrad-${position})`} strokeWidth="0.8" strokeDasharray="2 3" />
+      </svg>
+    </div>
+  );
+}
+
+// EXACT Clean, Powerful Certificate Canvas with Internal Hackathon Recognition, Gold Frame & 2-Column Signatures
 function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonText }) {
   if (!team) return null;
 
   return (
     <div className="exact-certificate-canvas-root" id="print-certificate-target">
-      {/* Outer Stepped Frame with Double Borders & Corner Notches */}
+      {/* Outer Stepped Frame with Triple Gold Inlay & Ornate Corner Filigrees */}
       <div className="exact-cert-outer-box">
-        <div className="exact-cert-inner-box">
-          
-          {/* Corner Notches */}
-          <div className="exact-corner-bracket tl"></div>
-          <div className="exact-corner-bracket tr"></div>
-          <div className="exact-corner-bracket bl"></div>
-          <div className="exact-corner-bracket br"></div>
+        <div className="exact-cert-mid-gold-border">
+          <div className="exact-cert-inner-box">
+            
+            {/* Ornate Gold Filigree Corner Badges */}
+            <GoldCornerFlourish position="tl" />
+            <GoldCornerFlourish position="tr" />
+            <GoldCornerFlourish position="bl" />
+            <GoldCornerFlourish position="br" />
 
-          {/* 1. Header Dual Brand Logos Bar (Centered) */}
-          <div className="exact-cert-header-row centered">
+            {/* 1. Header Dual Brand Logos Bar (Centered) */}
+            <div className="exact-cert-header-row centered">
             {/* Left: MoE + AICTE + Innovation Cell + SIH 2026 */}
             <div className="exact-logo-left-group">
               <img 
@@ -343,6 +383,7 @@ function ExactOfficialCertificateCanvas({ team, certificateTitle, awardRibbonTex
 
           </div>
 
+          </div>
         </div>
       </div>
     </div>

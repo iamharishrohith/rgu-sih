@@ -27357,7 +27357,7 @@ body {
     max-width: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 10mm !important;
+    padding: 6mm !important;
     box-sizing: border-box !important;
     page-break-after: always !important;
     page-break-inside: avoid !important;
@@ -27434,57 +27434,96 @@ body {
 
 
 /* ==========================================================================
-   A4 LANDSCAPE LUXURY FRAME & ASPECT RATIO (297mm x 210mm)
+   A4 LANDSCAPE LUXURY GOLDEN FRAME & BORDERS (297mm x 210mm)
    ========================================================================== */
 
 .exact-certificate-canvas-root {
   width: 100%;
-  max-width: 1020px;
+  max-width: 1040px;
   aspect-ratio: 1.414 / 1;
-  background: #ffffff;
-  color: #0f172a;
   position: relative;
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.45), 0 0 40px rgba(212, 175, 55, 0.25);
   border-radius: 4px;
   display: flex;
   flex-direction: column;
+  padding: 8px;
+  background: linear-gradient(135deg, #c59b27 0%, #fff7d1 22%, #a87919 45%, #fff1b8 70%, #8c600b 100%);
 }
 
 .exact-cert-outer-box {
-  border: 4px solid #0f172a;
-  padding: 6px;
-  background: #ffffff;
+  background: #0b132b; /* Midnight royal navy contrast pin-line */
+  padding: 3px;
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.exact-cert-mid-gold-border {
+  background: linear-gradient(135deg, #d4af37 0%, #fffbf0 28%, #b38728 50%, #fdf6c7 72%, #996515 100%);
+  padding: 4px;
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.35);
 }
 
 .exact-cert-inner-box {
-  border: 1.5px solid #d97706;
-  padding: 22px 36px 18px;
+  border: 1.5px solid #d4af37;
+  outline: 1px solid #f3e5ab;
+  outline-offset: -6px;
+  padding: 22px 38px 18px;
   position: relative;
-  background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fafbfc 65%, #f4f6fa 100%);
+  background: radial-gradient(ellipse at 50% 30%, #ffffff 0%, #fefdfa 55%, #f9f6ec 100%);
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-shadow: inset 0 0 40px rgba(212, 175, 55, 0.08);
 }
 
-/* Corner Stepped Brackets with Gold Accents */
-.exact-corner-bracket {
+/* Ornate Royal Gold Corner Filigrees */
+.exact-gold-corner {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #d97706;
+  width: 58px;
+  height: 58px;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.exact-corner-bracket.tl { top: 5px; left: 5px; border-right: none; border-bottom: none; }
-.exact-corner-bracket.tr { top: 5px; right: 5px; border-left: none; border-bottom: none; }
-.exact-corner-bracket.bl { bottom: 5px; left: 5px; border-right: none; border-top: none; }
-.exact-corner-bracket.br { bottom: 5px; right: 5px; border-left: none; border-top: none; }
+.exact-gold-corner.tl {
+  top: 4px;
+  left: 4px;
+}
+
+.exact-gold-corner.tr {
+  top: 4px;
+  right: 4px;
+  transform: scaleX(-1);
+}
+
+.exact-gold-corner.bl {
+  bottom: 4px;
+  left: 4px;
+  transform: scaleY(-1);
+}
+
+.exact-gold-corner.br {
+  bottom: 4px;
+  right: 4px;
+  transform: scale(-1, -1);
+}
+
+.gold-flourish-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(140, 96, 11, 0.35));
+}
 
 /* Signature image sizing for transparent enhanced ink */
 .exact-sig-script-box {
